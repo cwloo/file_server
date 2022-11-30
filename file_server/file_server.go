@@ -23,15 +23,26 @@ func main() {
 	logs.LogInit(dir+"/logs", logs.LVL_DEBUG, exe, 100000000)
 	logs.LogMode(logs.M_STDOUT_FILE)
 
-	http.HandleFunc("/upload", uploadFile)
-
 	task.After(time.Duration(PendingTimeout)*time.Second, cb.NewFunctor00(func() {
 		handlerUploadFileOnTimer()
 	}))
 
-	err := http.ListenAndServe("192.168.1.113:8088", nil)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/upload", uploadFile)
+
+	server := &http.Server{
+		Addr:              "192.168.1.113:8088",
+		Handler:           mux,
+		ReadTimeout:       time.Duration(PendingTimeout) * time.Second,
+		ReadHeaderTimeout: time.Duration(PendingTimeout) * time.Second,
+		WriteTimeout:      time.Duration(PendingTimeout) * time.Second,
+		IdleTimeout:       time.Duration(PendingTimeout) * time.Second,
+	}
+
+	err := server.ListenAndServe()
 	if err != nil {
 		logs.LogFatal("%v", err.Error())
 	}
-	logs.LogInfo("listen:8080")
+
+	logs.LogInfo(server.Addr)
 }

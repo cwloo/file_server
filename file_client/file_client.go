@@ -21,14 +21,16 @@ const (
 func main() {
 	path, _ := os.Executable()
 	dir, exe := filepath.Split(path)
-	
+
 	logs.LogTimezone(logs.MY_CST)
 	logs.LogInit(dir+"/logs", logs.LVL_DEBUG, exe, 100000000)
 	logs.LogMode(logs.M_STDOUT_FILE)
 
+	//http.Client
+	client := &http.Client{}
 	method := "POST"
 	url := "http://192.168.1.113:8088/upload"
-	
+
 	userId := "1001"           //上传操作用户
 	uuid := utils.CreateGUID() //本次上传标识
 	filelist := []string{
@@ -120,8 +122,6 @@ func main() {
 			logs.LogFatal("%v", err.Error())
 		}
 		if !finished_all {
-			//http.Client
-			client := &http.Client{}
 			req, err := http.NewRequest(method, url, payload)
 			if err != nil {
 				logs.LogFatal("%v", err.Error())
@@ -136,12 +136,18 @@ func main() {
 				return
 			}
 			defer res.Body.Close()
-			//response
-			body, err := ioutil.ReadAll(res.Body)
-			if err != nil {
-				logs.LogFatal("%v", err.Error())
+			for {
+				// response
+				body, err := ioutil.ReadAll(res.Body)
+				if err != nil {
+					logs.LogError("%v", err.Error())
+					break
+				}
+				if len(body) == 0 {
+					break
+				}
+				logs.LogInfo(string(body))
 			}
-			logs.LogInfo(string(body))
 		} else {
 			break
 		}
