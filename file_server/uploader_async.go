@@ -49,16 +49,14 @@ func NewAsyncUploader(uuid string) Uploader {
 	return s
 }
 
-// Notify
-func (s *AsyncUploader) Notify() {
+func (s *AsyncUploader) notify() {
 	s.l_signal.Lock()
 	s.signaled = true
 	s.cond.Signal()
 	s.l_signal.Unlock()
 }
 
-// Wait
-func (s *AsyncUploader) Wait() {
+func (s *AsyncUploader) wait() {
 	s.l_signal.Lock()
 	for !s.signaled {
 		s.cond.Wait()
@@ -88,7 +86,7 @@ func (s *AsyncUploader) NotifyClose() {
 	s.pipe.NotifyClose()
 }
 
-func (s *AsyncUploader) clear() {
+func (s *AsyncUploader) Clear() {
 	s.l.RLock()
 	for md5 := range s.file {
 		fileInfos.Remove(md5)
@@ -96,13 +94,9 @@ func (s *AsyncUploader) clear() {
 	s.l.RUnlock()
 }
 
-func (s *AsyncUploader) Do(data any) {
-	s.pipe.Do(data)
-}
-
 func (s *AsyncUploader) onQuit(slot run.Slot) {
 	// logs.LogError("uuid:%v", s.uuid)
-	s.clear()
+	s.Clear()
 	uploaders.Remove(s.uuid)
 }
 
@@ -145,9 +139,9 @@ func (s *AsyncUploader) handler(msg any, args ...any) (exit bool) {
 }
 
 func (s *AsyncUploader) Upload(req *Req) {
-	s.Do(req)
-	/// http.ResponseWriter 生命周期原因，不支持异步，所以加了 Wait
-	s.Wait()
+	s.pipe.Do(req)
+	/// http.ResponseWriter 生命周期原因，不支持异步，所以加了 wait
+	s.wait()
 }
 
 func (s *AsyncUploader) uploading(req *Req) {
@@ -303,23 +297,23 @@ func (s *AsyncUploader) uploading(req *Req) {
 		j, _ := json.Marshal(resp)
 		req.w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 		req.w.Header().Set("Content-Type", "application/json")
-		/// http.ResponseWriter 生命周期原因，不支持异步，所以加了 Notify
+		/// http.ResponseWriter 生命周期原因，不支持异步，所以加了 notify
 		_, err := req.w.Write(j)
 		if err != nil {
 			logs.LogError(err.Error())
 		}
-		s.Notify()
+		s.notify()
 		// logs.LogError("uuid:%v %v", req.uuid, string(j))
 	} else {
 		resp = &Resp{}
 		j, _ := json.Marshal(resp)
 		req.w.Header().Set("Content-Length", strconv.Itoa(len(j)))
-		/// http.ResponseWriter 生命周期原因，不支持异步，所以加了 Notify
+		/// http.ResponseWriter 生命周期原因，不支持异步，所以加了 notify
 		_, err := req.w.Write(j)
 		if err != nil {
 			logs.LogError(err.Error())
 		}
-		s.Notify()
+		s.notify()
 		logs.LogFatal("uuid:%v", req.uuid)
 	}
 }

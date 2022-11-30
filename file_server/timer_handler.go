@@ -15,9 +15,16 @@ func handlerUploadFileOnTimer() {
 }
 
 func checkOnTimer() {
-	uploaders.Range(func(sessionId string, uploader Uploader) {
-		if time.Since(uploader.Get()) > time.Duration(PendingTimeout)*time.Second {
-			uploader.NotifyClose()
-		}
-	})
+	switch UseAsyncUploader {
+	case true:
+		uploaders.Range(func(sessionId string, uploader Uploader) {
+			if time.Since(uploader.Get()) > time.Duration(PendingTimeout)*time.Second {
+				uploader.NotifyClose()
+			}
+		})
+	default:
+		uploaders.CHeckRemove(func(uploader Uploader) bool {
+			return time.Since(uploader.Get()) > time.Duration(PendingTimeout)*time.Second
+		})
+	}
 }

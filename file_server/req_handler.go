@@ -14,17 +14,17 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 	// w.WriteHeader(http.StatusOK)
 	err := r.ParseMultipartForm(MaxMemory)
 	if err != nil {
-		obj := &Resp{
+		logs.LogError(err.Error())
+		resp := &Resp{
 			ErrCode: ErrParsePartData.ErrCode,
 			ErrMsg:  ErrParsePartData.ErrMsg,
 		}
-		j, _ := json.Marshal(obj)
+		j, _ := json.Marshal(resp)
 		w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 		_, err := w.Write(j)
 		if err != nil {
 			logs.LogError(err.Error())
 		}
-		logs.LogError("%v", err.Error())
 		return
 	}
 	uuid := ""
@@ -37,11 +37,11 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 		// logs.LogTrace("%v=%v", k, v)
 	}
 	if !checkUUID(uuid) {
-		obj := &Resp{
+		resp := &Resp{
 			ErrCode: ErrParamsUUID.ErrCode,
 			ErrMsg:  ErrParamsUUID.ErrMsg,
 		}
-		j, _ := json.Marshal(obj)
+		j, _ := json.Marshal(resp)
 		w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 		_, err := w.Write(j)
 		if err != nil {

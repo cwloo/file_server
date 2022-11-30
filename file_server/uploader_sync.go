@@ -50,16 +50,14 @@ func (s *SyncUploader) Get() time.Time {
 }
 
 func (s *SyncUploader) Close() {
-	s.clear()
+	s.Clear()
 	uploaders.Remove(s.uuid)
 }
 
 func (s *SyncUploader) NotifyClose() {
-	s.clear()
-	uploaders.Remove(s.uuid)
 }
 
-func (s *SyncUploader) clear() {
+func (s *SyncUploader) Clear() {
 	s.l.RLock()
 	for md5 := range s.file {
 		fileInfos.Remove(md5)
@@ -100,6 +98,7 @@ func (s *SyncUploader) Upload(req *Req) {
 	exit := s.hasFinishedAll()
 	if exit {
 		logs.LogTrace("--------------------- ****** 无待上传文件，结束任务 uuid:%v ...", s.uuid)
+		uploaders.Remove(s.uuid)
 	}
 }
 

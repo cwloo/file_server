@@ -91,9 +91,9 @@ func (s *FileInfos) Add(md5 string, info *FileInfo) (old *FileInfo) {
 		old = c
 		logs.LogFatal("error")
 	}
-	// logs.LogError("md5:%v", md5)
 	s.m[md5] = info
 	s.l.Unlock()
+	logs.LogError("md5:%v", md5)
 	return
 }
 
@@ -102,9 +102,13 @@ func (s *FileInfos) Remove(md5 string) (info *FileInfo) {
 	if c, ok := s.m[md5]; ok {
 		info = c
 		delete(s.m, md5)
-		// logs.LogError("md5:%v", md5)
+		s.l.Unlock()
+		goto end
 	}
 	s.l.Unlock()
+	return
+end:
+	logs.LogError("md5:%v", md5)
 	return
 }
 

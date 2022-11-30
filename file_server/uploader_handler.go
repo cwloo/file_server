@@ -8,6 +8,7 @@ import "time"
 type Uploader interface {
 	Get() time.Time
 	Upload(req *Req)
+	Clear()
 	Close()
 	NotifyClose()
 }
