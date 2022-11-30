@@ -140,7 +140,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 					Uuid:    uuid,
 					Md5:     md5,
 					SrcName: header.Filename,
-					DstName: strings.Join([]string{uuid, utils.RandomString(10), ".", header.Filename}, ""),
+					DstName: strings.Join([]string{uuid, ".", utils.RandomString(10), ".", header.Filename}, ""),
 					Total:   size,
 				}
 				fileInfos.Add(md5, info)
@@ -321,7 +321,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 					Uuid:    uuid,
 					Md5:     md5,
 					SrcName: header.Filename,
-					DstName: strings.Join([]string{uuid, utils.RandomString(10), ".", header.Filename}, ""),
+					DstName: strings.Join([]string{uuid, ".", utils.RandomString(10), ".", header.Filename}, ""),
 					Total:   size,
 				}
 				fileInfos.Add(md5, info)
