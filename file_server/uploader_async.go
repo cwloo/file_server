@@ -299,7 +299,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 			logs.LogError(err.Error())
 		}
 		s.Notify()
-		logs.LogError("uuid:%v %v", req.uuid, string(j))
+		// logs.LogError("uuid:%v %v", req.uuid, string(j))
 	} else {
 		resp = &Resp{}
 		j, _ := json.Marshal(resp)

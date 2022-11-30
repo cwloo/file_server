@@ -140,7 +140,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 					Uuid:    uuid,
 					Md5:     md5,
 					SrcName: header.Filename,
-					DstName: utils.RandomString(10) + "." + header.Filename,
+					DstName: strings.Join([]string{uuid, utils.RandomString(10), ".", header.Filename}, ""),
 					Total:   size,
 				}
 				fileInfos.Add(md5, info)
@@ -217,7 +217,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					logs.LogError(err.Error())
 				}
-				logs.LogError("uuid:%v %v", uuid, string(j))
+				// logs.LogError("uuid:%v %v", uuid, string(j))
 			} else {
 				resp = &Resp{}
 				j, _ := json.Marshal(resp)
@@ -321,7 +321,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 					Uuid:    uuid,
 					Md5:     md5,
 					SrcName: header.Filename,
-					DstName: utils.RandomString(10) + "." + header.Filename,
+					DstName: strings.Join([]string{uuid, utils.RandomString(10), ".", header.Filename}, ""),
 					Total:   size,
 				}
 				fileInfos.Add(md5, info)
@@ -388,7 +388,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					logs.LogError(err.Error())
 				}
-				logs.LogError("uuid:%v %v", uuid, string(j))
+				// logs.LogError("uuid:%v %v", uuid, string(j))
 			} else {
 				resp = &Resp{}
 				j, _ := json.Marshal(resp)
