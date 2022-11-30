@@ -245,8 +245,11 @@ func (s *AsyncUploader) uploading(req *Req) {
 				result = append(result,
 					Result{
 						Uuid:    req.uuid,
+						Key:     k,
 						File:    header.Filename,
 						Md5:     info.Md5,
+						Now:     info.Now,
+						Total:   info.Total,
 						ErrCode: ErrOk.ErrCode,
 						ErrMsg:  ErrOk.ErrMsg,
 						Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", now + "/" + total + " 上传成功!"}, "")})
@@ -256,8 +259,11 @@ func (s *AsyncUploader) uploading(req *Req) {
 				result = append(result,
 					Result{
 						Uuid:    req.uuid,
+						Key:     k,
 						File:    header.Filename,
 						Md5:     info.Md5,
+						Now:     info.Now,
+						Total:   info.Total,
 						ErrCode: ErrFileMd5.ErrCode,
 						ErrMsg:  ErrFileMd5.ErrMsg,
 						Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", now + "/" + total + " 上传完毕 MD5校验失败!"}, "")})
@@ -271,8 +277,11 @@ func (s *AsyncUploader) uploading(req *Req) {
 			result = append(result,
 				Result{
 					Uuid:    req.uuid,
+					Key:     k,
 					File:    header.Filename,
 					Md5:     info.Md5,
+					Now:     info.Now,
+					Total:   info.Total,
 					Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
 					ErrCode: ErrSegOk.ErrCode,
 					ErrMsg:  ErrSegOk.ErrMsg,

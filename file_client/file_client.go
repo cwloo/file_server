@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -20,6 +21,31 @@ import (
 const (
 	BUFSIZ = 1024 * 1024 * 10
 )
+
+// <summary>
+// Resp
+// <summary>
+type Resp struct {
+	ErrCode int      `json:"code,omitempty"`
+	ErrMsg  string   `json:"errmsg,omitempty"`
+	Data    []Result `json:"data,omitempty"`
+}
+
+// <summary>
+// Result
+// <summary>
+type Result struct {
+	Uuid    string `json:"uuid,omitempty"`
+	Key     string `json:"key,omitempty"`
+	File    string `json:"file,omitempty"`
+	Md5     string `json:"md5,omitempty"`
+	Now     int64  `json:"now,omitempty"`
+	Total   int64  `json:"total,omitempty"`
+	Expired int64  `json:"expired,omitempty"`
+	Result  string `json:"result,omitempty"`
+	ErrCode int    `json:"code,omitempty"`
+	ErrMsg  string `json:"errmsg,omitempty"`
+}
 
 func main() {
 	path, _ := os.Executable()
@@ -158,6 +184,12 @@ func main() {
 					break
 				}
 				if len(body) == 0 {
+					break
+				}
+				resp := Resp{}
+				err = json.Unmarshal(body, &resp)
+				if err != nil {
+					logs.LogFatal("%v", err.Error())
 					break
 				}
 				logs.LogInfo(string(body))

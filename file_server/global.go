@@ -74,6 +74,8 @@ type Result struct {
 	Key     string `json:"key,omitempty"`
 	File    string `json:"file,omitempty"`
 	Md5     string `json:"md5,omitempty"`
+	Now     int64  `json:"now,omitempty"`
+	Total   int64  `json:"total,omitempty"`
 	Expired int64  `json:"expired,omitempty"`
 	Result  string `json:"result,omitempty"`
 	ErrCode int    `json:"code,omitempty"`
