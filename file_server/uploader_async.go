@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -19,88 +18,113 @@ import (
 )
 
 // <summary>
-// Uploader
+// AsyncUploader 异步方式上传
 // <summary>
-type Uploader struct {
-	uuid  string
-	pipe  pipe.Pipe
-	l     *sync.RWMutex
-	flags map[string]bool
-	l_tm  *sync.RWMutex
-	tm    time.Time
+type AsyncUploader struct {
+	uuid     string
+	pipe     pipe.Pipe
+	file     map[string]bool
+	l        *sync.RWMutex
+	tm       time.Time
+	l_tm     *sync.RWMutex
+	signaled bool
+	l_signal *sync.Mutex
+	cond     *sync.Cond
 }
 
-func NewUploader(uuid string) *Uploader {
-	s := &Uploader{
-		uuid:  uuid,
-		tm:    time.Now(),
-		flags: map[string]bool{},
-		l:     &sync.RWMutex{},
-		l_tm:  &sync.RWMutex{}}
+func NewAsyncUploader(uuid string) Uploader {
+	s := &AsyncUploader{
+		signaled: false,
+		uuid:     uuid,
+		tm:       time.Now(),
+		file:     map[string]bool{},
+		l:        &sync.RWMutex{},
+		l_tm:     &sync.RWMutex{},
+		l_signal: &sync.Mutex{},
+	}
+	s.cond = sync.NewCond(s.l_signal)
 	mq := lq.NewQueue(1000)
 	runner := NewProcessor(s.handler)
 	s.pipe = pipe.NewPipeWithQuit(i32.New(), "uploader.pipe", mq, runner, s.onQuit)
 	return s
 }
 
-func (s *Uploader) update() {
+// Notify
+func (s *AsyncUploader) Notify() {
+	s.l_signal.Lock()
+	s.signaled = true
+	s.cond.Signal()
+	s.l_signal.Unlock()
+}
+
+// Wait
+func (s *AsyncUploader) Wait() {
+	s.l_signal.Lock()
+	for !s.signaled {
+		s.cond.Wait()
+	}
+	s.signaled = false
+	s.l_signal.Unlock()
+}
+
+func (s *AsyncUploader) update() {
 	s.l.Lock()
 	s.tm = time.Now()
 	s.l.Unlock()
 }
 
-func (s *Uploader) Get() time.Time {
+func (s *AsyncUploader) Get() time.Time {
 	s.l.RLock()
 	tm := s.tm
 	s.l.RUnlock()
 	return tm
 }
 
-func (s *Uploader) Close() {
+func (s *AsyncUploader) Close() {
 	s.pipe.Close()
 }
 
-func (s *Uploader) NotifyClose() {
+func (s *AsyncUploader) NotifyClose() {
 	s.pipe.NotifyClose()
 }
 
-func (s *Uploader) clear() {
+func (s *AsyncUploader) clear() {
 	s.l.RLock()
-	for md5 := range s.flags {
+	for md5 := range s.file {
 		fileInfos.Remove(md5)
 	}
 	s.l.RUnlock()
 }
 
-func (s *Uploader) Do(data any) {
+func (s *AsyncUploader) Do(data any) {
 	s.pipe.Do(data)
 }
 
-func (s *Uploader) onQuit(slot run.Slot) {
-	logs.LogError("uuid:%v", s.uuid)
+func (s *AsyncUploader) onQuit(slot run.Slot) {
+	// logs.LogError("uuid:%v", s.uuid)
 	s.clear()
 	uploaders.Remove(s.uuid)
 }
 
-func (s *Uploader) tryAdd(md5 string) {
+func (s *AsyncUploader) tryAdd(md5 string) {
 	s.l.Lock()
-	if _, ok := s.flags[md5]; !ok {
-		s.flags[md5] = false
+	if _, ok := s.file[md5]; !ok {
+		s.file[md5] = false
 	}
 	s.l.Unlock()
 }
 
-func (s *Uploader) setFinished(md5 string) {
+func (s *AsyncUploader) setFinished(md5 string) {
 	s.l.Lock()
-	if _, ok := s.flags[md5]; ok {
-		s.flags[md5] = true
+	if _, ok := s.file[md5]; ok {
+		s.file[md5] = true
 	}
 	s.l.Unlock()
 }
 
-func (s *Uploader) hasFinishedAll() bool {
+func (s *AsyncUploader) hasFinishedAll() bool {
 	s.l.RLock()
-	for _, v := range s.flags {
+	for _, v := range s.file {
 		if !v {
 			s.l.RUnlock()
 			return false
@@ -110,22 +134,26 @@ func (s *Uploader) hasFinishedAll() bool {
 	return true
 }
 
-func (s *Uploader) handler(msg any, args ...any) (exit bool) {
-	s.update()
+func (s *AsyncUploader) handler(msg any, args ...any) (exit bool) {
 	req := msg.(*Req)
-	result := []Result{}
-	for _, info := range req.ignore {
-		now := strconv.FormatInt(info.Now, 10)
-		total := strconv.FormatInt(info.Total, 10)
-		result = append(result,
-			Result{
-				Uuid:    req.uuid,
-				File:    info.SrcName,
-				Md5:     info.Md5,
-				ErrCode: ErrRepeat.ErrCode,
-				ErrMsg:  ErrRepeat.ErrMsg,
-				Result:  info.Uuid + " 正在上传 " + info.SrcName + " 进度 " + now + "/" + total})
+	s.uploading(req)
+	exit = s.hasFinishedAll()
+	if exit {
+		logs.LogTrace("--------------------- ****** 无待上传文件，结束任务 uuid:%v ...", s.uuid)
 	}
+	return
+}
+
+func (s *AsyncUploader) Upload(req *Req) {
+	s.Do(req)
+	/// http.ResponseWriter 生命周期原因，不支持异步，所以加了 Wait
+	s.Wait()
+}
+
+func (s *AsyncUploader) uploading(req *Req) {
+	s.update()
+	resp := req.resp
+	result := req.result
 	for _, k := range req.keys {
 		total := req.r.FormValue(k + ".total")
 		md5 := strings.ToLower(req.r.FormValue(k + ".md5"))
@@ -160,12 +188,12 @@ func (s *Uploader) handler(msg any, args ...any) (exit bool) {
 		if info.Finished() {
 			logs.LogFatal("uuid:%v:%v(%v) finished", info.Uuid, info.SrcName, info.Md5)
 		}
-		//检查上传目录
+		////// 检查上传目录
 		_, err = os.Stat(dir + "upload/")
 		if err != nil && os.IsNotExist(err) {
 			os.MkdirAll(dir+"upload/", 0666)
 		}
-		//检查上传文件
+		////// 检查上传文件
 		f := dir + "upload/" + info.DstName
 		_, err = os.Stat(f)
 		if err != nil && os.IsNotExist(err) {
@@ -196,7 +224,7 @@ func (s *Uploader) handler(msg any, args ...any) (exit bool) {
 		}
 		if info.Finished() {
 			s.setFinished(info.Md5)
-			logs.LogError("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, k, header.Filename, md5, info.DstName, info.Now, total, header.Size)
+			logs.LogDebug("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, k, header.Filename, md5, info.DstName, info.Now, total, header.Size)
 			start := time.Now()
 			fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 			if err != nil {
@@ -221,11 +249,10 @@ func (s *Uploader) handler(msg any, args ...any) (exit bool) {
 						Md5:     info.Md5,
 						ErrCode: ErrOk.ErrCode,
 						ErrMsg:  ErrOk.ErrMsg,
-						Result:  info.Uuid + " 正在上传 " + info.SrcName + " 进度 " + now + "/" + total + " 上传完毕!"})
+						Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", now + "/" + total + " 上传成功!"}, "")})
 			} else {
 				logs.LogError("uuid:%v %v=%v[%v] %v chkmd5 [Err] elapsed:%vms", req.uuid, k, header.Filename, md5, info.DstName, time.Since(start).Milliseconds())
 				fileInfos.Remove(info.Md5)
-				//文件不完整
 				result = append(result,
 					Result{
 						Uuid:    req.uuid,
@@ -233,7 +260,7 @@ func (s *Uploader) handler(msg any, args ...any) (exit bool) {
 						Md5:     info.Md5,
 						ErrCode: ErrFileMd5.ErrCode,
 						ErrMsg:  ErrFileMd5.ErrMsg,
-						Result:  info.Uuid + " 正在上传 " + info.SrcName + " 进度 " + now + "/" + total + " 上传失败，文件不完整!"})
+						Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", now + "/" + total + " 上传完毕 MD5校验失败!"}, "")})
 			}
 		} else {
 			if info.Now == header.Size {
@@ -248,22 +275,41 @@ func (s *Uploader) handler(msg any, args ...any) (exit bool) {
 					Md5:     info.Md5,
 					ErrCode: ErrSegOk.ErrCode,
 					ErrMsg:  ErrSegOk.ErrMsg,
-					Result:  info.Uuid + " 正在上传 " + info.SrcName + " 进度 " + now + "/" + total})
+					Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", now + "/" + total}, "")})
 		}
 	}
-	if len(result) > 0 {
-		req.w.WriteHeader(http.StatusOK)
-		obj := &Resp{
-			Data: result,
+	if resp == nil {
+		if len(result) > 0 {
+			resp = &Resp{
+				Data: result,
+			}
 		}
-		j, _ := json.Marshal(obj)
-		req.w.Write(j)
 	} else {
-		logs.LogFatal("error")
+		if len(result) > 0 {
+			resp.Data = result
+		}
 	}
-	exit = s.hasFinishedAll()
-	if exit {
-		logs.LogTrace("--------------------- ****** 无待上传文件，结束任务 uuid:%v ...", s.uuid)
+	if resp != nil {
+		j, _ := json.Marshal(resp)
+		req.w.Header().Set("Content-Length", strconv.Itoa(len(j)))
+		req.w.Header().Set("Content-Type", "application/json")
+		/// http.ResponseWriter 生命周期原因，不支持异步，所以加了 Notify
+		_, err := req.w.Write(j)
+		if err != nil {
+			logs.LogError(err.Error())
+		}
+		s.Notify()
+		logs.LogError("uuid:%v %v", req.uuid, j)
+	} else {
+		resp = &Resp{}
+		j, _ := json.Marshal(resp)
+		req.w.Header().Set("Content-Length", strconv.Itoa(len(j)))
+		/// http.ResponseWriter 生命周期原因，不支持异步，所以加了 Notify
+		_, err := req.w.Write(j)
+		if err != nil {
+			logs.LogError(err.Error())
+		}
+		s.Notify()
+		logs.LogFatal("uuid:%v", req.uuid)
 	}
-	return
 }

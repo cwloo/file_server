@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/cwloo/gonet/logs"
@@ -31,15 +32,15 @@ func main() {
 
 	transport := &http.Transport{
 		DisableKeepAlives:     false,
-		TLSHandshakeTimeout:   time.Duration(10) * time.Second,
-		IdleConnTimeout:       time.Duration(10) * time.Second,
-		ResponseHeaderTimeout: time.Duration(10) * time.Second,
-		ExpectContinueTimeout: time.Duration(10) * time.Second,
+		TLSHandshakeTimeout:   time.Duration(3600) * time.Second,
+		IdleConnTimeout:       time.Duration(3600) * time.Second,
+		ResponseHeaderTimeout: time.Duration(3600) * time.Second,
+		ExpectContinueTimeout: time.Duration(3600) * time.Second,
 	}
 	jar, _ := cookiejar.New(nil)
 	client := &http.Client{
 		Jar:       jar,
-		Timeout:   time.Duration(10) * time.Second,
+		Timeout:   time.Duration(3600) * time.Second,
 		Transport: transport,
 	}
 

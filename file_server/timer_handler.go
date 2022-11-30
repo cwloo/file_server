@@ -15,7 +15,7 @@ func handlerUploadFileOnTimer() {
 }
 
 func checkOnTimer() {
-	uploaders.Range(func(sessionId string, uploader *Uploader) {
+	uploaders.Range(func(sessionId string, uploader Uploader) {
 		if time.Since(uploader.Get()) > time.Duration(PendingTimeout)*time.Second {
 			uploader.NotifyClose()
 		}
