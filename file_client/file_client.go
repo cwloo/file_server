@@ -50,7 +50,7 @@ func main() {
 	uuid := utils.CreateGUID() //本次上传标识
 	filelist := []string{
 		"/home/go1.19.3.linux-amd64.tar.gz",
-		// "/home/OpenIMSetup1.1.2.exe",
+		"/home/OpenIMSetup1.1.2.exe",
 	}
 	offset := make([]int64, len(filelist))  //分段读取文件偏移
 	finished := make([]bool, len(filelist)) //标识文件读取完毕
