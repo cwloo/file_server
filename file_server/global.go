@@ -51,7 +51,6 @@ type ErrorMsg struct {
 type Req struct {
 	uuid   string
 	keys   []string
-	ignore []*FileInfo
 	w      http.ResponseWriter
 	r      *http.Request
 	resp   *Resp

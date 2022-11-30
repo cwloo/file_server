@@ -57,7 +57,6 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 		allTotal := int64(0)
 		///////////////////////////// 新的上传任务 /////////////////////////////
 		keys := []string{}
-		ignore := []*FileInfo{}
 		for k := range form.File {
 			total := r.FormValue(k + ".total")
 			md5 := strings.ToLower(r.FormValue(k + ".md5"))
@@ -166,7 +165,6 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 				if info.Finished() {
 					logs.LogError("uuid:%v:%v(%v) finished uuid:%v", info.Uuid, info.SrcName, info.Md5, uuid)
 				}
-				ignore = append(ignore, info)
 				result = append(result,
 					Result{
 						Uuid:    uuid,
@@ -193,11 +191,11 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			case true:
 				uploader := NewAsyncUploader(uuid)
 				uploaders.Add(uuid, uploader)
-				uploader.Upload(&Req{uuid: uuid, keys: keys, ignore: ignore, w: w, r: r, resp: resp, result: result})
+				uploader.Upload(&Req{uuid: uuid, keys: keys, w: w, r: r, resp: resp, result: result})
 			default:
 				uploader := NewSyncUploader(uuid)
 				uploaders.Add(uuid, uploader)
-				uploader.Upload(&Req{uuid: uuid, keys: keys, ignore: ignore, w: w, r: r, resp: resp, result: result})
+				uploader.Upload(&Req{uuid: uuid, keys: keys, w: w, r: r, resp: resp, result: result})
 			}
 		} else {
 			/// 无待上传文件，直接返回
