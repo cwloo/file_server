@@ -217,7 +217,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					logs.LogError(err.Error())
 				}
-				logs.LogError("uuid:%v %v", uuid, j)
+				logs.LogError("uuid:%v %v", uuid, string(j))
 			} else {
 				resp = &Resp{}
 				j, _ := json.Marshal(resp)
@@ -388,7 +388,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					logs.LogError(err.Error())
 				}
-				logs.LogError("uuid:%v %v", uuid, j)
+				logs.LogError("uuid:%v %v", uuid, string(j))
 			} else {
 				resp = &Resp{}
 				j, _ := json.Marshal(resp)

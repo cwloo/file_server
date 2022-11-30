@@ -251,7 +251,7 @@ func (s *SyncUploader) upaloading(req *Req) {
 		if err != nil {
 			logs.LogError(err.Error())
 		}
-		logs.LogError("uuid:%v %v", req.uuid, j)
+		logs.LogError("uuid:%v %v", req.uuid, string(j))
 	} else {
 		resp = &Resp{}
 		j, _ := json.Marshal(resp)

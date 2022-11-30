@@ -41,8 +41,8 @@ var (
 // ErrorMsg
 // <summary>
 type ErrorMsg struct {
-	ErrCode int
-	ErrMsg  string
+	ErrCode int    `json:"code,omitempty"`
+	ErrMsg  string `json:"errmsg,omitempty"`
 }
 
 // <summary>
@@ -70,11 +70,11 @@ type Resp struct {
 // Result
 // <summary>
 type Result struct {
-	Uuid    string
-	Key     string
-	File    string
-	Md5     string
-	Result  string
+	Uuid    string `json:"uuid,omitempty"`
+	Key     string `json:"key,omitempty"`
+	File    string `json:"file,omitempty"`
+	Md5     string `json:"md5,omitempty"`
+	Result  string `json:"result,omitempty"`
 	ErrCode int    `json:"code,omitempty"`
 	ErrMsg  string `json:"errmsg,omitempty"`
 }
