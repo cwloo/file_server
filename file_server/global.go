@@ -27,8 +27,8 @@ var (
 	ErrParamsSegSizeLimit  = ErrorMsg{7, "upload per-segment size limited"}       //上传参数错误 单次上传字节数限制
 	ErrParamsAllTotalLimit = ErrorMsg{8, "upload all total szie limited"}         //上传参数错误 单次上传文件总大小
 	ErrParsePartData       = ErrorMsg{9, "parse multipart form-data err"}         //解析multipart form-data数据错误
-	ErrParseFormFile       = ErrorMsg{9, "parse multipart form-file err"}         //解析multipart form-file文件错误
-	ErrParamsSegSizeZero   = ErrorMsg{10, "upload multipart form-data size zero"} //上传form-data数据字节大小为0
+	ErrParseFormFile       = ErrorMsg{10, "parse multipart form-file err"}        //解析multipart form-file文件错误
+	ErrParamsSegSizeZero   = ErrorMsg{11, "upload multipart form-data size zero"} //上传form-data数据字节大小为0
 	path, _                = os.Executable()
 	dir, _                 = filepath.Split(path)
 	i32                    = cc.NewI32()
