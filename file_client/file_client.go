@@ -6,9 +6,12 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"net/http/cookiejar"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
@@ -26,8 +29,20 @@ func main() {
 	logs.LogInit(dir+"/logs", logs.LVL_DEBUG, exe, 100000000)
 	logs.LogMode(logs.M_STDOUT_FILE)
 
-	//http.Client
-	client := &http.Client{}
+	transport := &http.Transport{
+		DisableKeepAlives:     false,
+		TLSHandshakeTimeout:   time.Duration(10) * time.Second,
+		IdleConnTimeout:       time.Duration(10) * time.Second,
+		ResponseHeaderTimeout: time.Duration(10) * time.Second,
+		ExpectContinueTimeout: time.Duration(10) * time.Second,
+	}
+	jar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar:       jar,
+		Timeout:   time.Duration(10) * time.Second,
+		Transport: transport,
+	}
+
 	method := "POST"
 	url := "http://192.168.1.113:8088/upload"
 
@@ -105,7 +120,7 @@ func main() {
 				if n == 0 {
 					finished[i] = true
 					finished_c++
-					logs.LogInfo("%v Content-Range: %v-%v/%v finished", "file"+strconv.Itoa(i), offset[i], offset[i]+n, total[i])
+					// logs.LogInfo("%v Content-Range: %v-%v/%v finished", "file"+strconv.Itoa(i), offset[i], offset[i]+n, total[i])
 					continue
 				} else {
 					// logs.LogInfo("%v Content-Range: %v-%v/%v", "file"+strconv.Itoa(i), offset[i], offset[i]+n, total[i])
@@ -126,8 +141,12 @@ func main() {
 			if err != nil {
 				logs.LogFatal("%v", err.Error())
 			}
+
+			req.Header.Set("Connection", "keep-alive")
+			req.Header.Set("Keep-Alive", strings.Join([]string{"timeout=", strconv.Itoa(120)}, ""))
 			req.Header.Set("Content-Type", writer.FormDataContentType())
-			logs.LogInfo("user:%v:%v %v %v %v", userId, uuid, method, url, filelist)
+			// logs.LogInfo("user:%v:%v %v %v %v", userId, uuid, method, url, filelist)
+
 			//request
 			res, err := client.Do(req)
 			if err != nil {

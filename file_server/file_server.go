@@ -41,6 +41,7 @@ func main() {
 
 	logs.LogInfo(server.Addr)
 
+	server.SetKeepAlivesEnabled(true)
 	err := server.ListenAndServe()
 	if err != nil {
 		logs.LogFatal("%v", err.Error())
