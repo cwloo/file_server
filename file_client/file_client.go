@@ -60,7 +60,7 @@ func main() {
 		offset[i] = int64(0)
 		finished[i] = false
 		sta, err := os.Stat(filename) //读取当前上传文件大小
-		if err != nil {
+		if err != nil && os.IsNotExist(err) {
 			logs.LogFatal("%v", err.Error())
 		}
 		total[i] = sta.Size() //单个文件总大小
@@ -83,9 +83,8 @@ func main() {
 			logs.LogFatal("%v", err.Error())
 		}
 	}
-	finished_c := 0
-	finished_all := false
 	for {
+		finished := true
 		// 每次断点续传的payload数据
 		payload := &bytes.Buffer{}
 		writer := multipart.NewWriter(payload)
@@ -93,14 +92,16 @@ func main() {
 		_ = writer.WriteField("uuid", uuid)     //本次上传标识
 		// 要上传的文件列表，各个文件都上传一点
 		for i, filename := range filelist {
-			_ = writer.WriteField("file"+strconv.Itoa(i)+".total", strconv.FormatInt(total[i], 10)) //文件总大小
-			_ = writer.WriteField("file"+strconv.Itoa(i)+".md5", md5[i])                            //文件md5值
-			// 每次断点续传上传 BUFSIZ 字节大小
-			part, err := writer.CreateFormFile("file"+strconv.Itoa(i), filepath.Base(filename))
-			if err != nil {
-				logs.LogFatal("%v", err.Error())
-			}
-			if !finished[i] {
+			// 当前文件没有读完继续
+			if total[i] > 0 && offset[i] < total[i] {
+				finished = false
+				_ = writer.WriteField("file"+strconv.Itoa(i)+".total", strconv.FormatInt(total[i], 10)) //文件总大小
+				_ = writer.WriteField("file"+strconv.Itoa(i)+".md5", md5[i])                            //文件md5值
+				// 每次断点续传上传 BUFSIZ 字节大小
+				part, err := writer.CreateFormFile("file"+strconv.Itoa(i), filepath.Base(filename))
+				if err != nil {
+					logs.LogFatal("%v", err.Error())
+				}
 				//打开当前上传文件
 				file, err := os.OpenFile(filename, os.O_RDONLY, 0)
 				if err != nil {
@@ -118,17 +119,12 @@ func main() {
 					logs.LogFatal("%v", err.Error())
 				}
 				if n == 0 {
-					finished[i] = true
-					finished_c++
 					// logs.LogInfo("%v Content-Range: %v-%v/%v finished", "file"+strconv.Itoa(i), offset[i], offset[i]+n, total[i])
 					continue
 				} else {
 					// logs.LogInfo("%v Content-Range: %v-%v/%v", "file"+strconv.Itoa(i), offset[i], offset[i]+n, total[i])
 					offset[i] += n
 				}
-			} else if finished_c == len(filelist) {
-				finished_all = true
-				break
 			}
 		}
 		//必须发起HTTP请求之前关闭 writer
@@ -136,12 +132,11 @@ func main() {
 		if err != nil {
 			logs.LogFatal("%v", err.Error())
 		}
-		if !finished_all {
+		if !finished {
 			req, err := http.NewRequest(method, url, payload)
 			if err != nil {
 				logs.LogFatal("%v", err.Error())
 			}
-
 			req.Header.Set("Connection", "keep-alive")
 			req.Header.Set("Keep-Alive", strings.Join([]string{"timeout=", strconv.Itoa(120)}, ""))
 			req.Header.Set("Content-Type", writer.FormDataContentType())
