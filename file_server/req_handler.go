@@ -15,8 +15,8 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 		obj := &Resp{
-			ErrCode: ErrParseData.ErrCode,
-			ErrMsg:  ErrParseData.ErrMsg,
+			ErrCode: ErrParsePartData.ErrCode,
+			ErrMsg:  ErrParsePartData.ErrMsg,
 		}
 		j, _ := json.Marshal(obj)
 		w.Write(j)
@@ -51,18 +51,50 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 		ignore := []*FileInfo{}
 		for k := range form.File {
 			total := r.FormValue(k + ".total")
-			if !checkTotal(total) {
+			md5 := strings.ToLower(r.FormValue(k + ".md5"))
+			/// header检查
+			_, header, err := r.FormFile(k)
+			if err != nil {
+				logs.LogError("%v", err.Error())
+				return
+			}
+			/// header.size检查
+			if !checkMultiPartFileHeader(header) {
 				w.WriteHeader(http.StatusOK)
 				obj := &Resp{
-					ErrCode: ErrParamsTotal.ErrCode,
-					ErrMsg:  ErrParamsTotal.ErrMsg,
+					ErrCode: ErrParamsSegSizeLimit.ErrCode,
+					ErrMsg:  ErrParamsSegSizeLimit.ErrMsg,
 				}
 				j, _ := json.Marshal(obj)
 				w.Write(j)
-				logs.LogError("uuid=%v", uuid)
-				return
+				logs.LogError("uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
+				continue
 			}
-			md5 := strings.ToLower(r.FormValue(k + ".md5"))
+			/// header.size检查
+			if header.Size <= 0 {
+				w.WriteHeader(http.StatusOK)
+				obj := &Resp{
+					ErrCode: ErrParamsSegSizeZero.ErrCode,
+					ErrMsg:  ErrParamsSegSizeZero.ErrMsg,
+				}
+				j, _ := json.Marshal(obj)
+				w.Write(j)
+				logs.LogError("uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
+				continue
+			}
+			/// total检查
+			if !checkTotal(total) {
+				w.WriteHeader(http.StatusOK)
+				obj := &Resp{
+					ErrCode: ErrParamsTotalLimit.ErrCode,
+					ErrMsg:  ErrParamsTotalLimit.ErrMsg,
+				}
+				j, _ := json.Marshal(obj)
+				w.Write(j)
+				logs.LogError("uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
+				continue
+			}
+			/// md5检查
 			if !checkMD5(md5) {
 				w.WriteHeader(http.StatusOK)
 				obj := &Resp{
@@ -71,24 +103,8 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 				}
 				j, _ := json.Marshal(obj)
 				w.Write(j)
-				logs.LogError("uuid=%v", uuid)
-				return
-			}
-			_, header, err := r.FormFile(k)
-			if err != nil {
-				logs.LogError("%v", err.Error())
-				return
-			}
-			if !checkMultiPartFileHeader(header) {
-				w.WriteHeader(http.StatusOK)
-				obj := &Resp{
-					ErrCode: ErrParamsSegSize.ErrCode,
-					ErrMsg:  ErrParamsSegSize.ErrMsg,
-				}
-				j, _ := json.Marshal(obj)
-				w.Write(j)
-				logs.LogError("uuid=%v", uuid)
-				return
+				logs.LogError("uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
+				continue
 			}
 			info := fileInfos.Get(md5)
 			if info == nil {
@@ -104,7 +120,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 					Total:   size,
 				}
 				fileInfos.Add(md5, info)
-				logs.LogWarn("---------------------99 没有上传，等待上传 uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
+				logs.LogWarn("--------------------- 没有上传，等待上传 uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
 			} else {
 				/// 已在其它上传任务中
 				info.Assert()
@@ -131,8 +147,8 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 		if !checkAlltotal(allTotal) {
 			w.WriteHeader(http.StatusOK)
 			obj := &Resp{
-				ErrCode: ErrParamsAllTotal.ErrCode,
-				ErrMsg:  ErrParamsAllTotal.ErrMsg,
+				ErrCode: ErrParamsAllTotalLimit.ErrCode,
+				ErrMsg:  ErrParamsAllTotalLimit.ErrMsg,
 			}
 			j, _ := json.Marshal(obj)
 			w.Write(j)
@@ -144,7 +160,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			uploader := NewUploader(uuid)
 			uploaders.Add(uuid, uploader)
 			j, _ := json.Marshal(keys)
-			logs.LogInfo("有待上传文件，启动新任务 uuid:%v ... %v", uuid, string(j))
+			logs.LogTrace("--------------------- ****** 有待上传文件，启动任务 uuid:%v ... %v", uuid, string(j))
 			uploader.Do(&Req{uuid: uuid, keys: keys, ignore: ignore, w: w, r: r})
 		} else {
 			/// 无待上传文件，直接返回
@@ -169,7 +185,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 				j, _ := json.Marshal(obj)
 				w.Write(j)
 			} else {
-				logs.LogFatal("error")
+				logs.LogTrace("ignore:%#v", ignore)
 			}
 		}
 	} else {
@@ -178,20 +194,54 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 		keys := []string{}
 		for k := range form.File {
 			total := r.FormValue(k + ".total")
-			if !checkTotal(total) {
+			md5 := strings.ToLower(r.FormValue(k + ".md5"))
+			/// header检查
+			_, header, err := r.FormFile(k)
+			if err != nil {
+				logs.LogError("%v", err.Error())
+				// uploaders.Remove(uuid).Close()
+				continue
+			}
+			/// header.size检查
+			if !checkMultiPartFileHeader(header) {
 				w.WriteHeader(http.StatusOK)
 				obj := &Resp{
-					ErrCode: ErrParamsTotal.ErrCode,
-					ErrMsg:  ErrParamsTotal.ErrMsg,
+					ErrCode: ErrParamsSegSizeLimit.ErrCode,
+					ErrMsg:  ErrParamsSegSizeLimit.ErrMsg,
 				}
 				j, _ := json.Marshal(obj)
 				w.Write(j)
-				logs.LogError("uuid=%v", uuid)
-				//需要移除任务
-				uploaders.Remove(uuid).Close()
-				return
+				logs.LogError("uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
+				// uploaders.Remove(uuid).Close()
+				continue
 			}
-			md5 := strings.ToLower(r.FormValue(k + ".md5"))
+			/// header.size检查
+			if header.Size <= 0 {
+				w.WriteHeader(http.StatusOK)
+				obj := &Resp{
+					ErrCode: ErrParamsSegSizeZero.ErrCode,
+					ErrMsg:  ErrParamsSegSizeZero.ErrMsg,
+				}
+				j, _ := json.Marshal(obj)
+				w.Write(j)
+				logs.LogError("uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
+				// uploaders.Remove(uuid).Close()
+				continue
+			}
+			/// total检查
+			if !checkTotal(total) {
+				w.WriteHeader(http.StatusOK)
+				obj := &Resp{
+					ErrCode: ErrParamsTotalLimit.ErrCode,
+					ErrMsg:  ErrParamsTotalLimit.ErrMsg,
+				}
+				j, _ := json.Marshal(obj)
+				w.Write(j)
+				logs.LogError("uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
+				// uploaders.Remove(uuid).Close()
+				continue
+			}
+			/// md5检查
 			if !checkMD5(md5) {
 				w.WriteHeader(http.StatusOK)
 				obj := &Resp{
@@ -200,28 +250,9 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 				}
 				j, _ := json.Marshal(obj)
 				w.Write(j)
-				logs.LogError("uuid=%v", uuid)
-				//需要移除任务
-				uploaders.Remove(uuid).Close()
-				return
-			}
-			_, header, err := r.FormFile(k)
-			if err != nil {
-				logs.LogError("%v", err.Error())
-				return
-			}
-			if !checkMultiPartFileHeader(header) {
-				w.WriteHeader(http.StatusOK)
-				obj := &Resp{
-					ErrCode: ErrParamsSegSize.ErrCode,
-					ErrMsg:  ErrParamsSegSize.ErrMsg,
-				}
-				j, _ := json.Marshal(obj)
-				w.Write(j)
-				logs.LogError("uuid=%v", uuid)
-				//需要移除任务
-				uploaders.Remove(uuid).Close()
-				return
+				logs.LogError("uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
+				// uploaders.Remove(uuid).Close()
+				continue
 			}
 			info := fileInfos.Get(md5)
 			if info == nil {
@@ -237,7 +268,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 					Total:   size,
 				}
 				fileInfos.Add(md5, info)
-				logs.LogWarn("---------------------232 没有上传，等待上传 uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
+				logs.LogWarn("--------------------- 没有上传，等待上传 uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
 			} else {
 				size, _ := strconv.ParseInt(total, 10, 0)
 				allTotal += size
@@ -270,8 +301,8 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 		if !checkAlltotal(allTotal) {
 			w.WriteHeader(http.StatusOK)
 			obj := &Resp{
-				ErrCode: ErrParamsAllTotal.ErrCode,
-				ErrMsg:  ErrParamsAllTotal.ErrMsg,
+				ErrCode: ErrParamsAllTotalLimit.ErrCode,
+				ErrMsg:  ErrParamsAllTotalLimit.ErrMsg,
 			}
 			j, _ := json.Marshal(obj)
 			w.Write(j)
@@ -285,7 +316,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			uploader.Do(&Req{uuid: uuid, keys: keys, w: w, r: r})
 		} else {
 			/// 无待上传文件
-			logs.LogFatal("uuid:%v 无待上传文件", uuid)
+			logs.LogTrace("--------------------- ****** 无待上传文件，当前任务 uuid:%v ...", uuid)
 		}
 	}
 }

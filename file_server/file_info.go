@@ -89,7 +89,9 @@ func (s *FileInfos) Add(md5 string, info *FileInfo) (old *FileInfo) {
 	s.l.Lock()
 	if c, ok := s.m[md5]; ok {
 		old = c
+		logs.LogFatal("error")
 	}
+	logs.LogError("md5:%v", md5)
 	s.m[md5] = info
 	s.l.Unlock()
 	return

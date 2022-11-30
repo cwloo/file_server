@@ -52,6 +52,7 @@ func (s *SessionToHandler) Add(sessionId string, handler *Uploader) (old *Upload
 	s.l.Lock()
 	if c, ok := s.m[sessionId]; ok {
 		old = c
+		logs.LogFatal("error")
 	}
 	logs.LogError("uuid:%v", sessionId)
 	s.m[sessionId] = handler

@@ -29,5 +29,5 @@ func checkAlltotal(total int64) bool {
 }
 
 func checkMultiPartFileHeader(header *multipart.FileHeader) bool {
-	return header.Size >= 0 && header.Size < MaxSegmentSize
+	return header.Size > 0 && header.Size < MaxSegmentSize
 }

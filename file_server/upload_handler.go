@@ -196,9 +196,8 @@ func (s *Uploader) handler(msg any, args ...any) (exit bool) {
 		}
 		if info.Finished() {
 			s.setFinished(info.Md5)
-			// 文件上传完成，移除文件节点
-			// fileInfos.Remove(info.Md5)
-			//上传完毕再校验整个文件md5
+			logs.LogError("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v [ok] checking md5 ...", s.uuid, k, header.Filename, md5, info.DstName, info.Now, total, header.Size)
+			start := time.Now()
 			fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 			if err != nil {
 				logs.LogFatal("%v", err.Error())
@@ -213,7 +212,7 @@ func (s *Uploader) handler(msg any, args ...any) (exit bool) {
 				logs.LogFatal("%v", err.Error())
 			}
 			if md5_calc == info.Md5 {
-				logs.LogDebug("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v [ok]", req.uuid, k, header.Filename, md5, info.DstName, info.Now, total, header.Size)
+				logs.LogDebug("uuid:%v %v=%v[%v] %v chkmd5 [ok] elapsed:%vms", req.uuid, k, header.Filename, md5, info.DstName, time.Since(start).Milliseconds())
 				fileInfos.Remove(info.Md5)
 				result = append(result,
 					Result{
@@ -224,7 +223,7 @@ func (s *Uploader) handler(msg any, args ...any) (exit bool) {
 						ErrMsg:  ErrOk.ErrMsg,
 						Result:  info.Uuid + " 正在上传 " + info.SrcName + " 进度 " + now + "/" + total + " 上传完毕!"})
 			} else {
-				logs.LogError("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v [ok], md5 ERR", req.uuid, k, header.Filename, md5, info.DstName, info.Now, total, header.Size)
+				logs.LogError("uuid:%v %v=%v[%v] %v chkmd5 [Err] elapsed:%vms", req.uuid, k, header.Filename, md5, info.DstName, time.Since(start).Milliseconds())
 				fileInfos.Remove(info.Md5)
 				//文件不完整
 				result = append(result,
@@ -263,5 +262,8 @@ func (s *Uploader) handler(msg any, args ...any) (exit bool) {
 		logs.LogFatal("error")
 	}
 	exit = s.hasFinishedAll()
+	if exit {
+		logs.LogTrace("--------------------- ****** 无待上传文件，结束任务 uuid:%v ...", s.uuid)
+	}
 	return
 }

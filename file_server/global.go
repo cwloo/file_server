@@ -17,21 +17,23 @@ const (
 )
 
 var (
-	ErrOk             = ErrorMsg{0, "Ok"}                               //上传完成，并且成功
-	ErrSegOk          = ErrorMsg{1, "upload file segment succ"}         //上传分段成功
-	ErrFileMd5        = ErrorMsg{2, "upload file over, but md5 failed"} //上传完成，文件出错
-	ErrRepeat         = ErrorMsg{3, "Repeat upload same file"}          //文件重复上传
-	ErrParamsUUID     = ErrorMsg{4, "upload param error uuid"}          //上传参数错误 uuid
-	ErrParamsMD5      = ErrorMsg{5, "upload param error md5"}           //上传参数错误 文件md5
-	ErrParamsTotal    = ErrorMsg{6, "upload param error total size"}    //上传参数错误 单个上传文件字节数
-	ErrParamsSegSize  = ErrorMsg{7, "upload per-segment size limited"}  //上传参数错误 单次上传字节数限制
-	ErrParamsAllTotal = ErrorMsg{8, "upload all total szie limited"}    //上传参数错误 单次上传文件总大小
-	ErrParseData      = ErrorMsg{9, "parse multipart form-data err"}    //解析数据错误
-	path, _           = os.Executable()
-	dir, _            = filepath.Split(path)
-	i32               = cc.NewI32()
-	fileInfos         = NewFileInfos()
-	uploaders         = NewSessionToHandler()
+	ErrOk                  = ErrorMsg{0, "Ok"}                                    //上传完成，并且成功
+	ErrSegOk               = ErrorMsg{1, "upload file segment succ"}              //上传分段成功
+	ErrFileMd5             = ErrorMsg{2, "upload file over, but md5 failed"}      //上传完成，文件出错
+	ErrRepeat              = ErrorMsg{3, "Repeat upload same file"}               //文件重复上传
+	ErrParamsUUID          = ErrorMsg{4, "upload param error uuid"}               //上传参数错误 uuid
+	ErrParamsMD5           = ErrorMsg{5, "upload param error md5"}                //上传参数错误 文件md5
+	ErrParamsTotalLimit    = ErrorMsg{6, "upload param error total size"}         //上传参数错误 单个上传文件字节数
+	ErrParamsSegSizeLimit  = ErrorMsg{7, "upload per-segment size limited"}       //上传参数错误 单次上传字节数限制
+	ErrParamsAllTotalLimit = ErrorMsg{8, "upload all total szie limited"}         //上传参数错误 单次上传文件总大小
+	ErrParsePartData       = ErrorMsg{9, "parse multipart form-data err"}         //解析multipart form-data数据错误
+	ErrParseFormFile       = ErrorMsg{9, "parse multipart form-file err"}         //解析multipart form-file文件错误
+	ErrParamsSegSizeZero   = ErrorMsg{10, "upload multipart form-data size zero"} //上传form-data数据字节大小为0
+	path, _                = os.Executable()
+	dir, _                 = filepath.Split(path)
+	i32                    = cc.NewI32()
+	fileInfos              = NewFileInfos()
+	uploaders              = NewSessionToHandler()
 )
 
 // <summary>
