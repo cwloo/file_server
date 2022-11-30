@@ -39,10 +39,10 @@ func main() {
 		IdleTimeout:       time.Duration(PendingTimeout) * time.Second,
 	}
 
+	logs.LogInfo(server.Addr)
+
 	err := server.ListenAndServe()
 	if err != nil {
 		logs.LogFatal("%v", err.Error())
 	}
-
-	logs.LogInfo(server.Addr)
 }
