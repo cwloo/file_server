@@ -273,6 +273,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 					Uuid:    req.uuid,
 					File:    header.Filename,
 					Md5:     info.Md5,
+					Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
 					ErrCode: ErrSegOk.ErrCode,
 					ErrMsg:  ErrSegOk.ErrMsg,
 					Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", now + "/" + total}, "")})
