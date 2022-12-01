@@ -160,6 +160,7 @@ func main() {
 		}
 	}
 CHECKPOINT:
+	logs.LogInfo("")
 	//////////////////////////////////////////// 先上传未传完的文件 ////////////////////////////////////////////
 	for i := range filelist {
 		if result, ok := results[md5[i]]; ok {
@@ -174,6 +175,7 @@ CHECKPOINT:
 			// 定位读取文件偏移(上传进度)，从断点处继续上传
 			offset := result.Now
 			for {
+				logs.LogInfo("")
 				payload := &bytes.Buffer{}
 				writer := multipart.NewWriter(payload)
 				_ = writer.WriteField("uuid", result.Uuid)
@@ -221,6 +223,7 @@ CHECKPOINT:
 					}
 					defer res.Body.Close()
 					for {
+						logs.LogInfo("")
 						/// response
 						body, err := ioutil.ReadAll(res.Body)
 						if err != nil {
@@ -275,13 +278,16 @@ CHECKPOINT:
 						}
 						// logs.LogInfo("--- *** ---\n%v", string(body))
 					}
-					if n == 0 {
-						delete(results, md5[i])
-						break
-					} else {
+					if n > 0 {
 						offset += n
+						if offset == result.Total {
+							delete(results, md5[i])
+							break
+						}
 					}
-				}
+				} // else if offset == result.Total {
+				//	break
+				//}
 			}
 		}
 	}
@@ -319,12 +325,9 @@ CHECKPOINT:
 				if err != nil {
 					logs.LogFatal("%v", err.Error())
 				}
-				if n == 0 {
-					// logs.LogInfo("%v Content-Range: %v-%v/%v finished", "file"+strconv.Itoa(i), offset[i], offset[i]+n, total[i])
-					continue
-				} else {
-					// logs.LogInfo("%v Content-Range: %v-%v/%v", "file"+strconv.Itoa(i), offset[i], offset[i]+n, total[i])
+				if n > 0 {
 					offset[i] += n
+					continue
 				}
 			}
 		}

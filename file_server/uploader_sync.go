@@ -160,36 +160,69 @@ func (s *SyncUploader) upaloading(req *Req) {
 		////// 检查上传目录
 		_, err = os.Stat(dir + "upload/")
 		if err != nil && os.IsNotExist(err) {
-			os.MkdirAll(dir+"upload/", 0666)
+			os.MkdirAll(dir+"upload/", 0777)
 		}
 		////// 检查上传文件
 		f := dir + "upload/" + info.DstName
 		_, err = os.Stat(f)
 		if err != nil && os.IsNotExist(err) {
 		} else {
-			//第一次写如果文件存在则删除
+			/// 第一次写如果文件存在则删除
 			if info.Now == int64(0) {
 				os.Remove(f)
 			}
 		}
-		fd, err := os.OpenFile(f, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
+		fd, err := os.OpenFile(f, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0)
 		if err != nil {
-			logs.LogFatal("%v", err.Error())
+			result = append(result,
+				Result{
+					Uuid:    info.Uuid,
+					Key:     k,
+					File:    info.SrcName,
+					Md5:     info.Md5,
+					Now:     info.Now,
+					Total:   info.Total,
+					Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
+					ErrCode: ErrCheckReUpload.ErrCode,
+					ErrMsg:  ErrCheckReUpload.ErrMsg,
+					Result:  strings.Join([]string{"uuid:", info.Uuid, " check reuploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10), "/", total}, ""),
+				})
+			logs.LogError("%v", err.Error())
+			continue
 		}
 		fd.Seek(0, io.SeekEnd)
 		_, err = io.Copy(fd, file)
 		if err != nil {
-			logs.LogFatal("%v", err.Error())
+			result = append(result,
+				Result{
+					Uuid:    info.Uuid,
+					Key:     k,
+					File:    info.SrcName,
+					Md5:     info.Md5,
+					Now:     info.Now,
+					Total:   info.Total,
+					Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
+					ErrCode: ErrCheckReUpload.ErrCode,
+					ErrMsg:  ErrCheckReUpload.ErrMsg,
+					Result:  strings.Join([]string{"uuid:", info.Uuid, " check reuploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10), "/", total}, ""),
+				})
+			logs.LogError("%v", err.Error())
+			err = fd.Close()
+			if err != nil {
+				logs.LogError("%v", err.Error())
+			}
+			continue
+		} else {
+			info.Now += header.Size
 		}
-		info.Now += header.Size
 		now := strconv.FormatInt(info.Now, 10)
 		err = fd.Close()
 		if err != nil {
-			logs.LogFatal("%v", err.Error())
+			logs.LogError("%v", err.Error())
 		}
 		err = file.Close()
 		if err != nil {
-			logs.LogFatal("%v", err.Error())
+			logs.LogError("%v", err.Error())
 		}
 		if info.Finished() {
 			s.setFinished(info.Md5)
