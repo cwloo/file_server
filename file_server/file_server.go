@@ -20,7 +20,7 @@ func main() {
 	dir, exe := filepath.Split(path)
 
 	logs.LogTimezone(logs.MY_CST)
-	logs.LogInit(dir+"/logs", logs.LVL_DEBUG, exe, 100000000)
+	logs.LogInit(dir+"logs", logs.LVL_DEBUG, exe, 100000000)
 	logs.LogMode(logs.M_STDOUT_FILE)
 
 	task.After(time.Duration(PendingTimeout)*time.Second, cb.NewFunctor00(func() {

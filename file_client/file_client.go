@@ -64,10 +64,10 @@ type Result struct {
 func main() {
 	path, _ := os.Executable()
 	dir, exe := filepath.Split(path)
-	os.MkdirAll(dir+"/tmp", 0666)
+	os.MkdirAll(dir+"tmp", 0666)
 
 	logs.LogTimezone(logs.MY_CST)
-	logs.LogInit(dir+"/logs", logs.LVL_DEBUG, exe, 100000000)
+	logs.LogInit(dir+"logs", logs.LVL_DEBUG, exe, 100000000)
 	logs.LogMode(logs.M_STDOUT_FILE)
 
 	transport := &http.Transport{
@@ -135,7 +135,7 @@ func main() {
 		if err != nil && os.IsNotExist(err) {
 			continue
 		}
-		fd, err := os.OpenFile(dir+"/tmp/"+md5[i]+".tmp", os.O_RDONLY, 0)
+		fd, err := os.OpenFile(dir+"tmp/"+md5[i]+".tmp", os.O_RDONLY, 0)
 		if err != nil {
 			logs.LogFatal("%v", err.Error())
 			return
@@ -261,7 +261,7 @@ func main() {
 							break
 						}
 						// 上传进度写入临时文件
-						fd, err := os.OpenFile(dir+"/tmp/"+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+						fd, err := os.OpenFile(dir+"tmp/"+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 						if err != nil {
 							logs.LogError("%v", err.Error())
 							return
