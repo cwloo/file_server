@@ -109,6 +109,10 @@ func main() {
 	}
 	//计算文件md5值
 	for i, filename := range filelist {
+		_, err := os.Stat(filename)
+		if err != nil && os.IsNotExist(err) {
+			continue
+		}
 		fd, err := os.OpenFile(filename, os.O_RDONLY, 0)
 		if err != nil {
 			logs.LogError("%v", err.Error())
@@ -126,7 +130,11 @@ func main() {
 		}
 	}
 	//加载上传进度临时文件
-	for i := range filelist {
+	for i, filename := range filelist {
+		_, err := os.Stat(filename)
+		if err != nil && os.IsNotExist(err) {
+			continue
+		}
 		fd, err := os.OpenFile(dir+"/tmp/"+md5[i]+".tmp", os.O_RDONLY, 0)
 		if err != nil {
 			logs.LogFatal("%v", err.Error())
