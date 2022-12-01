@@ -6,7 +6,9 @@ import (
 )
 
 func checkUUID(uuid string) bool {
-	return uuid != "" && (len(uuid) == 32)
+	return uuid != "" && (len(uuid) == 36) &&
+		uuid[8] == '-' && uuid[13] == '-' &&
+		uuid[18] == '-' && uuid[23] == '-'
 }
 
 func checkMD5(md5 string) bool {
