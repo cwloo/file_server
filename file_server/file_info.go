@@ -127,3 +127,14 @@ func (s *FileInfos) Range(cb func(string, *FileInfo)) {
 	}
 	s.l.Unlock()
 }
+
+func (s *FileInfos) RangeRemove(cond func(*FileInfo) bool, cb func(*FileInfo)) {
+	s.l.Lock()
+	for md5, info := range s.m {
+		if cond(info) {
+			cb(info)
+			delete(s.m, md5)
+		}
+	}
+	s.l.Unlock()
+}
