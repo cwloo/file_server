@@ -14,7 +14,7 @@ const (
 	MaxTotalSize     int64 = 1024 * 1024 * 1024 //单个文件上传不超过1G
 	MaxSegmentSize   int64 = 1024 * 1024 * 20   //单个文件断点续传字节数限制
 	MaxAllTotalSize  int64 = 1024 * 1024 * 1024 //单次上传文件总大小字节数限制
-	PendingTimeout         = 5                  //间隔秒数检查未决的上传任务
+	PendingTimeout         = 30                 //间隔秒数检查未决的上传任务
 )
 
 var (

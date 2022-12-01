@@ -130,8 +130,8 @@ func main() {
 		}
 	}
 	//加载上传进度临时文件
-	for i, filename := range filelist {
-		_, err := os.Stat(filename)
+	for i := range filelist {
+		_, err := os.Stat(dir + "tmp/" + md5[i] + ".tmp")
 		if err != nil && os.IsNotExist(err) {
 			continue
 		}
@@ -180,6 +180,9 @@ func main() {
 		_ = writer.WriteField("uuid", uuid)     //本次上传标识
 		// 要上传的文件列表，各个文件都上传一点
 		for i, filename := range filelist {
+			if result, ok := results[md5[i]]; ok {
+				_ = writer.WriteField("uuid", result.Uuid)
+			}
 			// 当前文件没有读完继续
 			if total[i] > 0 && offset[i] < total[i] {
 				finished = false
