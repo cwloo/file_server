@@ -215,7 +215,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 				logs.LogFatal("error")
 			}
 		}
-		fd, err := os.OpenFile(f, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0)
+		fd, err := os.OpenFile(f, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
 		if err != nil {
 			result = append(result,
 				Result{
