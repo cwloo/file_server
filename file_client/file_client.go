@@ -250,7 +250,7 @@ func main() {
 					switch result.ErrCode {
 					case ErrSegOk.ErrCode:
 						if result.Now <= 0 {
-							
+							break
 						}
 						// 上传进度写入临时文件
 						fd, err := os.OpenFile(dir+"/tmp/"+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
