@@ -171,10 +171,10 @@ func main() {
 			}
 			// 定位读取文件偏移(上传进度)，从断点处继续上传
 			offset := result.Now
-			payload := &bytes.Buffer{}
-			writer := multipart.NewWriter(payload)
-			_ = writer.WriteField("uuid", result.Uuid)
 			for {
+				payload := &bytes.Buffer{}
+				writer := multipart.NewWriter(payload)
+				_ = writer.WriteField("uuid", result.Uuid)
 				// 当前文件没有读完继续
 				if result.Total > 0 && offset < result.Total {
 					_ = writer.WriteField("file"+strconv.Itoa(i)+".total", strconv.FormatInt(result.Total, 10)) //文件总大小
@@ -208,6 +208,7 @@ func main() {
 					req.Header.Set("Connection", "keep-alive")
 					req.Header.Set("Keep-Alive", strings.Join([]string{"timeout=", strconv.Itoa(120)}, ""))
 					req.Header.Set("Content-Type", writer.FormDataContentType())
+					// logs.LogInfo("user:%v:%v %v %v %v", userId, uuid, method, url, filelist)
 					/// request
 					res, err := client.Do(req)
 					if err != nil {
@@ -264,7 +265,7 @@ func main() {
 								os.Remove(dir + "/tmp/" + result.Md5 + ".tmp")
 							}
 						}
-						// logs.LogInfo(string(body))
+						logs.LogInfo("--- *** ---\n%v", string(body))
 					}
 					if n == 0 {
 						break
@@ -385,7 +386,7 @@ func main() {
 						os.Remove(dir + "/tmp/" + result.Md5 + ".tmp")
 					}
 				}
-				// logs.LogInfo(string(body))
+				logs.LogInfo("--- --- ---\n%v", string(body))
 			}
 		} else {
 			break
