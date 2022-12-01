@@ -23,8 +23,10 @@ func checkOnTimer() {
 			}
 		})
 	default:
-		uploaders.CHeckRemove(func(uploader Uploader) bool {
+		uploaders.RangeRemove(func(uploader Uploader) bool {
 			return time.Since(uploader.Get()) > time.Duration(PendingTimeout)*time.Second
+		}, func(uploader Uploader) {
+			uploader.Clear()
 		})
 	}
 }

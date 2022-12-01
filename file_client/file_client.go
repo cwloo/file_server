@@ -23,9 +23,10 @@ const (
 )
 
 var (
-	ErrOk      = ErrorMsg{0, "Ok"}
-	ErrSegOk   = ErrorMsg{1, "upload file segment succ"}
-	ErrFileMd5 = ErrorMsg{2, "upload file over, but md5 failed"}
+	ErrOk            = ErrorMsg{0, "Ok"}
+	ErrSegOk         = ErrorMsg{1, "upload file segment succ"}
+	ErrFileMd5       = ErrorMsg{2, "upload file over, but md5 failed"}
+	ErrCheckReUpload = ErrorMsg{4, "check and re-upload file"}
 )
 
 // <summary>
@@ -158,6 +159,7 @@ func main() {
 			return
 		}
 	}
+CHECKPOINT:
 	//////////////////////////////////////////// 先上传未传完的文件 ////////////////////////////////////////////
 	for i := range filelist {
 		if result, ok := results[md5[i]]; ok {
@@ -177,6 +179,7 @@ func main() {
 				_ = writer.WriteField("uuid", result.Uuid)
 				// 当前文件没有读完继续
 				if result.Total > 0 && offset < result.Total {
+					_ = writer.WriteField("file"+strconv.Itoa(i)+".offset", strconv.FormatInt(offset, 10))      //文件偏移量
 					_ = writer.WriteField("file"+strconv.Itoa(i)+".total", strconv.FormatInt(result.Total, 10)) //文件总大小
 					_ = writer.WriteField("file"+strconv.Itoa(i)+".md5", result.Md5)                            //文件md5值
 					// 每次断点续传上传 BUFSIZ 字节大小
@@ -260,14 +263,20 @@ func main() {
 									logs.LogFatal("%v", err.Error())
 									return
 								}
-								//上传成功，删除临时文件
+							case ErrCheckReUpload.ErrCode:
+								//校正需要重传
+								results[result.Md5] = result
+								// logs.LogInfo("--- *** ---\n%v", string(body))
+								goto CHECKPOINT
 							case ErrOk.ErrCode, ErrFileMd5.ErrCode:
+								//上传成功，删除临时文件
 								os.Remove(dir + "/tmp/" + result.Md5 + ".tmp")
 							}
 						}
-						logs.LogInfo("--- *** ---\n%v", string(body))
+						// logs.LogInfo("--- *** ---\n%v", string(body))
 					}
 					if n == 0 {
+						delete(results, md5[i])
 						break
 					} else {
 						offset += n
@@ -278,6 +287,7 @@ func main() {
 	}
 	//////////////////////////////////////////// 再上传其他文件 ////////////////////////////////////////////
 	for {
+		logs.LogInfo("")
 		finished := true
 		// 每次断点续传的payload数据
 		payload := &bytes.Buffer{}
@@ -288,8 +298,9 @@ func main() {
 			// 当前文件没有读完继续
 			if total[i] > 0 && offset[i] < total[i] {
 				finished = false
-				_ = writer.WriteField("file"+strconv.Itoa(i)+".total", strconv.FormatInt(total[i], 10)) //文件总大小
-				_ = writer.WriteField("file"+strconv.Itoa(i)+".md5", md5[i])                            //文件md5值
+				_ = writer.WriteField("file"+strconv.Itoa(i)+".offset", strconv.FormatInt(offset[i], 10)) //文件偏移量
+				_ = writer.WriteField("file"+strconv.Itoa(i)+".total", strconv.FormatInt(total[i], 10))   //文件总大小
+				_ = writer.WriteField("file"+strconv.Itoa(i)+".md5", md5[i])                              //文件md5值
 				// 每次断点续传上传 BUFSIZ 字节大小
 				part, err := writer.CreateFormFile("file"+strconv.Itoa(i), filepath.Base(filename))
 				if err != nil {
@@ -339,6 +350,7 @@ func main() {
 			}
 			defer res.Body.Close()
 			for {
+				logs.LogInfo("")
 				/// response
 				body, err := ioutil.ReadAll(res.Body)
 				if err != nil {
@@ -381,12 +393,18 @@ func main() {
 							logs.LogFatal("%v", err.Error())
 							return
 						}
-						//上传成功，删除临时文件
+					case ErrCheckReUpload.ErrCode:
+						//校正需要重传
+						results[result.Md5] = result
+						// logs.LogInfo("--- *** ---\n%v", string(body))
+						logs.LogFatal("")
+						goto CHECKPOINT
 					case ErrOk.ErrCode, ErrFileMd5.ErrCode:
+						//上传成功，删除临时文件
 						os.Remove(dir + "/tmp/" + result.Md5 + ".tmp")
 					}
 				}
-				logs.LogInfo("--- --- ---\n%v", string(body))
+				// logs.LogInfo("--- --- ---\n%v", string(body))
 			}
 		} else {
 			break

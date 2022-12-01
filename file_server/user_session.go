@@ -49,6 +49,7 @@ end:
 }
 
 func (s *SessionToHandler) GetAdd(sessionId string, async bool) (handler Uploader, ok bool) {
+	n := 0
 	s.l.Lock()
 	handler, ok = s.m[sessionId]
 	if !ok {
@@ -59,28 +60,31 @@ func (s *SessionToHandler) GetAdd(sessionId string, async bool) (handler Uploade
 			handler = NewSyncUploader(sessionId)
 		}
 		s.m[sessionId] = handler
+		n = len(s.m)
 		s.l.Unlock()
 		goto end
 	}
 	s.l.Unlock()
 	return
 end:
-	logs.LogError("uuid:%v", sessionId)
+	logs.LogError("uuid:%v size=%v", sessionId, n)
 	return
 }
 
 func (s *SessionToHandler) Remove(sessionId string) (handler Uploader) {
+	n := 0
 	s.l.Lock()
 	if c, ok := s.m[sessionId]; ok {
 		handler = c
 		delete(s.m, sessionId)
+		n = len(s.m)
 		s.l.Unlock()
 		goto end
 	}
 	s.l.Unlock()
 	return
 end:
-	logs.LogError("uuid:%v", sessionId)
+	logs.LogError("uuid:%v size=%v", sessionId, n)
 	return
 }
 
@@ -92,11 +96,11 @@ func (s *SessionToHandler) Range(cb func(string, Uploader)) {
 	s.l.Unlock()
 }
 
-func (s *SessionToHandler) CHeckRemove(cond func(Uploader) bool) {
+func (s *SessionToHandler) RangeRemove(cond func(Uploader) bool, cb func(Uploader)) {
 	s.l.Lock()
 	for sessionId, handler := range s.m {
 		if cond(handler) {
-			handler.Clear()
+			cb(handler)
 			delete(s.m, sessionId)
 		}
 	}

@@ -55,6 +55,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 	allTotal := int64(0)
 	keys := []string{}
 	for k := range form.File {
+		offset := r.FormValue(k + ".offset")
 		total := r.FormValue(k + ".total")
 		md5 := strings.ToLower(r.FormValue(k + ".md5"))
 		/// header检查
@@ -114,6 +115,20 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			logs.LogError("uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
 			continue
 		}
+		/// offset检查
+		if !checkOffset(offset, total) {
+			result = append(result,
+				Result{
+					Uuid:    uuid,
+					Key:     k,
+					File:    header.Filename,
+					Md5:     md5,
+					ErrCode: ErrParamsOffset.ErrCode,
+					ErrMsg:  ErrParamsOffset.ErrMsg,
+					Result:  ""})
+			logs.LogError("uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
+			continue
+		}
 		/// md5检查
 		if !checkMD5(md5) {
 			result = append(result,
@@ -160,56 +175,31 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			info.Uuid = uuid
 			info.Md5 = md5
 			info.SrcName = header.Filename
-			info.DstName = strings.Join([]string{uuid, ".", utils.RandomString(10), ".", header.Filename}, "")
+			info.DstName = strings.Join([]string{uuid, ".", utils.RandomCharString(10), ".", header.Filename}, "")
 			info.Total = size
 			keys = append(keys, k)
-			logs.LogWarn("--------------------- 没有上传，等待上传 uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
+			logs.LogWarn("--- *** 没有上传，等待上传 uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
 		} else {
 			info.Assert()
 			if info.Uuid == uuid {
 				/// 已在当前上传任务中
-				
-				////// 校验MD5
-				if md5 != info.Md5 {
-					logs.LogFatal("uuid:%v:%v(%v) conflict md5:%v", info.Uuid, info.SrcName, info.Md5, md5)
-				}
-				////// 校验数据大小
-				if total != strconv.FormatInt(info.Total, 10) {
-					logs.LogFatal("uuid:%v:%v(%v) conflict %v:%v", info.Uuid, info.SrcName, info.Md5, total, info.Total)
-				}
-				////// 校验uuid
-				if uuid != info.Uuid {
-					logs.LogFatal("uuid:%v:%v(%v) conflict uuid:%v", info.Uuid, info.SrcName, info.Md5, uuid)
-				}
-				////// 校验filename
-				if header.Filename != info.SrcName {
-					logs.LogFatal("uuid:%v:%v(%v) conflict %v", info.Uuid, info.SrcName, info.Md5, header.Filename)
-				}
+
 				////// 还未接收完
 				if info.Finished() {
 					logs.LogFatal("uuid:%v:%v(%v) finished", info.Uuid, info.SrcName, info.Md5)
 				}
-				keys = append(keys, k)
-				logs.LogInfo("--------------------- 继续上传中 uuid:%v %v=%v[%v] %v/%v seg_size[%d]", uuid, k, header.Filename, md5, info.Now, total, header.Size)
-			} else {
-				/// 已在其它上传任务中
-
 				////// 校验MD5
 				if md5 != info.Md5 {
-					logs.LogFatal("uuid:%v:%v(%v) conflict md5:%v", info.Uuid, info.SrcName, info.Md5, md5)
+					logs.LogFatal("uuid:%v:%v(%v) md5:%v", info.Uuid, info.SrcName, info.Md5, md5)
 				}
 				////// 校验数据大小
 				if total != strconv.FormatInt(info.Total, 10) {
-					logs.LogFatal("uuid:%v:%v(%v) conflict %v:%v", info.Uuid, info.SrcName, info.Md5, total, info.Total)
+					logs.LogFatal("uuid:%v:%v(%v) info.total:%v total:%v", info.Uuid, info.SrcName, info.Md5, info.Total, total)
 				}
-				////// 校验uuid
-				if uuid == info.Uuid {
-					logs.LogFatal("uuid:%v:%v(%v) conflict uuid:%v", info.Uuid, info.SrcName, info.Md5, uuid)
-				}
-				////// 还未接收完
-				if info.Finished() {
-					logs.LogError("uuid:%v:%v(%v) finished uuid:%v", info.Uuid, info.SrcName, info.Md5, uuid)
-				}
+				keys = append(keys, k)
+				logs.LogInfo("--- *** uploading uuid:%v %v=%v[%v] %v/%v seg_size[%d]", uuid, k, header.Filename, md5, info.Now, total, header.Size)
+			} else {
+				/// 已在其它上传任务中
 				result = append(result,
 					Result{
 						Uuid:    uuid,
@@ -219,7 +209,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 						ErrMsg:  ErrRepeat.ErrMsg,
 						Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10), "/", total}, ""),
 					})
-				logs.LogError("--------------------- 忽略重复上传 uuid:%v %v=%v[%v] seg_size[%v] uuid:%v uploading %v progress:%v/%v", uuid, k, header.Filename, md5, header.Size, info.Uuid, info.DstName, info.Now, total)
+				logs.LogError("--- *** ignore repeat-upload uuid:%v %v=%v[%v] seg_size[%v] uuid:%v uploading %v progress:%v/%v", uuid, k, header.Filename, md5, header.Size, info.Uuid, info.DstName, info.Now, total)
 			}
 		}
 	} /// {{{ end for range form.File

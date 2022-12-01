@@ -24,6 +24,18 @@ func checkTotal(total string) bool {
 	return true
 }
 
+func checkOffset(offset, total string) bool {
+	if offset == "" {
+		return false
+	}
+	now, _ := strconv.ParseInt(offset, 10, 0)
+	size, _ := strconv.ParseInt(total, 10, 0)
+	if now < 0 || now >= size {
+		return false
+	}
+	return true
+}
+
 func checkAlltotal(total int64) bool {
 	return total < MaxAllTotalSize
 }

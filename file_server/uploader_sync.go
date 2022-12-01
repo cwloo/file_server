@@ -107,6 +107,7 @@ func (s *SyncUploader) upaloading(req *Req) {
 	resp := req.resp
 	result := req.result
 	for _, k := range req.keys {
+		offset := req.r.FormValue(k + ".offset")
 		total := req.r.FormValue(k + ".total")
 		md5 := strings.ToLower(req.r.FormValue(k + ".md5"))
 		s.tryAdd(md5)
@@ -120,25 +121,41 @@ func (s *SyncUploader) upaloading(req *Req) {
 			logs.LogFatal("error")
 			return
 		}
-		////// 校验MD5
-		if md5 != info.Md5 {
-			logs.LogFatal("uuid:%v:%v(%v) conflict md5:%v", info.Uuid, info.SrcName, info.Md5, md5)
-		}
-		////// 校验数据大小
-		if total != strconv.FormatInt(info.Total, 10) {
-			logs.LogFatal("uuid:%v:%v(%v) conflict %v:%v", info.Uuid, info.SrcName, info.Md5, total, info.Total)
-		}
-		////// 校验uuid
-		if req.uuid != info.Uuid {
-			logs.LogFatal("uuid:%v:%v(%v) conflict uuid:%v", info.Uuid, info.SrcName, info.Md5, req.uuid)
-		}
-		////// 校验filename
-		if header.Filename != info.SrcName {
-			logs.LogFatal("uuid:%v:%v(%v) conflict %v", info.Uuid, info.SrcName, info.Md5, header.Filename)
-		}
 		////// 还未接收完
 		if info.Finished() {
 			logs.LogFatal("uuid:%v:%v(%v) finished", info.Uuid, info.SrcName, info.Md5)
+		}
+		////// 校验uuid
+		if req.uuid != info.Uuid {
+			logs.LogFatal("uuid:%v:%v(%v) uuid:%v", info.Uuid, info.SrcName, info.Md5, req.uuid)
+		}
+		////// 校验MD5
+		if md5 != info.Md5 {
+			logs.LogFatal("uuid:%v:%v(%v) md5:%v", info.Uuid, info.SrcName, info.Md5, md5)
+		}
+		////// 校验数据大小
+		if total != strconv.FormatInt(info.Total, 10) {
+			logs.LogFatal("uuid:%v:%v(%v) info.total:%v total:%v", info.Uuid, info.SrcName, info.Md5, info.Total, total)
+		}
+		////// 校验文件offset
+		if offset != strconv.FormatInt(info.Now, 10) {
+			result = append(result,
+				Result{
+					Uuid:    info.Uuid,
+					Key:     k,
+					File:    info.SrcName,
+					Md5:     info.Md5,
+					Now:     info.Now,
+					Total:   info.Total,
+					Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
+					ErrCode: ErrCheckReUpload.ErrCode,
+					ErrMsg:  ErrCheckReUpload.ErrMsg,
+					Result:  strings.Join([]string{"uuid:", info.Uuid, " check reuploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10), "/", total}, ""),
+				})
+			logs.LogError("uuid:%v:%v(%v) %v/%v offset:%v", info.Uuid, info.SrcName, info.Md5, info.Now, info.Total, offset)
+			offset_n, _ := strconv.ParseInt(offset, 10, 0)
+			logs.LogInfo("--------------------- checking re-upload uuid:%v %v=%v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid, k, header.Filename, md5, info.Now, total, offset_n, header.Size)
+			continue
 		}
 		////// 检查上传目录
 		_, err = os.Stat(dir + "upload/")

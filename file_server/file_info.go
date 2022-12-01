@@ -86,33 +86,37 @@ end:
 }
 
 func (s *FileInfos) GetAdd(md5 string) (info *FileInfo, ok bool) {
+	n := 0
 	s.l.Lock()
 	info, ok = s.m[md5]
 	if !ok {
 		info = &FileInfo{}
 		s.m[md5] = info
+		n = len(s.m)
 		s.l.Unlock()
 		goto end
 	}
 	s.l.Unlock()
 	return
 end:
-	logs.LogError("md5:%v", md5)
+	logs.LogError("md5:%v size=%v", md5, n)
 	return
 }
 
 func (s *FileInfos) Remove(md5 string) (info *FileInfo) {
+	n := 0
 	s.l.Lock()
 	if c, ok := s.m[md5]; ok {
 		info = c
 		delete(s.m, md5)
+		n = len(s.m)
 		s.l.Unlock()
 		goto end
 	}
 	s.l.Unlock()
 	return
 end:
-	logs.LogError("md5:%v", md5)
+	logs.LogError("md5:%v size=%v", md5, n)
 	return
 }
 
