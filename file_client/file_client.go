@@ -87,8 +87,8 @@ func main() {
 	method := "POST"
 	url := "http://192.168.1.113:8088/upload"
 
-	userId := "1001"           //上传操作用户
-	uuid := utils.CreateGUID() //本次上传标识
+	//本次上传标识
+	uuid := utils.CreateGUID()
 	filelist := []string{
 		"/home/go1.19.3.linux-amd64.tar.gz",
 		"/home/OpenIMSetup1.1.2.exe",
@@ -158,31 +158,132 @@ func main() {
 			return
 		}
 	}
-	// 定位读取文件偏移(上传进度)，从断点处继续上传
+	//////////////////////////////////////////// 先上传未传完的文件 ////////////////////////////////////////////
 	for i := range filelist {
 		if result, ok := results[md5[i]]; ok {
-			// 没有过期，可以继续上传
-			if time.Now().Unix() < result.Expired {
-				offset[i] = result.Now
-			}
 			// 校验文件总字节大小
 			if total[i] != result.Total {
 				logs.LogFatal("error")
 			}
+			// 已经过期，当前文件无法继续上传
+			if time.Now().Unix() >= result.Expired {
+				continue
+			}
+			// 定位读取文件偏移(上传进度)，从断点处继续上传
+			offset := result.Now
+			payload := &bytes.Buffer{}
+			writer := multipart.NewWriter(payload)
+			_ = writer.WriteField("uuid", result.Uuid)
+			for {
+				// 当前文件没有读完继续
+				if result.Total > 0 && offset < result.Total {
+					_ = writer.WriteField("file"+strconv.Itoa(i)+".total", strconv.FormatInt(result.Total, 10)) //文件总大小
+					_ = writer.WriteField("file"+strconv.Itoa(i)+".md5", result.Md5)                            //文件md5值
+					// 每次断点续传上传 BUFSIZ 字节大小
+					part, err := writer.CreateFormFile("file"+strconv.Itoa(i), filepath.Base(filelist[i]))
+					if err != nil {
+						logs.LogFatal("%v", err.Error())
+					}
+					fd, err := os.OpenFile(filelist[i], os.O_RDONLY, 0)
+					if err != nil {
+						logs.LogFatal("%v", err.Error())
+					}
+					fd.Seek(offset, io.SeekStart)
+					n, err := io.CopyN(part, fd, int64(BUFSIZ))
+					if err != nil && err != io.EOF {
+						logs.LogFatal("%v", err.Error())
+					}
+					err = fd.Close()
+					if err != nil {
+						logs.LogFatal("%v", err.Error())
+					}
+					err = writer.Close()
+					if err != nil {
+						logs.LogFatal("%v", err.Error())
+					}
+					req, err := http.NewRequest(method, url, payload)
+					if err != nil {
+						logs.LogFatal("%v", err.Error())
+					}
+					req.Header.Set("Connection", "keep-alive")
+					req.Header.Set("Keep-Alive", strings.Join([]string{"timeout=", strconv.Itoa(120)}, ""))
+					req.Header.Set("Content-Type", writer.FormDataContentType())
+					/// request
+					res, err := client.Do(req)
+					if err != nil {
+						logs.LogError("%v", err.Error())
+						logs.LogClose()
+						return
+					}
+					defer res.Body.Close()
+					for {
+						/// response
+						body, err := ioutil.ReadAll(res.Body)
+						if err != nil {
+							logs.LogError("%v", err.Error())
+							break
+						}
+						if len(body) == 0 {
+							break
+						}
+						resp := Resp{}
+						err = json.Unmarshal(body, &resp)
+						if err != nil {
+							logs.LogFatal("%v", err.Error())
+							break
+						}
+						for _, result := range resp.Data {
+							switch result.ErrCode {
+							case ErrSegOk.ErrCode:
+								if result.Now <= 0 {
+									break
+								}
+								// 上传进度写入临时文件
+								fd, err := os.OpenFile(dir+"tmp/"+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+								if err != nil {
+									logs.LogError("%v", err.Error())
+									return
+								}
+								b, err := json.Marshal(&result)
+								if err != nil {
+									logs.LogFatal("%v", err.Error())
+									break
+								}
+								_, err = fd.Write(b)
+								if err != nil {
+									logs.LogFatal("%v", err.Error())
+									break
+								}
+								err = fd.Close()
+								if err != nil {
+									logs.LogFatal("%v", err.Error())
+									return
+								}
+								//上传成功，删除临时文件
+							case ErrOk.ErrCode, ErrFileMd5.ErrCode:
+								os.Remove(dir + "/tmp/" + result.Md5 + ".tmp")
+							}
+						}
+						// logs.LogInfo(string(body))
+					}
+					if n == 0 {
+						break
+					} else {
+						offset += n
+					}
+				}
+			}
 		}
 	}
+	//////////////////////////////////////////// 再上传其他文件 ////////////////////////////////////////////
 	for {
 		finished := true
 		// 每次断点续传的payload数据
 		payload := &bytes.Buffer{}
 		writer := multipart.NewWriter(payload)
-		_ = writer.WriteField("userId", userId) //上传操作用户
-		_ = writer.WriteField("uuid", uuid)     //本次上传标识
+		_ = writer.WriteField("uuid", uuid)
 		// 要上传的文件列表，各个文件都上传一点
 		for i, filename := range filelist {
-			if result, ok := results[md5[i]]; ok {
-				_ = writer.WriteField("uuid", result.Uuid)
-			}
 			// 当前文件没有读完继续
 			if total[i] > 0 && offset[i] < total[i] {
 				finished = false
@@ -193,19 +294,16 @@ func main() {
 				if err != nil {
 					logs.LogFatal("%v", err.Error())
 				}
-				//打开当前上传文件
-				file, err := os.OpenFile(filename, os.O_RDONLY, 0)
+				fd, err := os.OpenFile(filename, os.O_RDONLY, 0)
 				if err != nil {
 					logs.LogFatal("%v", err.Error())
 				}
-				//读取分段数据
-				file.Seek(offset[i], io.SeekStart)
-				n, err := io.CopyN(part, file, int64(BUFSIZ))
+				fd.Seek(offset[i], io.SeekStart)
+				n, err := io.CopyN(part, fd, int64(BUFSIZ))
 				if err != nil && err != io.EOF {
 					logs.LogFatal("%v", err.Error())
 				}
-				//关闭当前文件
-				err = file.Close()
+				err = fd.Close()
 				if err != nil {
 					logs.LogFatal("%v", err.Error())
 				}
@@ -218,7 +316,6 @@ func main() {
 				}
 			}
 		}
-		//必须发起HTTP请求之前关闭 writer
 		err := writer.Close()
 		if err != nil {
 			logs.LogFatal("%v", err.Error())
@@ -232,8 +329,7 @@ func main() {
 			req.Header.Set("Keep-Alive", strings.Join([]string{"timeout=", strconv.Itoa(120)}, ""))
 			req.Header.Set("Content-Type", writer.FormDataContentType())
 			// logs.LogInfo("user:%v:%v %v %v %v", userId, uuid, method, url, filelist)
-
-			//request
+			/// request
 			res, err := client.Do(req)
 			if err != nil {
 				logs.LogError("%v", err.Error())
@@ -242,7 +338,7 @@ func main() {
 			}
 			defer res.Body.Close()
 			for {
-				// response
+				/// response
 				body, err := ioutil.ReadAll(res.Body)
 				if err != nil {
 					logs.LogError("%v", err.Error())
@@ -289,7 +385,7 @@ func main() {
 						os.Remove(dir + "/tmp/" + result.Md5 + ".tmp")
 					}
 				}
-				logs.LogInfo(string(body))
+				// logs.LogInfo(string(body))
 			}
 		} else {
 			break
