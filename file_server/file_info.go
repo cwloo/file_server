@@ -28,9 +28,9 @@ func (s *FileInfo) Assert() {
 	if s.SrcName == "" {
 		logs.LogFatal("")
 	}
-	// if s.DstName == "" {
-	// 	logs.LogFatal("")
-	// }
+	if s.DstName == "" {
+		logs.LogFatal("")
+	}
 	// if s.Now == int64(0) {
 	// 	logs.LogFatal("")
 	// }

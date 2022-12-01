@@ -165,9 +165,10 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			keys = append(keys, k)
 			logs.LogWarn("--------------------- 没有上传，等待上传 uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
 		} else {
+			info.Assert()
 			if info.Uuid == uuid {
 				/// 已在当前上传任务中
-				info.Assert()
+				
 				////// 校验MD5
 				if md5 != info.Md5 {
 					logs.LogFatal("uuid:%v:%v(%v) conflict md5:%v", info.Uuid, info.SrcName, info.Md5, md5)
@@ -192,7 +193,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 				logs.LogInfo("--------------------- 继续上传中 uuid:%v %v=%v[%v] %v/%v seg_size[%d]", uuid, k, header.Filename, md5, info.Now, total, header.Size)
 			} else {
 				/// 已在其它上传任务中
-				info.Assert()
+
 				////// 校验MD5
 				if md5 != info.Md5 {
 					logs.LogFatal("uuid:%v:%v(%v) conflict md5:%v", info.Uuid, info.SrcName, info.Md5, md5)
