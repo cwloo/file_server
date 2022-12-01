@@ -85,14 +85,18 @@ end:
 	cb(info)
 }
 
-func (s *FileInfos) Add(md5 string, info *FileInfo) (old *FileInfo) {
+func (s *FileInfos) GetAdd(md5 string) (info *FileInfo, ok bool) {
 	s.l.Lock()
-	if c, ok := s.m[md5]; ok {
-		old = c
-		logs.LogFatal("error")
+	info, ok = s.m[md5]
+	if !ok {
+		info = &FileInfo{}
+		s.m[md5] = info
+		s.l.Unlock()
+		goto end
 	}
-	s.m[md5] = info
 	s.l.Unlock()
+	return
+end:
 	logs.LogError("md5:%v", md5)
 	return
 }

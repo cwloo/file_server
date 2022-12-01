@@ -22,6 +22,20 @@ const (
 	BUFSIZ = 1024 * 1024 * 10
 )
 
+var (
+	ErrOk      = ErrorMsg{0, "Ok"}
+	ErrSegOk   = ErrorMsg{1, "upload file segment succ"}
+	ErrFileMd5 = ErrorMsg{2, "upload file over, but md5 failed"}
+)
+
+// <summary>
+// ErrorMsg
+// <summary>
+type ErrorMsg struct {
+	ErrCode int    `json:"code,omitempty"`
+	ErrMsg  string `json:"errmsg,omitempty"`
+}
+
 // <summary>
 // Resp
 // <summary>
@@ -50,6 +64,7 @@ type Result struct {
 func main() {
 	path, _ := os.Executable()
 	dir, exe := filepath.Split(path)
+	os.MkdirAll(dir+"/tmp", 0666)
 
 	logs.LogTimezone(logs.MY_CST)
 	logs.LogInit(dir+"/logs", logs.LVL_DEBUG, exe, 100000000)
@@ -78,6 +93,7 @@ func main() {
 		"/home/go1.19.3.linux-amd64.tar.gz",
 		"/home/OpenIMSetup1.1.2.exe",
 	}
+	results := map[string]Result{}
 	offset := make([]int64, len(filelist))  //分段读取文件偏移
 	finished := make([]bool, len(filelist)) //标识文件读取完毕
 	total := make([]int64, len(filelist))   //文件总大小
@@ -100,13 +116,51 @@ func main() {
 		}
 		b, err := ioutil.ReadAll(fd)
 		if err != nil {
-			logs.LogError("%v", err.Error())
+			logs.LogFatal("%v", err.Error())
 			return
 		}
 		md5[i] = utils.MD5Byte(b, false)
 		err = fd.Close()
 		if err != nil {
 			logs.LogFatal("%v", err.Error())
+		}
+	}
+	//加载上传进度临时文件
+	for i := range filelist {
+		fd, err := os.OpenFile(dir+"/tmp/"+md5[i]+".tmp", os.O_RDONLY, 0)
+		if err != nil {
+			logs.LogFatal("%v", err.Error())
+			return
+		}
+		data, err := ioutil.ReadAll(fd)
+		if err != nil {
+			logs.LogFatal("%v", err.Error())
+			return
+		}
+		var result Result
+		err = json.Unmarshal(data, &result)
+		if err != nil {
+			logs.LogFatal("%v", err.Error())
+			return
+		}
+		results[md5[i]] = result
+		err = fd.Close()
+		if err != nil {
+			logs.LogFatal("%v", err.Error())
+			return
+		}
+	}
+	// 定位读取文件偏移(上传进度)，从断点处继续上传
+	for i := range filelist {
+		if result, ok := results[md5[i]]; ok {
+			// 没有过期，可以继续上传
+			if time.Now().Unix() < result.Expired {
+				offset[i] = result.Now
+			}
+			// 校验文件总字节大小
+			if total[i] != result.Total {
+				logs.LogFatal("error")
+			}
 		}
 	}
 	for {
@@ -191,6 +245,35 @@ func main() {
 				if err != nil {
 					logs.LogFatal("%v", err.Error())
 					break
+				}
+				for _, result := range resp.Data {
+					switch result.ErrCode {
+					case ErrSegOk.ErrCode:
+						// 上传进度写入临时文件
+						fd, err := os.OpenFile(dir+"/tmp/"+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+						if err != nil {
+							logs.LogError("%v", err.Error())
+							return
+						}
+						b, err := json.Marshal(&result)
+						if err != nil {
+							logs.LogFatal("%v", err.Error())
+							break
+						}
+						_, err = fd.Write(b)
+						if err != nil {
+							logs.LogFatal("%v", err.Error())
+							break
+						}
+						err = fd.Close()
+						if err != nil {
+							logs.LogFatal("%v", err.Error())
+							return
+						}
+						//上传成功，删除临时文件
+					case ErrOk.ErrCode, ErrFileMd5.ErrCode:
+						os.Remove(dir + "/tmp/" + result.Md5 + ".tmp")
+					}
 				}
 				logs.LogInfo(string(body))
 			}

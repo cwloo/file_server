@@ -48,14 +48,23 @@ end:
 	cb(handler)
 }
 
-func (s *SessionToHandler) Add(sessionId string, handler Uploader) (old Uploader) {
+func (s *SessionToHandler) GetAdd(sessionId string, async bool) (handler Uploader, ok bool) {
 	s.l.Lock()
-	if c, ok := s.m[sessionId]; ok {
-		old = c
-		logs.LogFatal("error")
+	handler, ok = s.m[sessionId]
+	if !ok {
+		switch async {
+		case true:
+			handler = NewAsyncUploader(sessionId)
+		default:
+			handler = NewSyncUploader(sessionId)
+		}
+		s.m[sessionId] = handler
+		s.l.Unlock()
+		goto end
 	}
-	s.m[sessionId] = handler
 	s.l.Unlock()
+	return
+end:
 	logs.LogError("uuid:%v", sessionId)
 	return
 }
