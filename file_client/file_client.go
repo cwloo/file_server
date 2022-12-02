@@ -197,13 +197,13 @@ CHECKPOINT:
 									results = map[string]Result{}
 								}
 								results[result.Md5] = result
-								logs.LogInfo("--- *** ---\n%v", result.ErrMsg)
+								logs.LogInfo("--- *** --- %v", result.ErrMsg)
 								goto CHECKPOINT
 							case ErrOk.ErrCode, ErrFileMd5.ErrCode:
 								//上传完成，删除临时文件
 								os.Remove(tmp_dir + "/" + result.Md5 + ".tmp")
 								delete(results, result.Md5)
-								logs.LogInfo("--- *** ---\n%v", result.ErrMsg)
+								logs.LogInfo("--- *** --- %v", result.ErrMsg)
 							}
 						}
 						// logs.LogInfo("--- *** ---\n%v", string(body))
@@ -330,13 +330,13 @@ CHECKPOINT:
 							results = map[string]Result{}
 						}
 						results[result.Md5] = result
-						logs.LogInfo("--- --- ---\n%v", result.ErrMsg)
+						logs.LogInfo("--- --- --- %v", result.ErrMsg)
 						goto CHECKPOINT
 					case ErrOk.ErrCode, ErrFileMd5.ErrCode:
 						//上传完成，删除临时文件
 						os.Remove(tmp_dir + "/" + result.Md5 + ".tmp")
 						delete(results, result.Md5)
-						logs.LogInfo("--- --- ---\n%v", result.ErrMsg)
+						logs.LogInfo("--- --- --- %v", result.ErrMsg)
 					}
 				}
 				// logs.LogInfo("--- --- ---\n%v", string(body))
