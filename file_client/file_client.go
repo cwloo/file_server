@@ -326,6 +326,9 @@ CHECKPOINT:
 						}
 					case ErrCheckReUpload.ErrCode:
 						//校正需要重传
+						if results == nil {
+							results = map[string]Result{}
+						}
 						results[result.Md5] = result
 						logs.LogInfo("--- --- ---\n%v", result.ErrMsg)
 						goto CHECKPOINT
