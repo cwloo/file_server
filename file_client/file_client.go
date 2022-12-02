@@ -195,6 +195,7 @@ CHECKPOINT:
 			}
 			// 已经过期，当前文件无法继续上传
 			if time.Now().Unix() >= result.Expired {
+				os.Remove(tmp_dir + "/" + md5[i] + ".tmp")
 				continue
 			}
 			// 定位读取文件偏移(上传进度)，从断点处继续上传
