@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
-	"net/http/cookiejar"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -70,132 +69,36 @@ func main() {
 	logs.LogTimezone(logs.MY_CST)
 	logs.LogInit(dir+"logs", logs.LVL_DEBUG, exe, 100000000)
 	logs.LogMode(logs.M_STDOUT_FILE)
-	d := map[string]string{}
-	for _, v := range os.Args {
-		m := strings.Split(v, "=")
-		if len(m) == 2 {
-			d[m[0]] = m[1]
-		}
-	}
-	// id := 0
-	// if v, ok := d["i"]; ok {
-	// 	id, _ = strconv.Atoi(v)
-	// }
-	num := 0
-	if v, ok := d["c"]; ok {
-		num, _ = strconv.Atoi(v)
-	}
-	filelist := []string{}
-	for i := 0; i < num; i++ {
-		if v, ok := d[strings.Join([]string{"file", strconv.Itoa(i)}, "")]; ok {
-			filelist = append(filelist, v)
-		}
-	}
-	logs.LogWarn("%v", os.Args)
-	if num <= 0 {
+
+	_, filelist := parseargs()
+	if len(filelist) == 0 {
 		return
 	}
-	// tmp_dir := dir + "tmp" + fmt.Sprintf(".%v", id)
-	tmp_dir := dir + "tmp"
+
+	tmp_dir := dir + "tmp" // + fmt.Sprintf(".%v", id)
 	os.MkdirAll(tmp_dir, 0666)
 
-	transport := &http.Transport{
-		DisableKeepAlives:     false,
-		TLSHandshakeTimeout:   time.Duration(3600) * time.Second,
-		IdleConnTimeout:       time.Duration(3600) * time.Second,
-		ResponseHeaderTimeout: time.Duration(3600) * time.Second,
-		ExpectContinueTimeout: time.Duration(3600) * time.Second,
-	}
-	jar, _ := cookiejar.New(nil)
-	client := &http.Client{
-		Jar:       jar,
-		Timeout:   time.Duration(3600) * time.Second,
-		Transport: transport,
-	}
-
+	client := httpclient()
 	method := "POST"
 	url := "http://192.168.1.113:8088/upload"
 
-	//本次上传标识
-	uuid := utils.CreateGUID()
+	uuid := utils.CreateGUID()           //本次上传标识
+	MD5 := calcFileMd5(filelist)         //文件md5值
+	total, offset := calcFileSize(MD5)   //文件大小/偏移
+	results := loadTmpFile(tmp_dir, MD5) //未决临时文件
 
-	results := map[string]Result{}
-	offset := make([]int64, len(filelist))  //分段读取文件偏移
-	finished := make([]bool, len(filelist)) //标识文件读取完毕
-	total := make([]int64, len(filelist))   //文件总大小
-	md5 := make([]string, len(filelist))    //文件md5值
-	for i, filename := range filelist {
-		offset[i] = int64(0)
-		finished[i] = false
-		sta, err := os.Stat(filename) //读取当前上传文件大小
-		if err != nil && os.IsNotExist(err) {
-			logs.LogFatal("%v", err.Error())
-		}
-		total[i] = sta.Size() //单个文件总大小
-	}
-	//计算文件md5值
-	for i, filename := range filelist {
-		_, err := os.Stat(filename)
-		if err != nil && os.IsNotExist(err) {
-			continue
-		}
-		fd, err := os.OpenFile(filename, os.O_RDONLY, 0)
-		if err != nil {
-			logs.LogError("%v", err.Error())
-			return
-		}
-		b, err := ioutil.ReadAll(fd)
-		if err != nil {
-			logs.LogFatal("%v", err.Error())
-			return
-		}
-		md5[i] = utils.MD5Byte(b, false)
-		err = fd.Close()
-		if err != nil {
-			logs.LogFatal("%v", err.Error())
-		}
-	}
-	//加载上传进度临时文件
-	for i := range filelist {
-		_, err := os.Stat(tmp_dir + "/" + md5[i] + ".tmp")
-		if err != nil && os.IsNotExist(err) {
-			continue
-		}
-		fd, err := os.OpenFile(tmp_dir+"/"+md5[i]+".tmp", os.O_RDONLY, 0)
-		if err != nil {
-			logs.LogFatal("%v", err.Error())
-			return
-		}
-		data, err := ioutil.ReadAll(fd)
-		if err != nil {
-			logs.LogFatal("%v", err.Error())
-			return
-		}
-		var result Result
-		err = json.Unmarshal(data, &result)
-		if err != nil {
-			logs.LogFatal("%v", err.Error())
-			return
-		}
-		results[md5[i]] = result
-		err = fd.Close()
-		if err != nil {
-			logs.LogFatal("%v", err.Error())
-			return
-		}
-	}
 	start_new := len(results) == 0
 CHECKPOINT:
 	//////////////////////////////////////////// 先上传未传完的文件 ////////////////////////////////////////////
-	for i := range filelist {
-		if result, ok := results[md5[i]]; ok {
+	for f, md5 := range MD5 {
+		if result, ok := results[md5]; ok {
 			// 校验文件总字节大小
-			if total[i] != result.Total {
+			if total[md5] != result.Total {
 				logs.LogFatal("error")
 			}
 			// 已经过期，当前文件无法继续上传
 			if time.Now().Unix() >= result.Expired {
-				os.Remove(tmp_dir + "/" + md5[i] + ".tmp")
+				os.Remove(tmp_dir + "/" + md5 + ".tmp")
 				continue
 			}
 			// 定位读取文件偏移(上传进度)，从断点处继续上传
@@ -206,15 +109,14 @@ CHECKPOINT:
 				_ = writer.WriteField("uuid", result.Uuid)
 				// 当前文件没有读完继续
 				if result.Total > 0 && offset < result.Total {
-					_ = writer.WriteField("file"+strconv.Itoa(i)+".offset", strconv.FormatInt(offset, 10))      //文件偏移量
-					_ = writer.WriteField("file"+strconv.Itoa(i)+".total", strconv.FormatInt(result.Total, 10)) //文件总大小
-					_ = writer.WriteField("file"+strconv.Itoa(i)+".md5", result.Md5)                            //文件md5值
+					_ = writer.WriteField(md5+".offset", strconv.FormatInt(offset, 10))      //文件偏移量
+					_ = writer.WriteField(md5+".total", strconv.FormatInt(result.Total, 10)) //文件总大小
 					// 每次断点续传上传 BUFSIZ 字节大小
-					part, err := writer.CreateFormFile("file"+strconv.Itoa(i), filepath.Base(filelist[i]))
+					part, err := writer.CreateFormFile(md5, filepath.Base(f))
 					if err != nil {
 						logs.LogFatal("%v", err.Error())
 					}
-					fd, err := os.OpenFile(filelist[i], os.O_RDONLY, 0)
+					fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 					if err != nil {
 						logs.LogFatal("%v", err.Error())
 					}
@@ -291,12 +193,16 @@ CHECKPOINT:
 								}
 							case ErrCheckReUpload.ErrCode:
 								//校正需要重传
+								if results == nil {
+									results = map[string]Result{}
+								}
 								results[result.Md5] = result
 								logs.LogInfo("--- *** ---\n%v", result.ErrMsg)
 								goto CHECKPOINT
 							case ErrOk.ErrCode, ErrFileMd5.ErrCode:
 								//上传完成，删除临时文件
 								os.Remove(tmp_dir + "/" + result.Md5 + ".tmp")
+								delete(results, result.Md5)
 								logs.LogInfo("--- *** ---\n%v", result.ErrMsg)
 							}
 						}
@@ -305,7 +211,6 @@ CHECKPOINT:
 					if n > 0 {
 						offset += n
 						if offset == result.Total {
-							delete(results, md5[i])
 							break
 						}
 					}
@@ -326,23 +231,22 @@ CHECKPOINT:
 		writer := multipart.NewWriter(payload)
 		_ = writer.WriteField("uuid", uuid)
 		// 要上传的文件列表，各个文件都上传一点
-		for i, filename := range filelist {
+		for f, md5 := range MD5 {
 			// 当前文件没有读完继续
-			if total[i] > 0 && offset[i] < total[i] {
+			if total[md5] > 0 && offset[md5] < total[md5] {
 				finished = false
-				_ = writer.WriteField("file"+strconv.Itoa(i)+".offset", strconv.FormatInt(offset[i], 10)) //文件偏移量
-				_ = writer.WriteField("file"+strconv.Itoa(i)+".total", strconv.FormatInt(total[i], 10))   //文件总大小
-				_ = writer.WriteField("file"+strconv.Itoa(i)+".md5", md5[i])                              //文件md5值
+				_ = writer.WriteField(md5+".offset", strconv.FormatInt(offset[md5], 10)) //文件偏移量
+				_ = writer.WriteField(md5+".total", strconv.FormatInt(total[md5], 10))   //文件总大小
 				// 每次断点续传上传 BUFSIZ 字节大小
-				part, err := writer.CreateFormFile("file"+strconv.Itoa(i), filepath.Base(filename))
+				part, err := writer.CreateFormFile(md5, filepath.Base(f))
 				if err != nil {
 					logs.LogFatal("%v", err.Error())
 				}
-				fd, err := os.OpenFile(filename, os.O_RDONLY, 0)
+				fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 				if err != nil {
 					logs.LogFatal("%v", err.Error())
 				}
-				fd.Seek(offset[i], io.SeekStart)
+				fd.Seek(offset[md5], io.SeekStart)
 				n, err := io.CopyN(part, fd, int64(BUFSIZ))
 				if err != nil && err != io.EOF {
 					logs.LogFatal("%v", err.Error())
@@ -352,7 +256,7 @@ CHECKPOINT:
 					logs.LogFatal("%v", err.Error())
 				}
 				if n > 0 {
-					offset[i] += n
+					offset[md5] += n
 					continue
 				}
 			}
@@ -428,6 +332,7 @@ CHECKPOINT:
 					case ErrOk.ErrCode, ErrFileMd5.ErrCode:
 						//上传完成，删除临时文件
 						os.Remove(tmp_dir + "/" + result.Md5 + ".tmp")
+						delete(results, result.Md5)
 						logs.LogInfo("--- --- ---\n%v", result.ErrMsg)
 					}
 				}

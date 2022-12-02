@@ -57,7 +57,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 	for k := range form.File {
 		offset := r.FormValue(k + ".offset")
 		total := r.FormValue(k + ".total")
-		md5 := strings.ToLower(r.FormValue(k + ".md5"))
+		md5 := strings.ToLower(k)
 		/// header检查
 		_, header, err := r.FormFile(k)
 		if err != nil {

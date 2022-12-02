@@ -151,7 +151,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 	for _, k := range req.keys {
 		offset := req.r.FormValue(k + ".offset")
 		total := req.r.FormValue(k + ".total")
-		md5 := strings.ToLower(req.r.FormValue(k + ".md5"))
+		md5 := strings.ToLower(k)
 		s.tryAdd(md5)
 		file, header, err := req.r.FormFile(k)
 		if err != nil {
