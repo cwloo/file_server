@@ -23,8 +23,8 @@ func calcFileSize(MD5 map[string]string) (total map[string]int64, offset map[str
 	return
 }
 
-func calcFileMd5(filelist []string) map[string]string {
-	md5 := map[string]string{}
+func calcFileMd5(filelist []string) (md5 map[string]string) {
+	md5 = map[string]string{}
 	for _, filename := range filelist {
 		_, err := os.Stat(filename)
 		if err != nil && os.IsNotExist(err) {
@@ -46,10 +46,11 @@ func calcFileMd5(filelist []string) map[string]string {
 			logs.LogFatal("%v", err.Error())
 		}
 	}
-	return md5
+	return
 }
 
 func loadTmpFile(dir string, MD5 map[string]string) (results map[string]Result) {
+	results = map[string]Result{}
 	for _, md5 := range MD5 {
 		f := dir + "/" + md5 + ".tmp"
 		_, err := os.Stat(f)
