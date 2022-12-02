@@ -15,7 +15,7 @@ type IniConfig struct {
 	FileList []string
 }
 
-func readini(filename string) (c *IniConfig) {
+func readIni(filename string) (c *IniConfig) {
 	ini := utils.Ini{}
 	if err := ini.Load("conf.ini"); err != nil {
 		fmt.Printf("load %s err: [%s]\n", filename, err.Error())
@@ -32,7 +32,7 @@ func readini(filename string) (c *IniConfig) {
 }
 
 func InitConfig() {
-	Config = readini("conf.ini")
+	Config = readIni("conf.ini")
 	if Config == nil {
 		panic(utils.Stack())
 	}
