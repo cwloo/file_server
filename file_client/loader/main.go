@@ -1,111 +1,25 @@
 package main
 
 import (
-	"flag"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strings"
-	"sync"
 
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
 )
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//.\loader -children= -httpaddr= -wsaddr= -mailboxs= -clients= -baseTest= -deltaClients= -deltaTime= -interval= -timeout=
-
-var children = flag.Int("children", 5, "")
-var Process = map[int]*os.Process{}
-var Lock = &sync.Mutex{}
-var wg sync.WaitGroup
-
-func onInput(str string) int {
-	switch str {
-	case "c":
-		{
-			utils.ClearScreen[runtime.GOOS]()
-			killAllChild()
-			return 0
-		}
-	case "q":
-		{
-			utils.ClearScreen[runtime.GOOS]()
-			killAllChild()
-			return -1
-		}
-	}
-	return 0
-}
-
-func killAllChild() {
-	Lock.Lock()
-	for _, p := range Process {
-		err := p.Kill()
-		if err != nil {
-			logs.LogError("%v", err.Error())
-		}
-	}
-	Process = map[int]*os.Process{}
-	Lock.Unlock()
-}
-
-// func killChild(p *os.Process) {
-// 	err := p.Kill()
-// 	if err != nil {
-// 		logs.LogError("%v", err.Error())
-// 		return
-// 	}
-// 	Lock.Lock()
-// 	delete(Process, p.Pid)
-// 	Lock.Unlock()
-// }
-
-func waitChild(p *os.Process) {
-	sta, err := p.Wait()
-	if err != nil {
-		logs.LogError("%v", err.Error())
-	}
-	if p.Pid != sta.Pid() {
-		logs.LogFatal("%v %v", p.Pid, sta.Pid())
-	}
-	if sta.Success() {
-		logs.LogDebug("pid:%v exit(%v) succ = %v", sta.Pid(), sta.ExitCode(), sta.String())
-	} else {
-		logs.LogError("pid:%v exit(%v) failed = %v", sta.Pid(), sta.ExitCode(), sta.String())
-	}
-	Lock.Lock()
-	delete(Process, p.Pid)
-	Lock.Unlock()
-	wg.Done()
-}
-
-func startProcess(name, execStr string) {
-	for i := 0; i < *children; i++ {
-		cmdLine := execStr
-		args := strings.Split(cmdLine, " ")
-		attr := &os.ProcAttr{
-			Files: []*os.File{os.Stdin, os.Stdout, os.Stderr},
-		}
-		p, err := os.StartProcess(name, args, attr)
-		if err != nil {
-			logs.LogError("%v", err)
-			continue
-		}
-		wg.Add(1)
-		go waitChild(p)
-		Lock.Lock()
-		Process[p.Pid] = p
-		Lock.Unlock()
-	}
-}
+var (
+	path, _  = os.Executable()
+	dir, exe = filepath.Split(path)
+)
 
 func main() {
-	path, _ := os.Executable()
-	dir, exe := filepath.Split(path)
+	InitConfig()
 	logs.LogTimezone(logs.MY_CST)
-	logs.LogInit(dir+"/logs", logs.LVL_DEBUG, exe, 100000000)
+	logs.LogInit(dir+"logs", logs.LVL_DEBUG, exe, 100000000)
 	logs.LogMode(logs.M_STDOUT_FILE)
 	go func() {
 		utils.ReadConsole(onInput)
@@ -116,11 +30,11 @@ func main() {
 	}
 	var execname, execStr string
 	if runtime.GOOS == "linux" {
-		dir += "/../"
+		dir += "../"
 		execname = "file_client"
 		execStr = "./" + execname
 	} else if runtime.GOOS == "windows" {
-		dir += "\\..\\"
+		dir += "..\\"
 		execname = "file_client.exe"
 		execStr = execname
 	}
@@ -129,8 +43,47 @@ func main() {
 		logs.LogError("%v", err)
 		return
 	}
-	startProcess(f, execStr)
-	wg.Wait()
+	//子进程数量
+	n := Config.Sub
+	sub := map[int][]string{}
+	// 给子进程均匀分配要上传的文件
+	id := 0
+	for _, f := range Config.FileList {
+		sub[id] = append(sub[id], f)
+		id++
+		if id >= n {
+			id = 0
+		}
+	}
+	// 创建若干子进程
+	for id := 0; id < n; {
+		// 当前子进程要上传的文件
+		c := 0
+		file := []string{}
+		if v, ok := sub[id]; ok {
+			c = len(v)
+			for i, f := range v {
+				file = append(file, fmt.Sprintf("-file%v=%v", i, f))
+			}
+		}
+		// 子进程参数
+		// args := strings.Split(strings.Join([]string{
+		// 	execStr,
+		// 	fmt.Sprintf("-id=%v", id),
+		// 	fmt.Sprintf("-c=%v", c),
+		// }, " "), " ")
+		args := []string{
+			execStr,
+			fmt.Sprintf("-id=%v", id),
+			fmt.Sprintf("-c=%v", c),
+		}
+		args = append(args, file...)
+		// 启动子进程
+		if startProcess(f, args) {
+			id++
+		}
+	}
+	waitAll()
 	logs.LogDebug("exit...")
 	logs.LogClose()
 }

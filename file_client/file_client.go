@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -22,6 +24,10 @@ const (
 	BUFSIZ = 1024 * 1024 * 10
 )
 
+var (
+	path, _  = os.Executable()
+	dir, exe = filepath.Split(path)
+)
 var (
 	ErrOk            = ErrorMsg{0, "Ok"}
 	ErrSegOk         = ErrorMsg{1, "upload file segment succ"}
@@ -63,9 +69,16 @@ type Result struct {
 }
 
 func main() {
-	path, _ := os.Executable()
-	dir, exe := filepath.Split(path)
-	os.MkdirAll(dir+"tmp", 0666)
+	flag.Parse()
+	id := *flag.Int("sub", 0, "")
+	num := *flag.Int("c", 0, "")
+	filelist := []string{}
+	for i := 0; i < num; i++ {
+		filelist = append(filelist, *flag.String(fmt.Sprintf("file%v", i), "", ""))
+	}
+
+	tmp_dir := dir + "tmp" + fmt.Sprintf(".%v", id)
+	os.MkdirAll(tmp_dir, 0666)
 
 	logs.LogTimezone(logs.MY_CST)
 	logs.LogInit(dir+"logs", logs.LVL_DEBUG, exe, 100000000)
@@ -90,10 +103,7 @@ func main() {
 
 	//本次上传标识
 	uuid := utils.CreateGUID()
-	filelist := []string{
-		"/home/go1.19.3.linux-amd64.tar.gz",
-		"/home/OpenIMSetup1.1.2.exe",
-	}
+
 	results := map[string]Result{}
 	offset := make([]int64, len(filelist))  //分段读取文件偏移
 	finished := make([]bool, len(filelist)) //标识文件读取完毕
@@ -132,11 +142,11 @@ func main() {
 	}
 	//加载上传进度临时文件
 	for i := range filelist {
-		_, err := os.Stat(dir + "tmp/" + md5[i] + ".tmp")
+		_, err := os.Stat(tmp_dir + "/" + md5[i] + ".tmp")
 		if err != nil && os.IsNotExist(err) {
 			continue
 		}
-		fd, err := os.OpenFile(dir+"tmp/"+md5[i]+".tmp", os.O_RDONLY, 0)
+		fd, err := os.OpenFile(tmp_dir+"/"+md5[i]+".tmp", os.O_RDONLY, 0)
 		if err != nil {
 			logs.LogFatal("%v", err.Error())
 			return
@@ -246,7 +256,7 @@ CHECKPOINT:
 									break
 								}
 								// 上传进度写入临时文件
-								fd, err := os.OpenFile(dir+"tmp/"+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+								fd, err := os.OpenFile(tmp_dir+"/"+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 								if err != nil {
 									logs.LogError("%v", err.Error())
 									return
@@ -273,7 +283,7 @@ CHECKPOINT:
 								goto CHECKPOINT
 							case ErrOk.ErrCode, ErrFileMd5.ErrCode:
 								//上传成功，删除临时文件
-								os.Remove(dir + "/tmp/" + result.Md5 + ".tmp")
+								os.Remove(tmp_dir + "/" + result.Md5 + ".tmp")
 							}
 						}
 						logs.LogInfo("--- *** ---\n%v", string(body))
@@ -376,7 +386,7 @@ CHECKPOINT:
 							break
 						}
 						// 上传进度写入临时文件
-						fd, err := os.OpenFile(dir+"tmp/"+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+						fd, err := os.OpenFile(tmp_dir+"/"+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 						if err != nil {
 							logs.LogError("%v", err.Error())
 							return
@@ -404,7 +414,7 @@ CHECKPOINT:
 						goto CHECKPOINT
 					case ErrOk.ErrCode, ErrFileMd5.ErrCode:
 						//上传成功，删除临时文件
-						os.Remove(dir + "/tmp/" + result.Md5 + ".tmp")
+						os.Remove(tmp_dir + "/" + result.Md5 + ".tmp")
 					}
 				}
 				logs.LogInfo("--- --- ---\n%v", string(body))
