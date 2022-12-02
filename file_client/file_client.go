@@ -160,7 +160,7 @@ func main() {
 		}
 	}
 CHECKPOINT:
-	logs.LogInfo("")
+	// logs.LogInfo("")
 	//////////////////////////////////////////// 先上传未传完的文件 ////////////////////////////////////////////
 	for i := range filelist {
 		if result, ok := results[md5[i]]; ok {
@@ -175,7 +175,7 @@ CHECKPOINT:
 			// 定位读取文件偏移(上传进度)，从断点处继续上传
 			offset := result.Now
 			for {
-				logs.LogInfo("")
+				// logs.LogInfo("")
 				payload := &bytes.Buffer{}
 				writer := multipart.NewWriter(payload)
 				_ = writer.WriteField("uuid", result.Uuid)
@@ -223,7 +223,7 @@ CHECKPOINT:
 					}
 					defer res.Body.Close()
 					for {
-						logs.LogInfo("")
+						// logs.LogInfo("")
 						/// response
 						body, err := ioutil.ReadAll(res.Body)
 						if err != nil {
@@ -276,7 +276,7 @@ CHECKPOINT:
 								os.Remove(dir + "/tmp/" + result.Md5 + ".tmp")
 							}
 						}
-						// logs.LogInfo("--- *** ---\n%v", string(body))
+						logs.LogInfo("--- *** ---\n%v", string(body))
 					}
 					if n > 0 {
 						offset += n
@@ -293,7 +293,7 @@ CHECKPOINT:
 	}
 	//////////////////////////////////////////// 再上传其他文件 ////////////////////////////////////////////
 	for {
-		logs.LogInfo("")
+		// logs.LogInfo("")
 		finished := true
 		// 每次断点续传的payload数据
 		payload := &bytes.Buffer{}
@@ -353,7 +353,7 @@ CHECKPOINT:
 			}
 			defer res.Body.Close()
 			for {
-				logs.LogInfo("")
+				// logs.LogInfo("")
 				/// response
 				body, err := ioutil.ReadAll(res.Body)
 				if err != nil {
@@ -399,7 +399,7 @@ CHECKPOINT:
 					case ErrCheckReUpload.ErrCode:
 						//校正需要重传
 						results[result.Md5] = result
-						// logs.LogInfo("--- *** ---\n%v", string(body))
+						logs.LogInfo("--- *** ---\n%v", string(body))
 						logs.LogFatal("")
 						goto CHECKPOINT
 					case ErrOk.ErrCode, ErrFileMd5.ErrCode:
@@ -407,7 +407,7 @@ CHECKPOINT:
 						os.Remove(dir + "/tmp/" + result.Md5 + ".tmp")
 					}
 				}
-				// logs.LogInfo("--- --- ---\n%v", string(body))
+				logs.LogInfo("--- --- ---\n%v", string(body))
 			}
 		} else {
 			break
