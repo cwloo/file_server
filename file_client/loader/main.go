@@ -24,21 +24,19 @@ func main() {
 	go func() {
 		utils.ReadConsole(onInput)
 	}()
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		logs.LogFatal("%v", err)
-	}
-	var execname, execStr string
+	// dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	// if err != nil {
+	// 	logs.LogFatal("%v", err)
+	// }
+	var cmd string
 	if runtime.GOOS == "linux" {
 		dir += "../"
-		execname = "file_client"
-		execStr = "./" + execname
+		cmd = "./" + Config.Exec
 	} else if runtime.GOOS == "windows" {
 		dir += "..\\"
-		execname = "file_client.exe"
-		execStr = execname
+		cmd = Config.Exec + ".exe"
 	}
-	f, err := exec.LookPath(dir + execname)
+	f, err := exec.LookPath(dir + Config.Exec)
 	if err != nil {
 		logs.LogError("%v", err)
 		return
@@ -63,19 +61,19 @@ func main() {
 		if v, ok := sub[id]; ok {
 			c = len(v)
 			for i, f := range v {
-				file = append(file, fmt.Sprintf("-file%v=%v", i, f))
+				file = append(file, fmt.Sprintf("file%v=%v", i, f))
 			}
 		}
 		// 子进程参数
 		// args := strings.Split(strings.Join([]string{
-		// 	execStr,
-		// 	fmt.Sprintf("-id=%v", id),
-		// 	fmt.Sprintf("-c=%v", c),
+		// 	cmd,
+		// 	fmt.Sprintf("i=%v", id),
+		// 	fmt.Sprintf("c=%v", c),
 		// }, " "), " ")
 		args := []string{
-			execStr,
-			fmt.Sprintf("-id=%v", id),
-			fmt.Sprintf("-c=%v", c),
+			cmd,
+			fmt.Sprintf("i=%v", id),
+			fmt.Sprintf("c=%v", c),
 		}
 		args = append(args, file...)
 		// 启动子进程
@@ -83,6 +81,7 @@ func main() {
 			id++
 		}
 	}
+	logs.LogDebug("Children = Succ[%03d]", n)
 	waitAll()
 	logs.LogDebug("exit...")
 	logs.LogClose()

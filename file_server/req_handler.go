@@ -178,7 +178,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			info.DstName = strings.Join([]string{uuid, ".", utils.RandomCharString(10), ".", header.Filename}, "")
 			info.Total = size
 			keys = append(keys, k)
-			logs.LogWarn("--- *** 没有上传，等待上传 uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
+			// logs.LogWarn("--- *** 没有上传，等待上传 uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
 		} else {
 			info.Assert()
 			if info.Uuid == uuid {
@@ -219,15 +219,15 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			///////////////////////////// 新的上传任务 /////////////////////////////
 			/// 有待上传文件，启动新任务
-			j, _ := json.Marshal(keys)
-			logs.LogTrace("--------------------- ****** 有待上传文件，启动任务 uuid:%v ... %v", uuid, string(j))
+			// j, _ := json.Marshal(keys)
+			// logs.LogTrace("--------------------- ****** 有待上传文件，启动任务 uuid:%v ... %v", uuid, string(j))
 			uploader.Upload(&Req{uuid: uuid, keys: keys, w: w, r: r, resp: resp, result: result})
 		} else {
 			exist = true
 			///////////////////////////// 当前上传任务 /////////////////////////////
 			/// 有待上传文件，加入当前任务
-			j, _ := json.Marshal(keys)
-			logs.LogTrace("--------------------- ****** 有待上传文件，加入任务 uuid:%v ... %v", uuid, string(j))
+			// j, _ := json.Marshal(keys)
+			// logs.LogTrace("--------------------- ****** 有待上传文件，加入任务 uuid:%v ... %v", uuid, string(j))
 			uploader.Upload(&Req{uuid: uuid, keys: keys, w: w, r: r, resp: resp, result: result})
 		}
 	} else {

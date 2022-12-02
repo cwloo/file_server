@@ -273,7 +273,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 		}
 		if info.Finished() {
 			s.setFinished(info.Md5)
-			logs.LogDebug("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, k, header.Filename, md5, info.DstName, info.Now, total, header.Size)
+			// logs.LogDebug("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, k, header.Filename, md5, info.DstName, info.Now, total, header.Size)
 			start := time.Now()
 			fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 			if err != nil {
@@ -319,9 +319,9 @@ func (s *AsyncUploader) uploading(req *Req) {
 			}
 		} else {
 			if info.Now == header.Size {
-				logs.LogTrace("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v first_segment", req.uuid, k, header.Filename, md5, info.DstName, info.Now, total, header.Size)
+				// logs.LogTrace("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v first_segment", req.uuid, k, header.Filename, md5, info.DstName, info.Now, total, header.Size)
 			} else {
-				logs.LogWarn("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v continue_segment", req.uuid, k, header.Filename, md5, info.DstName, info.Now, total, header.Size)
+				// logs.LogWarn("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v continue_segment", req.uuid, k, header.Filename, md5, info.DstName, info.Now, total, header.Size)
 			}
 			result = append(result,
 				Result{

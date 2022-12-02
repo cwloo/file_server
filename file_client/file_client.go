@@ -3,8 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"flag"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -69,20 +67,37 @@ type Result struct {
 }
 
 func main() {
-	flag.Parse()
-	id := *flag.Int("sub", 0, "")
-	num := *flag.Int("c", 0, "")
-	filelist := []string{}
-	for i := 0; i < num; i++ {
-		filelist = append(filelist, *flag.String(fmt.Sprintf("file%v", i), "", ""))
-	}
-
-	tmp_dir := dir + "tmp" + fmt.Sprintf(".%v", id)
-	os.MkdirAll(tmp_dir, 0666)
-
 	logs.LogTimezone(logs.MY_CST)
 	logs.LogInit(dir+"logs", logs.LVL_DEBUG, exe, 100000000)
 	logs.LogMode(logs.M_STDOUT_FILE)
+	d := map[string]string{}
+	for _, v := range os.Args {
+		m := strings.Split(v, "=")
+		if len(m) == 2 {
+			d[m[0]] = m[1]
+		}
+	}
+	// id := 0
+	// if v, ok := d["i"]; ok {
+	// 	id, _ = strconv.Atoi(v)
+	// }
+	num := 0
+	if v, ok := d["c"]; ok {
+		num, _ = strconv.Atoi(v)
+	}
+	filelist := []string{}
+	for i := 0; i < num; i++ {
+		if v, ok := d[strings.Join([]string{"file", strconv.Itoa(i)}, "")]; ok {
+			filelist = append(filelist, v)
+		}
+	}
+	logs.LogWarn("%v", os.Args)
+	if num <= 0 {
+		return
+	}
+	// tmp_dir := dir + "tmp" + fmt.Sprintf(".%v", id)
+	tmp_dir := dir + "tmp"
+	os.MkdirAll(tmp_dir, 0666)
 
 	transport := &http.Transport{
 		DisableKeepAlives:     false,
@@ -169,8 +184,8 @@ func main() {
 			return
 		}
 	}
+	start_new := len(results) == 0
 CHECKPOINT:
-	// logs.LogInfo("")
 	//////////////////////////////////////////// 先上传未传完的文件 ////////////////////////////////////////////
 	for i := range filelist {
 		if result, ok := results[md5[i]]; ok {
@@ -185,7 +200,6 @@ CHECKPOINT:
 			// 定位读取文件偏移(上传进度)，从断点处继续上传
 			offset := result.Now
 			for {
-				// logs.LogInfo("")
 				payload := &bytes.Buffer{}
 				writer := multipart.NewWriter(payload)
 				_ = writer.WriteField("uuid", result.Uuid)
@@ -233,7 +247,6 @@ CHECKPOINT:
 					}
 					defer res.Body.Close()
 					for {
-						// logs.LogInfo("")
 						/// response
 						body, err := ioutil.ReadAll(res.Body)
 						if err != nil {
@@ -274,19 +287,19 @@ CHECKPOINT:
 								err = fd.Close()
 								if err != nil {
 									logs.LogFatal("%v", err.Error())
-									return
 								}
 							case ErrCheckReUpload.ErrCode:
 								//校正需要重传
 								results[result.Md5] = result
-								// logs.LogInfo("--- *** ---\n%v", string(body))
+								logs.LogInfo("--- *** ---\n%v", result.ErrMsg)
 								goto CHECKPOINT
 							case ErrOk.ErrCode, ErrFileMd5.ErrCode:
-								//上传成功，删除临时文件
+								//上传完成，删除临时文件
 								os.Remove(tmp_dir + "/" + result.Md5 + ".tmp")
+								logs.LogInfo("--- *** ---\n%v", result.ErrMsg)
 							}
 						}
-						logs.LogInfo("--- *** ---\n%v", string(body))
+						// logs.LogInfo("--- *** ---\n%v", string(body))
 					}
 					if n > 0 {
 						offset += n
@@ -301,9 +314,11 @@ CHECKPOINT:
 			}
 		}
 	}
+	if !start_new {
+		return
+	}
 	//////////////////////////////////////////// 再上传其他文件 ////////////////////////////////////////////
 	for {
-		// logs.LogInfo("")
 		finished := true
 		// 每次断点续传的payload数据
 		payload := &bytes.Buffer{}
@@ -363,7 +378,6 @@ CHECKPOINT:
 			}
 			defer res.Body.Close()
 			for {
-				// logs.LogInfo("")
 				/// response
 				body, err := ioutil.ReadAll(res.Body)
 				if err != nil {
@@ -389,7 +403,7 @@ CHECKPOINT:
 						fd, err := os.OpenFile(tmp_dir+"/"+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 						if err != nil {
 							logs.LogError("%v", err.Error())
-							return
+							break
 						}
 						b, err := json.Marshal(&result)
 						if err != nil {
@@ -404,20 +418,19 @@ CHECKPOINT:
 						err = fd.Close()
 						if err != nil {
 							logs.LogFatal("%v", err.Error())
-							return
 						}
 					case ErrCheckReUpload.ErrCode:
 						//校正需要重传
 						results[result.Md5] = result
-						logs.LogInfo("--- *** ---\n%v", string(body))
-						logs.LogFatal("")
+						logs.LogInfo("--- --- ---\n%v", result.ErrMsg)
 						goto CHECKPOINT
 					case ErrOk.ErrCode, ErrFileMd5.ErrCode:
-						//上传成功，删除临时文件
+						//上传完成，删除临时文件
 						os.Remove(tmp_dir + "/" + result.Md5 + ".tmp")
+						logs.LogInfo("--- --- ---\n%v", result.ErrMsg)
 					}
 				}
-				logs.LogInfo("--- --- ---\n%v", string(body))
+				// logs.LogInfo("--- --- ---\n%v", string(body))
 			}
 		} else {
 			break
