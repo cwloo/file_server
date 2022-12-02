@@ -194,7 +194,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 					ErrMsg:  ErrCheckReUpload.ErrMsg,
 					Result:  strings.Join([]string{"uuid:", info.Uuid, " check reuploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10), "/", total}, ""),
 				})
-			logs.LogError("uuid:%v:%v(%v) %v/%v offset:%v", info.Uuid, info.SrcName, info.Md5, info.Now, info.Total, offset)
+			// logs.LogError("uuid:%v:%v(%v) %v/%v offset:%v", info.Uuid, info.SrcName, info.Md5, info.Now, info.Total, offset)
 			offset_n, _ := strconv.ParseInt(offset, 10, 0)
 			logs.LogDebug("--------------------- ****** checking re-upload uuid:%v %v=%v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid, k, header.Filename, md5, info.Now, total, offset_n, header.Size)
 			continue
@@ -231,6 +231,8 @@ func (s *AsyncUploader) uploading(req *Req) {
 					Result:  strings.Join([]string{"uuid:", info.Uuid, " check reuploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10), "/", total}, ""),
 				})
 			logs.LogError("%v", err.Error())
+			offset_n, _ := strconv.ParseInt(offset, 10, 0)
+			logs.LogDebug("--------------------- ****** checking re-upload uuid:%v %v=%v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid, k, header.Filename, md5, info.Now, total, offset_n, header.Size)
 			continue
 		}
 		fd.Seek(0, io.SeekEnd)
@@ -254,6 +256,8 @@ func (s *AsyncUploader) uploading(req *Req) {
 			if err != nil {
 				logs.LogError("%v", err.Error())
 			}
+			offset_n, _ := strconv.ParseInt(offset, 10, 0)
+			logs.LogDebug("--------------------- ****** checking re-upload uuid:%v %v=%v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid, k, header.Filename, md5, info.Now, total, offset_n, header.Size)
 			continue
 		} else {
 			info.Now += header.Size
