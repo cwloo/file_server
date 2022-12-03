@@ -73,7 +73,6 @@ type Resp struct {
 // <summary>
 type Result struct {
 	Uuid    string `json:"uuid,omitempty"`
-	Key     string `json:"key,omitempty"`
 	File    string `json:"file,omitempty"`
 	Md5     string `json:"md5,omitempty"`
 	Now     int64  `json:"now,omitempty"`

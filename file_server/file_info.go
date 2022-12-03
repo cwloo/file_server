@@ -2,6 +2,7 @@ package main
 
 import (
 	"sync"
+	"time"
 
 	"github.com/cwloo/gonet/logs"
 )
@@ -10,12 +11,15 @@ import (
 // FileInfo
 // <summary>
 type FileInfo struct {
-	Uuid    string
-	Md5     string
-	SrcName string
-	DstName string
-	Now     int64
-	Total   int64
+	Uuid     string
+	Md5      string
+	SrcName  string
+	DstName  string
+	Now      int64
+	Total    int64
+	DoneTime int64
+	HitTime  int64
+	Md5Ok    bool
 }
 
 func (s *FileInfo) Assert() {
@@ -39,8 +43,22 @@ func (s *FileInfo) Assert() {
 	}
 }
 
+func (s *FileInfo) Update(size int64) {
+	if size <= 0 {
+		logs.LogFatal("error")
+	}
+	s.Now += size
+	if s.Now > s.Total {
+		logs.LogFatal("error")
+	}
+}
+
 func (s *FileInfo) Finished() bool {
 	return s.Now == s.Total
+}
+
+func (s *FileInfo) UpdateHitTime(time time.Time) {
+	s.HitTime = time.Unix()
 }
 
 // <summary>

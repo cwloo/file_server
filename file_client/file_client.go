@@ -54,7 +54,6 @@ type Resp struct {
 // <summary>
 type Result struct {
 	Uuid    string `json:"uuid,omitempty"`
-	Key     string `json:"key,omitempty"`
 	File    string `json:"file,omitempty"`
 	Md5     string `json:"md5,omitempty"`
 	Now     int64  `json:"now,omitempty"`
@@ -87,8 +86,6 @@ func main() {
 	total, offset := calcFileSize(MD5)   //文件大小/偏移
 	results := loadTmpFile(tmp_dir, MD5) //未决临时文件
 
-	start_new := len(results) == 0
-CHECKPOINT:
 	//////////////////////////////////////////// 先上传未传完的文件 ////////////////////////////////////////////
 	for f, md5 := range MD5 {
 		if result, ok := results[md5]; ok {
@@ -102,14 +99,14 @@ CHECKPOINT:
 				continue
 			}
 			// 定位读取文件偏移(上传进度)，从断点处继续上传
-			offset := result.Now
+			offset_now := result.Now
 			for {
 				payload := &bytes.Buffer{}
 				writer := multipart.NewWriter(payload)
 				_ = writer.WriteField("uuid", result.Uuid)
 				// 当前文件没有读完继续
-				if result.Total > 0 && offset < result.Total {
-					_ = writer.WriteField(md5+".offset", strconv.FormatInt(offset, 10))      //文件偏移量
+				if result.Total > 0 && offset_now < result.Total {
+					_ = writer.WriteField(md5+".offset", strconv.FormatInt(offset_now, 10))  //文件偏移量
 					_ = writer.WriteField(md5+".total", strconv.FormatInt(result.Total, 10)) //文件总大小
 					// 每次断点续传上传 BUFSIZ 字节大小
 					part, err := writer.CreateFormFile(md5, filepath.Base(f))
@@ -120,7 +117,7 @@ CHECKPOINT:
 					if err != nil {
 						logs.LogFatal("%v", err.Error())
 					}
-					fd.Seek(offset, io.SeekStart)
+					fd.Seek(offset_now, io.SeekStart)
 					n, err := io.CopyN(part, fd, int64(BUFSIZ))
 					if err != nil && err != io.EOF {
 						logs.LogFatal("%v", err.Error())
@@ -148,7 +145,6 @@ CHECKPOINT:
 						logs.LogClose()
 						return
 					}
-					defer res.Body.Close()
 					for {
 						/// response
 						body, err := ioutil.ReadAll(res.Body)
@@ -197,9 +193,11 @@ CHECKPOINT:
 									results = map[string]Result{}
 								}
 								results[result.Md5] = result
+								offset[result.Md5] = total[result.Md5]
 								logs.LogError("--- *** --- uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
-								goto CHECKPOINT
 							case ErrOk.ErrCode, ErrFileMd5.ErrCode:
+								offset[result.Md5] = total[result.Md5]
+								removeMd5File(&MD5, result.Md5)
 								//上传完成，删除临时文件
 								os.Remove(tmp_dir + "/" + result.Md5 + ".tmp")
 								delete(results, result.Md5)
@@ -208,20 +206,18 @@ CHECKPOINT:
 						}
 						// logs.LogInfo("--- *** ---\n%v", string(body))
 					}
+					res.Body.Close()
 					if n > 0 {
-						offset += n
-						if offset == result.Total {
+						offset_now += n
+						if offset_now == result.Total {
 							break
 						}
 					}
-				} // else if offset == result.Total {
+				} // else if offset_now == result.Total {
 				//	break
 				//}
 			}
 		}
-	}
-	if !start_new {
-		return
 	}
 	//////////////////////////////////////////// 再上传其他文件 ////////////////////////////////////////////
 	for {
@@ -281,7 +277,6 @@ CHECKPOINT:
 				logs.LogClose()
 				return
 			}
-			defer res.Body.Close()
 			for {
 				/// response
 				body, err := ioutil.ReadAll(res.Body)
@@ -330,9 +325,11 @@ CHECKPOINT:
 							results = map[string]Result{}
 						}
 						results[result.Md5] = result
+						offset[result.Md5] = total[result.Md5]
 						logs.LogError("--- --- --- uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
-						goto CHECKPOINT
 					case ErrOk.ErrCode, ErrFileMd5.ErrCode:
+						offset[result.Md5] = total[result.Md5]
+						removeMd5File(&MD5, result.Md5)
 						//上传完成，删除临时文件
 						os.Remove(tmp_dir + "/" + result.Md5 + ".tmp")
 						delete(results, result.Md5)
@@ -341,6 +338,7 @@ CHECKPOINT:
 				}
 				// logs.LogInfo("--- --- ---\n%v", string(body))
 			}
+			res.Body.Close()
 		} else {
 			break
 		}

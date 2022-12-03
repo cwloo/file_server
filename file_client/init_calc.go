@@ -49,6 +49,15 @@ func calcFileMd5(filelist []string) (md5 map[string]string) {
 	return
 }
 
+func removeMd5File(MD5 *map[string]string, md5 string) {
+	for f, v := range *MD5 {
+		if v == md5 {
+			delete(*MD5, f)
+			break
+		}
+	}
+}
+
 func loadTmpFile(dir string, MD5 map[string]string) (results map[string]Result) {
 	results = map[string]Result{}
 	for _, md5 := range MD5 {

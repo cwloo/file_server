@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
@@ -65,7 +66,6 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			result = append(result,
 				Result{
 					Uuid:    uuid,
-					Key:     k,
 					File:    "",
 					Md5:     md5,
 					ErrCode: ErrParseFormFile.ErrCode,
@@ -78,7 +78,6 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			result = append(result,
 				Result{
 					Uuid:    uuid,
-					Key:     k,
 					File:    header.Filename,
 					Md5:     md5,
 					ErrCode: ErrParamsSegSizeLimit.ErrCode,
@@ -92,7 +91,6 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			result = append(result,
 				Result{
 					Uuid:    uuid,
-					Key:     k,
 					File:    header.Filename,
 					Md5:     md5,
 					ErrCode: ErrParamsSegSizeZero.ErrCode,
@@ -106,7 +104,6 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			result = append(result,
 				Result{
 					Uuid:    uuid,
-					Key:     k,
 					File:    header.Filename,
 					Md5:     md5,
 					ErrCode: ErrParamsTotalLimit.ErrCode,
@@ -120,7 +117,6 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			result = append(result,
 				Result{
 					Uuid:    uuid,
-					Key:     k,
 					File:    header.Filename,
 					Md5:     md5,
 					ErrCode: ErrParamsOffset.ErrCode,
@@ -134,7 +130,6 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			result = append(result,
 				Result{
 					Uuid:    uuid,
-					Key:     k,
 					File:    header.Filename,
 					Md5:     md5,
 					ErrCode: ErrParamsMD5.ErrCode,
@@ -152,7 +147,6 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 				result = append(result,
 					Result{
 						Uuid:    uuid,
-						Key:     k,
 						File:    header.Filename,
 						Md5:     md5,
 						ErrCode: ErrParamsAllTotalLimit.ErrCode,
@@ -184,10 +178,6 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			if info.Uuid == uuid {
 				/// 已在当前上传任务中
 
-				////// 还未接收完
-				if info.Finished() {
-					logs.LogFatal("uuid:%v:%v(%v) finished", info.Uuid, info.SrcName, info.Md5)
-				}
 				////// 校验MD5
 				if md5 != info.Md5 {
 					logs.LogFatal("uuid:%v:%v(%v) md5:%v", info.Uuid, info.SrcName, info.Md5, md5)
@@ -196,20 +186,81 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 				if total != strconv.FormatInt(info.Total, 10) {
 					logs.LogFatal("uuid:%v:%v(%v) info.total:%v total:%v", info.Uuid, info.SrcName, info.Md5, info.Total, total)
 				}
-				keys = append(keys, k)
-				// logs.LogInfo("--- *** uploading uuid:%v %v=%v[%v] %v/%v seg_size[%d]", uuid, k, header.Filename, md5, info.Now, total, header.Size)
+				if info.Finished() {
+					if info.Md5Ok {
+						info.UpdateHitTime(time.Now())
+						// fileInfos.Remove(info.Md5)
+						result = append(result,
+							Result{
+								Uuid:    uuid,
+								File:    header.Filename,
+								Md5:     info.Md5,
+								Now:     info.Now,
+								Total:   info.Total,
+								ErrCode: ErrOk.ErrCode,
+								ErrMsg:  ErrOk.ErrMsg,
+								Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10) + "/" + total + " 上传成功!"}, "")})
+					} else {
+						fileInfos.Remove(info.Md5)
+						// os.Remove(f)
+						result = append(result,
+							Result{
+								Uuid:    uuid,
+								File:    header.Filename,
+								Md5:     info.Md5,
+								Now:     info.Now,
+								Total:   info.Total,
+								ErrCode: ErrFileMd5.ErrCode,
+								ErrMsg:  ErrFileMd5.ErrMsg,
+								Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10) + "/" + total + " 上传完毕 MD5校验失败!"}, "")})
+					}
+				} else {
+					keys = append(keys, k)
+					// logs.LogInfo("--- *** uploading uuid:%v %v=%v[%v] %v/%v seg_size[%d]", uuid, k, header.Filename, md5, info.Now, total, header.Size)
+				}
 			} else {
 				/// 已在其它上传任务中
-				result = append(result,
-					Result{
-						Uuid:    uuid,
-						File:    info.SrcName,
-						Md5:     info.Md5,
-						ErrCode: ErrRepeat.ErrCode,
-						ErrMsg:  ErrRepeat.ErrMsg,
-						Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10), "/", total}, ""),
-					})
-				// logs.LogError("--- *** ignore repeat-upload uuid:%v %v=%v[%v] seg_size[%v] uuid:%v uploading %v progress:%v/%v", uuid, k, header.Filename, md5, header.Size, info.Uuid, info.DstName, info.Now, total)
+
+				if info.Finished() {
+					if info.Md5Ok {
+						info.UpdateHitTime(time.Now())
+						// fileInfos.Remove(info.Md5)
+						result = append(result,
+							Result{
+								Uuid:    uuid,
+								File:    header.Filename,
+								Md5:     info.Md5,
+								Now:     info.Now,
+								Total:   info.Total,
+								ErrCode: ErrOk.ErrCode,
+								ErrMsg:  ErrOk.ErrMsg,
+								Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10) + "/" + total + " 别人上传成功!"}, "")})
+					} else {
+						fileInfos.Remove(info.Md5)
+						// os.Remove(f)
+						result = append(result,
+							Result{
+								Uuid:    uuid,
+								File:    header.Filename,
+								Md5:     info.Md5,
+								Now:     info.Now,
+								Total:   info.Total,
+								ErrCode: ErrFileMd5.ErrCode,
+								ErrMsg:  ErrFileMd5.ErrMsg,
+								Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10) + "/" + total + " 别人上传完毕 MD5校验失败!"}, "")})
+					}
+				} else {
+					result = append(result,
+						Result{
+							Uuid:    uuid,
+							File:    info.SrcName,
+							Md5:     info.Md5,
+							ErrCode: ErrRepeat.ErrCode,
+							ErrMsg:  ErrRepeat.ErrMsg,
+							Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10), "/", total}, " 别人上传中"),
+						})
+					// logs.LogError("--- *** ignore repeat-upload uuid:%v %v=%v[%v] seg_size[%v] uuid:%v uploading %v progress:%v/%v", uuid, k, header.Filename, md5, header.Size, info.Uuid, info.DstName, info.Now, total)
+				}
 			}
 		}
 	} /// {{{ end for range form.File
@@ -219,8 +270,8 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			///////////////////////////// 新的上传任务 /////////////////////////////
 			/// 有待上传文件，启动新任务
-			// j, _ := json.Marshal(keys)
-			// logs.LogTrace("--------------------- ****** 有待上传文件，启动任务 uuid:%v ... %v", uuid, string(j))
+			j, _ := json.Marshal(keys)
+			logs.LogTrace("--------------------- ****** 有待上传文件，启动任务 uuid:%v ... %v", uuid, string(j))
 			uploader.Upload(&Req{uuid: uuid, keys: keys, w: w, r: r, resp: resp, result: result})
 		} else {
 			exist = true
