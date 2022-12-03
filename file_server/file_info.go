@@ -1,10 +1,13 @@
 package main
 
 import (
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/cwloo/gonet/logs"
+	"github.com/cwloo/gonet/utils"
 )
 
 // <summary>
@@ -53,7 +56,7 @@ func (s *FileInfo) Update(size int64) {
 	}
 }
 
-func (s *FileInfo) Finished() bool {
+func (s *FileInfo) Ok() bool {
 	return s.Now == s.Total
 }
 
@@ -95,28 +98,35 @@ func (s *FileInfos) Do(md5 string, cb func(*FileInfo)) {
 	if c, ok := s.m[md5]; ok {
 		info = c
 		s.l.Unlock()
-		goto end
+		goto OK
 	}
 	s.l.Unlock()
 	return
-end:
+OK:
 	cb(info)
 }
 
-func (s *FileInfos) GetAdd(md5 string) (info *FileInfo, ok bool) {
+func (s *FileInfos) GetAdd(md5 string, uuid, Filename, total string) (info *FileInfo, ok bool) {
 	n := 0
 	s.l.Lock()
 	info, ok = s.m[md5]
 	if !ok {
-		info = &FileInfo{}
+		size, _ := strconv.ParseInt(total, 10, 0)
+		info = &FileInfo{
+			Uuid:    uuid,
+			Md5:     md5,
+			SrcName: Filename,
+			DstName: strings.Join([]string{uuid, ".", utils.RandomCharString(10), ".", Filename}, ""),
+			Total:   size,
+		}
 		s.m[md5] = info
 		n = len(s.m)
 		s.l.Unlock()
-		goto end
+		goto OK
 	}
 	s.l.Unlock()
 	return
-end:
+OK:
 	logs.LogError("md5:%v size=%v", md5, n)
 	return
 }
@@ -129,11 +139,31 @@ func (s *FileInfos) Remove(md5 string) (info *FileInfo) {
 		delete(s.m, md5)
 		n = len(s.m)
 		s.l.Unlock()
-		goto end
+		goto OK
 	}
 	s.l.Unlock()
 	return
-end:
+OK:
+	logs.LogError("md5:%v size=%v", md5, n)
+	return
+}
+
+func (s *FileInfos) RemoveWithCond(md5 string, cond func(*FileInfo) bool, cb func(*FileInfo)) (info *FileInfo) {
+	n := 0
+	s.l.Lock()
+	if c, ok := s.m[md5]; ok {
+		if cond(c) {
+			info = c
+			cb(info)
+			delete(s.m, md5)
+			n = len(s.m)
+			s.l.Unlock()
+			goto OK
+		}
+	}
+	s.l.Unlock()
+	return
+OK:
 	logs.LogError("md5:%v size=%v", md5, n)
 	return
 }

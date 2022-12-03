@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/cwloo/gonet/logs"
-	"github.com/cwloo/gonet/utils"
 )
 
 func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
@@ -162,17 +161,11 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 				allTotal += size
 			}
 		}
-		info, ok := fileInfos.GetAdd(md5)
+		info, ok := fileInfos.GetAdd(md5, uuid, header.Filename, total)
 		if !ok {
-			size, _ := strconv.ParseInt(total, 10, 0)
 			/// 没有上传，等待上传
-			info.Uuid = uuid
-			info.Md5 = md5
-			info.SrcName = header.Filename
-			info.DstName = strings.Join([]string{uuid, ".", utils.RandomCharString(10), ".", header.Filename}, "")
-			info.Total = size
 			keys = append(keys, k)
-			// logs.LogWarn("--- *** 没有上传，等待上传 uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
+			logs.LogWarn("--- *** 没有上传，等待上传 uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
 		} else {
 			info.Assert()
 			if info.Uuid == uuid {
@@ -186,7 +179,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 				if total != strconv.FormatInt(info.Total, 10) {
 					logs.LogFatal("uuid:%v:%v(%v) info.total:%v total:%v", info.Uuid, info.SrcName, info.Md5, info.Total, total)
 				}
-				if info.Finished() {
+				if info.Ok() {
 					if info.Md5Ok {
 						info.UpdateHitTime(time.Now())
 						// fileInfos.Remove(info.Md5)
@@ -216,12 +209,11 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 					}
 				} else {
 					keys = append(keys, k)
-					// logs.LogInfo("--- *** uploading uuid:%v %v=%v[%v] %v/%v seg_size[%d]", uuid, k, header.Filename, md5, info.Now, total, header.Size)
 				}
 			} else {
 				/// 已在其它上传任务中
 
-				if info.Finished() {
+				if info.Ok() {
 					if info.Md5Ok {
 						info.UpdateHitTime(time.Now())
 						// fileInfos.Remove(info.Md5)

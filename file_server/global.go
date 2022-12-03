@@ -34,6 +34,7 @@ var (
 	ErrParamsSegSizeZero   = ErrorMsg{13, "upload multipart form-data size zero"} //上传form-data数据字节大小为0
 	path, _                = os.Executable()
 	dir, _                 = filepath.Split(path)
+	dir_upload             = dir + "upload/"
 	i32                    = cc.NewI32()
 	fileInfos              = NewFileInfos()
 	uploaders              = NewSessionToHandler()

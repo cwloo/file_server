@@ -25,83 +25,103 @@ func (s *SessionToHandler) Len() int {
 	return c
 }
 
-func (s *SessionToHandler) Get(sessionId string) (handler Uploader) {
+func (s *SessionToHandler) Get(uuid string) (handler Uploader) {
 	s.l.Lock()
-	if c, ok := s.m[sessionId]; ok {
+	if c, ok := s.m[uuid]; ok {
 		handler = c
 	}
 	s.l.Unlock()
 	return
 }
 
-func (s *SessionToHandler) Do(sessionId string, cb func(Uploader)) {
+func (s *SessionToHandler) Do(uuid string, cb func(Uploader)) {
 	var handler Uploader
 	s.l.Lock()
-	if c, ok := s.m[sessionId]; ok {
+	if c, ok := s.m[uuid]; ok {
 		handler = c
 		s.l.Unlock()
-		goto end
+		goto OK
 	}
 	s.l.Unlock()
 	return
-end:
+OK:
 	cb(handler)
 }
 
-func (s *SessionToHandler) GetAdd(sessionId string, async bool) (handler Uploader, ok bool) {
+func (s *SessionToHandler) GetAdd(uuid string, async bool) (handler Uploader, ok bool) {
 	n := 0
 	s.l.Lock()
-	handler, ok = s.m[sessionId]
+	handler, ok = s.m[uuid]
 	if !ok {
 		switch async {
 		case true:
-			handler = NewAsyncUploader(sessionId)
+			handler = NewAsyncUploader(uuid)
 		default:
-			handler = NewSyncUploader(sessionId)
+			handler = NewSyncUploader(uuid)
 		}
-		s.m[sessionId] = handler
+		s.m[uuid] = handler
 		n = len(s.m)
 		s.l.Unlock()
-		goto end
+		goto OK
 	}
 	s.l.Unlock()
 	return
-end:
-	logs.LogError("uuid:%v size=%v", sessionId, n)
+OK:
+	logs.LogError("uuid:%v size=%v", uuid, n)
 	return
 }
 
-func (s *SessionToHandler) Remove(sessionId string) (handler Uploader) {
+func (s *SessionToHandler) Remove(uuid string) (handler Uploader) {
 	n := 0
 	s.l.Lock()
-	if c, ok := s.m[sessionId]; ok {
+	if c, ok := s.m[uuid]; ok {
 		handler = c
-		delete(s.m, sessionId)
+		delete(s.m, uuid)
 		n = len(s.m)
 		s.l.Unlock()
-		goto end
+		goto OK
 	}
 	s.l.Unlock()
 	return
-end:
-	logs.LogError("uuid:%v size=%v", sessionId, n)
+OK:
+	logs.LogError("uuid:%v size=%v", uuid, n)
+	return
+}
+
+func (s *SessionToHandler) RemoveWithCond(uuid string, cond func(Uploader) bool, cb func(Uploader)) (handler Uploader) {
+	n := 0
+	s.l.Lock()
+	if c, ok := s.m[uuid]; ok {
+		if cond(c) {
+			handler = c
+			cb(handler)
+			delete(s.m, uuid)
+			n = len(s.m)
+			s.l.Unlock()
+			goto OK
+		}
+	}
+	s.l.Unlock()
+	return
+OK:
+	logs.LogError("uuid:%v size=%v", uuid, n)
 	return
 }
 
 func (s *SessionToHandler) Range(cb func(string, Uploader)) {
 	s.l.Lock()
-	for sessionId, handler := range s.m {
-		cb(sessionId, handler)
+	for uuid, handler := range s.m {
+		cb(uuid, handler)
 	}
 	s.l.Unlock()
 }
 
 func (s *SessionToHandler) RangeRemove(cond func(Uploader) bool, cb func(Uploader)) {
 	s.l.Lock()
-	for sessionId, handler := range s.m {
+	for uuid, handler := range s.m {
 		if cond(handler) {
 			cb(handler)
-			delete(s.m, sessionId)
+			delete(s.m, uuid)
 		}
 	}
 	s.l.Unlock()

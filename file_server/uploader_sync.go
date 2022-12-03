@@ -59,8 +59,34 @@ func (s *SyncUploader) NotifyClose() {
 
 func (s *SyncUploader) Clear() {
 	s.l.RLock()
-	for md5 := range s.file {
-		fileInfos.Remove(md5)
+	for md5, ok := range s.file {
+		if !ok {
+			////// 任务退出，移除未决的上传记录
+			fileInfos.RemoveWithCond(md5, func(info *FileInfo) bool {
+				if info.Uuid != s.uuid {
+					logs.LogFatal("error")
+				}
+				if info.Ok() {
+					logs.LogFatal("error")
+				}
+				return true
+			}, func(info *FileInfo) {
+				os.Remove(dir_upload + info.DstName)
+			})
+		} else {
+			////// 任务退出，移除校验失败的记录
+			fileInfos.RemoveWithCond(md5, func(info *FileInfo) bool {
+				if info.Uuid != s.uuid {
+					logs.LogFatal("error")
+				}
+				if !info.Ok() {
+					logs.LogFatal("error")
+				}
+				return !info.Md5Ok
+			}, func(info *FileInfo) {
+				os.Remove(dir_upload + info.DstName)
+			})
+		}
 	}
 	s.l.RUnlock()
 }
@@ -73,7 +99,7 @@ func (s *SyncUploader) tryAdd(md5 string) {
 	s.l.Unlock()
 }
 
-func (s *SyncUploader) setFinished(md5 string) {
+func (s *SyncUploader) setOk(md5 string) {
 	s.l.Lock()
 	if _, ok := s.file[md5]; ok {
 		s.file[md5] = true
@@ -81,7 +107,7 @@ func (s *SyncUploader) setFinished(md5 string) {
 	s.l.Unlock()
 }
 
-func (s *SyncUploader) hasFinishedAll() bool {
+func (s *SyncUploader) hasAllOk() bool {
 	s.l.RLock()
 	for _, v := range s.file {
 		if !v {
@@ -95,7 +121,7 @@ func (s *SyncUploader) hasFinishedAll() bool {
 
 func (s *SyncUploader) Upload(req *Req) {
 	s.upaloading(req)
-	exit := s.hasFinishedAll()
+	exit := s.hasAllOk()
 	if exit {
 		logs.LogTrace("--------------------- ****** 无待上传文件，结束任务 uuid:%v ...", s.uuid)
 		uploaders.Remove(s.uuid)
@@ -122,7 +148,7 @@ func (s *SyncUploader) upaloading(req *Req) {
 			return
 		}
 		////// 还未接收完
-		if info.Finished() {
+		if info.Ok() {
 			logs.LogFatal("uuid:%v:%v(%v) finished", info.Uuid, info.SrcName, info.Md5)
 		}
 		////// 校验uuid
@@ -157,12 +183,12 @@ func (s *SyncUploader) upaloading(req *Req) {
 			continue
 		}
 		////// 检查上传目录
-		_, err = os.Stat(dir + "upload/")
+		_, err = os.Stat(dir_upload)
 		if err != nil && os.IsNotExist(err) {
-			os.MkdirAll(dir+"upload/", 0777)
+			os.MkdirAll(dir_upload, 0777)
 		}
 		////// 检查上传文件
-		f := dir + "upload/" + info.DstName
+		f := dir_upload + info.DstName
 		_, err = os.Stat(f)
 		if err != nil && os.IsNotExist(err) {
 		} else {
@@ -224,8 +250,8 @@ func (s *SyncUploader) upaloading(req *Req) {
 		if err != nil {
 			logs.LogError("%v", err.Error())
 		}
-		if info.Finished() {
-			s.setFinished(info.Md5)
+		if info.Ok() {
+			s.setOk(info.Md5)
 			// logs.LogDebug("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, k, header.Filename, md5, info.DstName, info.Now, total, header.Size)
 			start := time.Now()
 			fd, err := os.OpenFile(f, os.O_RDONLY, 0)
