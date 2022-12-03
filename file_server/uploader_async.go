@@ -90,7 +90,7 @@ func (s *AsyncUploader) Clear() {
 	s.l.RLock()
 	for md5, ok := range s.file {
 		if !ok {
-			////// 任务退出，移除未决的上传记录
+			////// 任务退出，移除未决的文件
 			fileInfos.RemoveWithCond(md5, func(info *FileInfo) bool {
 				if info.Uuid != s.uuid {
 					logs.LogFatal("error")
@@ -103,7 +103,7 @@ func (s *AsyncUploader) Clear() {
 				os.Remove(dir_upload + info.DstName)
 			})
 		} else {
-			////// 任务退出，移除校验失败的记录
+			////// 任务退出，移除校验失败的文件
 			fileInfos.RemoveWithCond(md5, func(info *FileInfo) bool {
 				if info.Uuid != s.uuid {
 					logs.LogFatal("error")
@@ -312,7 +312,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 			info.Md5Ok = (md5_calc == info.Md5)
 			if info.Md5Ok {
 				now := time.Now()
-				info.DoneTime = now.Unix()
+				info.UpdateDoneTime(now)
 				info.UpdateHitTime(now)
 				// fileInfos.Remove(info.Md5)
 				result = append(result,

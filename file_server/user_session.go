@@ -116,7 +116,7 @@ func (s *SessionToHandler) Range(cb func(string, Uploader)) {
 	s.l.Unlock()
 }
 
-func (s *SessionToHandler) RangeRemove(cond func(Uploader) bool, cb func(Uploader)) {
+func (s *SessionToHandler) RangeRemoveWithCond(cond func(Uploader) bool, cb func(Uploader)) {
 	s.l.Lock()
 	for uuid, handler := range s.m {
 		if cond(handler) {

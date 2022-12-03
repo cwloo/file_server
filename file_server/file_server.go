@@ -24,7 +24,11 @@ func main() {
 	logs.LogMode(logs.M_STDOUT_FILE)
 
 	task.After(time.Duration(PendingTimeout)*time.Second, cb.NewFunctor00(func() {
-		handlerUploadFileOnTimer()
+		handlerPendingUploader()
+	}))
+
+	task.After(time.Duration(FileExpiredTimeout)*time.Second, cb.NewFunctor00(func() {
+		handlerExpiredFile()
 	}))
 
 	mux := http.NewServeMux()

@@ -20,8 +20,8 @@ type FileInfo struct {
 	DstName  string
 	Now      int64
 	Total    int64
-	DoneTime int64
-	HitTime  int64
+	doneTime time.Time
+	hitTime  time.Time
 	Md5Ok    bool
 }
 
@@ -60,8 +60,20 @@ func (s *FileInfo) Ok() bool {
 	return s.Now == s.Total
 }
 
+func (s *FileInfo) DoneTime() time.Time {
+	return s.doneTime
+}
+
+func (s *FileInfo) UpdateDoneTime(time time.Time) {
+	s.doneTime = time
+}
+
+func (s *FileInfo) HitTime() time.Time {
+	return s.hitTime
+}
+
 func (s *FileInfo) UpdateHitTime(time time.Time) {
-	s.HitTime = time.Unix()
+	s.hitTime = time
 }
 
 // <summary>
@@ -176,7 +188,7 @@ func (s *FileInfos) Range(cb func(string, *FileInfo)) {
 	s.l.Unlock()
 }
 
-func (s *FileInfos) RangeRemove(cond func(*FileInfo) bool, cb func(*FileInfo)) {
+func (s *FileInfos) RangeRemoveWithCond(cond func(*FileInfo) bool, cb func(*FileInfo)) {
 	s.l.Lock()
 	for md5, info := range s.m {
 		if cond(info) {
