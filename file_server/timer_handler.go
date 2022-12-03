@@ -17,7 +17,7 @@ func handlerPendingUploader() {
 
 func handlerExpiredFile() {
 	checkExpiredFile()
-	task.After(time.Duration(PendingTimeout)*time.Second, cb.NewFunctor00(func() {
+	task.After(time.Duration(FileExpiredTimeout)*time.Second, cb.NewFunctor00(func() {
 		handlerExpiredFile()
 	}))
 }
@@ -40,14 +40,14 @@ func checkPendingUploader() {
 	case true:
 		////// 异步
 		uploaders.Range(func(_ string, uploader Uploader) {
-			if time.Since(uploader.Get()) > time.Duration(PendingTimeout)*time.Second {
+			if time.Since(uploader.Get()) >= time.Duration(PendingTimeout)*time.Second {
 				uploader.NotifyClose()
 			}
 		})
 	default:
 		////// 同步
 		uploaders.RangeRemoveWithCond(func(uploader Uploader) bool {
-			return time.Since(uploader.Get()) > time.Duration(PendingTimeout)*time.Second
+			return time.Since(uploader.Get()) >= time.Duration(PendingTimeout)*time.Second
 		}, func(uploader Uploader) {
 			uploader.Clear()
 		})

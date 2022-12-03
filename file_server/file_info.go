@@ -189,12 +189,19 @@ func (s *FileInfos) Range(cb func(string, *FileInfo)) {
 }
 
 func (s *FileInfos) RangeRemoveWithCond(cond func(*FileInfo) bool, cb func(*FileInfo)) {
+	n := 0
+	list := []string{}
 	s.l.Lock()
 	for md5, info := range s.m {
 		if cond(info) {
 			cb(info)
 			delete(s.m, md5)
+			n = len(s.m)
+			list = append(list, md5)
 		}
 	}
 	s.l.Unlock()
+	if len(list) > 0 {
+		logs.LogError("md5:%v size=%v", list, n)
+	}
 }

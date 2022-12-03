@@ -117,12 +117,19 @@ func (s *SessionToHandler) Range(cb func(string, Uploader)) {
 }
 
 func (s *SessionToHandler) RangeRemoveWithCond(cond func(Uploader) bool, cb func(Uploader)) {
+	n := 0
+	list := []string{}
 	s.l.Lock()
 	for uuid, handler := range s.m {
 		if cond(handler) {
 			cb(handler)
 			delete(s.m, uuid)
+			n = len(s.m)
+			list = append(list, uuid)
 		}
 	}
 	s.l.Unlock()
+	if len(list) > 0 {
+		logs.LogError("uuid:%v size=%v", list, n)
+	}
 }
