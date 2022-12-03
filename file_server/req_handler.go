@@ -70,7 +70,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 					Md5:     md5,
 					ErrCode: ErrParseFormFile.ErrCode,
 					ErrMsg:  ErrParseFormFile.ErrMsg,
-					Result:  ""})
+					Message: ""})
 			continue
 		}
 		/// header.size检查
@@ -82,7 +82,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 					Md5:     md5,
 					ErrCode: ErrParamsSegSizeLimit.ErrCode,
 					ErrMsg:  ErrParamsSegSizeLimit.ErrMsg,
-					Result:  ""})
+					Message: ""})
 			logs.LogError("uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
 			continue
 		}
@@ -95,7 +95,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 					Md5:     md5,
 					ErrCode: ErrParamsSegSizeZero.ErrCode,
 					ErrMsg:  ErrParamsSegSizeZero.ErrMsg,
-					Result:  ""})
+					Message: ""})
 			logs.LogError("uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
 			continue
 		}
@@ -108,7 +108,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 					Md5:     md5,
 					ErrCode: ErrParamsTotalLimit.ErrCode,
 					ErrMsg:  ErrParamsTotalLimit.ErrMsg,
-					Result:  ""})
+					Message: ""})
 			logs.LogError("uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
 			continue
 		}
@@ -121,7 +121,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 					Md5:     md5,
 					ErrCode: ErrParamsOffset.ErrCode,
 					ErrMsg:  ErrParamsOffset.ErrMsg,
-					Result:  ""})
+					Message: ""})
 			logs.LogError("uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
 			continue
 		}
@@ -134,7 +134,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 					Md5:     md5,
 					ErrCode: ErrParamsMD5.ErrCode,
 					ErrMsg:  ErrParamsMD5.ErrMsg,
-					Result:  ""})
+					Message: ""})
 			logs.LogError("uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
 			continue
 		}
@@ -151,7 +151,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 						Md5:     md5,
 						ErrCode: ErrParamsAllTotalLimit.ErrCode,
 						ErrMsg:  ErrParamsAllTotalLimit.ErrMsg,
-						Result:  ""})
+						Message: ""})
 				logs.LogError("uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
 				continue
 			}
@@ -193,7 +193,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 								Total:   info.Total,
 								ErrCode: ErrOk.ErrCode,
 								ErrMsg:  ErrOk.ErrMsg,
-								Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10) + "/" + total + " 上传成功!"}, "")})
+								Message: strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10) + "/" + total + " 上传成功!"}, "")})
 					} else {
 						fileInfos.Remove(info.Md5)
 						os.Remove(dir_upload + info.DstName)
@@ -206,7 +206,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 								Total:   info.Total,
 								ErrCode: ErrFileMd5.ErrCode,
 								ErrMsg:  ErrFileMd5.ErrMsg,
-								Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10) + "/" + total + " 上传完毕 MD5校验失败!"}, "")})
+								Message: strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10) + "/" + total + " 上传完毕 MD5校验失败!"}, "")})
 					}
 				} else {
 					keys = append(keys, k)
@@ -227,7 +227,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 								Total:   info.Total,
 								ErrCode: ErrOk.ErrCode,
 								ErrMsg:  ErrOk.ErrMsg,
-								Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10) + "/" + total + " 别人上传成功!"}, "")})
+								Message: strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10) + "/" + total + " 别人上传成功!"}, "")})
 					} else {
 						fileInfos.Remove(info.Md5)
 						os.Remove(dir_upload + info.DstName)
@@ -240,7 +240,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 								Total:   info.Total,
 								ErrCode: ErrFileMd5.ErrCode,
 								ErrMsg:  ErrFileMd5.ErrMsg,
-								Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10) + "/" + total + " 别人上传完毕 MD5校验失败!"}, "")})
+								Message: strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10) + "/" + total + " 别人上传完毕 MD5校验失败!"}, "")})
 					}
 				} else {
 					result = append(result,
@@ -250,7 +250,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 							Md5:     info.Md5,
 							ErrCode: ErrRepeat.ErrCode,
 							ErrMsg:  ErrRepeat.ErrMsg,
-							Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10), "/", total}, " 别人上传中"),
+							Message: strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10), "/", total}, " 别人上传中"),
 						})
 					// logs.LogError("--- *** ignore repeat-upload uuid:%v %v=%v[%v] seg_size[%v] uuid:%v uploading %v progress:%v/%v", uuid, k, header.Filename, md5, header.Size, info.Uuid, info.DstName, info.Now, total)
 				}

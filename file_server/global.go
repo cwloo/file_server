@@ -81,7 +81,7 @@ type Result struct {
 	Now     int64  `json:"now,omitempty"`
 	Total   int64  `json:"total,omitempty"`
 	Expired int64  `json:"expired,omitempty"`
-	Result  string `json:"result,omitempty"`
 	ErrCode int    `json:"code,omitempty"`
 	ErrMsg  string `json:"errmsg,omitempty"`
+	Message string `json:"message,omitempty"`
 }
