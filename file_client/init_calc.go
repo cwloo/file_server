@@ -25,12 +25,12 @@ func calcFileSize(MD5 map[string]string) (total map[string]int64, offset map[str
 
 func calcFileMd5(filelist []string) (md5 map[string]string) {
 	md5 = map[string]string{}
-	for _, filename := range filelist {
-		_, err := os.Stat(filename)
+	for _, f := range filelist {
+		_, err := os.Stat(f)
 		if err != nil && os.IsNotExist(err) {
 			continue
 		}
-		fd, err := os.OpenFile(filename, os.O_RDONLY, 0)
+		fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 		if err != nil {
 			logs.LogError("%v", err.Error())
 			return nil
@@ -40,13 +40,22 @@ func calcFileMd5(filelist []string) (md5 map[string]string) {
 			logs.LogFatal("%v", err.Error())
 			return nil
 		}
-		md5[filename] = utils.MD5Byte(b, false)
+		md5[f] = utils.MD5Byte(b, false)
 		err = fd.Close()
 		if err != nil {
 			logs.LogFatal("%v", err.Error())
 		}
 	}
 	return
+}
+
+func filePathBy(MD5 *map[string]string, md5 string) string {
+	for f, v := range *MD5 {
+		if v == md5 {
+			return f
+		}
+	}
+	return ""
 }
 
 func removeMd5File(MD5 *map[string]string, md5 string) {
@@ -61,7 +70,7 @@ func removeMd5File(MD5 *map[string]string, md5 string) {
 func loadTmpFile(dir string, MD5 map[string]string) (results map[string]Result) {
 	results = map[string]Result{}
 	for _, md5 := range MD5 {
-		f := dir + "/" + md5 + ".tmp"
+		f := dir + md5 + ".tmp"
 		_, err := os.Stat(f)
 		if err != nil && os.IsNotExist(err) {
 			continue

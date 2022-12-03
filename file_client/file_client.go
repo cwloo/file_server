@@ -74,7 +74,7 @@ func main() {
 		return
 	}
 
-	tmp_dir := dir + "tmp" // + fmt.Sprintf(".%v", id)
+	tmp_dir := dir + "tmp/" // + fmt.Sprintf(".%v", id)
 	os.MkdirAll(tmp_dir, 0666)
 
 	client := httpclient()
@@ -87,15 +87,19 @@ func main() {
 	results := loadTmpFile(tmp_dir, MD5) //未决临时文件
 
 	//////////////////////////////////////////// 先上传未传完的文件 ////////////////////////////////////////////
-	for f, md5 := range MD5 {
-		if result, ok := results[md5]; ok {
+	for {
+		if len(results) == 0 {
+			break
+		}
+		for md5, result := range results {
+			f := filePathBy(&MD5, md5)
 			// 校验文件总字节大小
 			if total[md5] != result.Total {
 				logs.LogFatal("error")
 			}
 			// 已经过期，当前文件无法继续上传
 			if time.Now().Unix() >= result.Expired {
-				os.Remove(tmp_dir + "/" + md5 + ".tmp")
+				os.Remove(tmp_dir + md5 + ".tmp")
 				continue
 			}
 			// 定位读取文件偏移(上传进度)，从断点处继续上传
@@ -168,7 +172,7 @@ func main() {
 									break
 								}
 								// 上传进度写入临时文件
-								fd, err := os.OpenFile(tmp_dir+"/"+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+								fd, err := os.OpenFile(tmp_dir+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 								if err != nil {
 									logs.LogError("%v", err.Error())
 									return
@@ -193,14 +197,13 @@ func main() {
 									results = map[string]Result{}
 								}
 								results[result.Md5] = result
-								offset[result.Md5] = total[result.Md5]
 								logs.LogError("--- *** --- uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 							case ErrOk.ErrCode, ErrFileMd5.ErrCode:
+								delete(results, result.Md5)
 								offset[result.Md5] = total[result.Md5]
 								removeMd5File(&MD5, result.Md5)
 								//上传完成，删除临时文件
-								os.Remove(tmp_dir + "/" + result.Md5 + ".tmp")
-								delete(results, result.Md5)
+								os.Remove(tmp_dir + result.Md5 + ".tmp")
 								logs.LogTrace("--- *** --- uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 							}
 						}
@@ -302,7 +305,7 @@ func main() {
 							break
 						}
 						// 上传进度写入临时文件
-						fd, err := os.OpenFile(tmp_dir+"/"+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+						fd, err := os.OpenFile(tmp_dir+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 						if err != nil {
 							logs.LogError("%v", err.Error())
 							break
@@ -323,18 +326,13 @@ func main() {
 						}
 					case ErrCheckReUpload.ErrCode:
 						//校正需要重传
-						if results == nil {
-							results = map[string]Result{}
-						}
-						results[result.Md5] = result
-						offset[result.Md5] = total[result.Md5]
+						offset[result.Md5] = result.Now
 						logs.LogError("--- --- --- uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 					case ErrOk.ErrCode, ErrFileMd5.ErrCode:
 						offset[result.Md5] = total[result.Md5]
 						removeMd5File(&MD5, result.Md5)
 						//上传完成，删除临时文件
-						os.Remove(tmp_dir + "/" + result.Md5 + ".tmp")
-						delete(results, result.Md5)
+						os.Remove(tmp_dir + result.Md5 + ".tmp")
 						logs.LogTrace("--- --- --- uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 					}
 				}
