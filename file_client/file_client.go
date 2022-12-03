@@ -99,7 +99,6 @@ func main() {
 
 	//////////////////////////////////////////// 先上传未传完的文件 ////////////////////////////////////////////
 	for {
-		// logs.LogDebug("")
 		if len(results) == 0 {
 			break
 		}
@@ -117,7 +116,6 @@ func main() {
 			// 定位读取文件偏移(上传进度)，从断点处继续上传
 			offset_c := result.Now
 			for {
-				// logs.LogDebug("")
 				// 当前文件没有读完继续
 				if result.Total > 0 && offset_c < result.Total {
 					payload := &bytes.Buffer{}
@@ -163,7 +161,6 @@ func main() {
 						return
 					}
 					for {
-						// logs.LogDebug("")
 						/// response
 						body, err := ioutil.ReadAll(res.Body)
 						if err != nil {
@@ -196,9 +193,9 @@ func main() {
 							case ErrParamsAllTotalLimit.ErrCode:
 								fallthrough
 							case ErrRepeat.ErrCode:
-								logs.LogError("--- *** --- uuid:%v %v[%v] %v --- %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+								logs.LogError("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 							case ErrSegOk.ErrCode:
-								logs.LogError("--- *** --- uuid:%v %v[%v] %v --- %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+								logs.LogError("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 								if result.Now <= 0 {
 									break
 								}
@@ -228,7 +225,7 @@ func main() {
 									results = map[string]Result{}
 								}
 								results[result.Md5] = result
-								logs.LogError("--- *** --- uuid:%v %v[%v] %v --- %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+								logs.LogError("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 							case ErrFileMd5.ErrCode:
 								fallthrough
 							case ErrOk.ErrCode:
@@ -237,14 +234,14 @@ func main() {
 								removeMd5File(&MD5, result.Md5)
 								// 上传完成，删除临时文件
 								os.Remove(tmp_dir + result.Md5 + ".tmp")
-								logs.LogTrace("--- *** --- uuid:%v %v[%v] %v --- %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+								logs.LogTrace("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 							}
 						}
 						switch resp.ErrCode {
 						case ErrParamsUUID.ErrCode:
 							fallthrough
 						case ErrParsePartData.ErrCode:
-							logs.LogError("--- *** --- uuid:%v %v", resp.Uuid, resp.ErrMsg)
+							logs.LogError("*** uuid:%v %v", resp.Uuid, resp.ErrMsg)
 						}
 					}
 					res.Body.Close()
@@ -262,7 +259,6 @@ func main() {
 	}
 	//////////////////////////////////////////// 再上传其他文件 ////////////////////////////////////////////
 	for {
-		// logs.LogDebug("")
 		finished := true
 		Filelist := []string{}
 		// 每次断点续传的payload数据
@@ -313,7 +309,7 @@ func main() {
 			req.Header.Set("Connection", "keep-alive")
 			req.Header.Set("Keep-Alive", strings.Join([]string{"timeout=", strconv.Itoa(120)}, ""))
 			req.Header.Set("Content-Type", writer.FormDataContentType())
-			logs.LogInfo("request =>> %v %v[%v] %v uuid:%v", method, url, len(filelist), Filelist, uuid)
+			logs.LogInfo("request =>> %v %v[%v] %v uuid:%v", method, url, len(Filelist), Filelist, uuid)
 			/// request
 			res, err := client.Do(req)
 			if err != nil {
@@ -322,7 +318,6 @@ func main() {
 				return
 			}
 			for {
-				// logs.LogDebug("")
 				/// response
 				body, err := ioutil.ReadAll(res.Body)
 				if err != nil {
@@ -355,9 +350,9 @@ func main() {
 					case ErrParamsAllTotalLimit.ErrCode:
 						fallthrough
 					case ErrRepeat.ErrCode:
-						logs.LogError("--- --- --- uuid:%v %v[%v] %v --- %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+						logs.LogError("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 					case ErrSegOk.ErrCode:
-						logs.LogError("--- --- --- uuid:%v %v[%v] %v --- %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+						logs.LogError("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 						if result.Now <= 0 {
 							break
 						}
@@ -384,7 +379,7 @@ func main() {
 					case ErrCheckReUpload.ErrCode:
 						// 校正需要重传
 						offset[result.Md5] = result.Now
-						logs.LogError("--- --- --- uuid:%v %v[%v] %v --- %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+						logs.LogError("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 					case ErrFileMd5.ErrCode:
 						fallthrough
 					case ErrOk.ErrCode:
@@ -392,14 +387,14 @@ func main() {
 						removeMd5File(&MD5, result.Md5)
 						// 上传完成，删除临时文件
 						os.Remove(tmp_dir + result.Md5 + ".tmp")
-						logs.LogTrace("--- --- --- uuid:%v %v[%v] %v --- %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+						logs.LogTrace("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 					}
 				}
 				switch resp.ErrCode {
 				case ErrParamsUUID.ErrCode:
 					fallthrough
 				case ErrParsePartData.ErrCode:
-					logs.LogError("--- --- --- uuid:%v %v", resp.Uuid, resp.ErrMsg)
+					logs.LogError("--- uuid:%v %v", resp.Uuid, resp.ErrMsg)
 				}
 			}
 			res.Body.Close()
