@@ -99,16 +99,15 @@ func main() {
 				continue
 			}
 			// 定位读取文件偏移(上传进度)，从断点处继续上传
-			offset_now := result.Now
+			offset_c := result.Now
 			for {
 				// 当前文件没有读完继续
-				if result.Total > 0 && offset_now < result.Total {
+				if result.Total > 0 && offset_c < result.Total {
 					payload := &bytes.Buffer{}
 					writer := multipart.NewWriter(payload)
 					_ = writer.WriteField("uuid", result.Uuid)
-					_ = writer.WriteField(md5+".offset", strconv.FormatInt(offset_now, 10))  //文件偏移量
+					_ = writer.WriteField(md5+".offset", strconv.FormatInt(offset_c, 10))    //文件偏移量
 					_ = writer.WriteField(md5+".total", strconv.FormatInt(result.Total, 10)) //文件总大小
-					// 每次断点续传上传 BUFSIZ 字节大小
 					part, err := writer.CreateFormFile(md5, filepath.Base(f))
 					if err != nil {
 						logs.LogFatal("%v", err.Error())
@@ -117,7 +116,8 @@ func main() {
 					if err != nil {
 						logs.LogFatal("%v", err.Error())
 					}
-					fd.Seek(offset_now, io.SeekStart)
+					// 每次断点续传上传 BUFSIZ 字节大小
+					fd.Seek(offset_c, io.SeekStart)
 					n, err := io.CopyN(part, fd, int64(BUFSIZ))
 					if err != nil && err != io.EOF {
 						logs.LogFatal("%v", err.Error())
@@ -208,8 +208,8 @@ func main() {
 					}
 					res.Body.Close()
 					if n > 0 {
-						offset_now += n
-						if offset_now == result.Total {
+						offset_c += n
+						if offset_c == result.Total {
 							break
 						}
 					}
@@ -222,11 +222,11 @@ func main() {
 	//////////////////////////////////////////// 再上传其他文件 ////////////////////////////////////////////
 	for {
 		finished := true
+		Filelist := []string{}
 		// 每次断点续传的payload数据
 		payload := &bytes.Buffer{}
 		writer := multipart.NewWriter(payload)
 		_ = writer.WriteField("uuid", uuid)
-		Filelist := []string{}
 		// 要上传的文件列表，各个文件都上传一点
 		for f, md5 := range MD5 {
 			// 当前文件没有读完继续
@@ -235,7 +235,6 @@ func main() {
 				Filelist = append(Filelist, filepath.Base(f))
 				_ = writer.WriteField(md5+".offset", strconv.FormatInt(offset[md5], 10)) //文件偏移量
 				_ = writer.WriteField(md5+".total", strconv.FormatInt(total[md5], 10))   //文件总大小
-				// 每次断点续传上传 BUFSIZ 字节大小
 				part, err := writer.CreateFormFile(md5, filepath.Base(f))
 				if err != nil {
 					logs.LogFatal("%v", err.Error())
@@ -244,6 +243,7 @@ func main() {
 				if err != nil {
 					logs.LogFatal("%v", err.Error())
 				}
+				// 每次断点续传上传 BUFSIZ 字节大小
 				fd.Seek(offset[md5], io.SeekStart)
 				n, err := io.CopyN(part, fd, int64(BUFSIZ))
 				if err != nil && err != io.EOF {
