@@ -65,6 +65,7 @@ type Req struct {
 // Resp
 // <summary>
 type Resp struct {
+	Uuid    string      `json:"uuid,omitempty"`
 	ErrCode int         `json:"code,omitempty"`
 	ErrMsg  string      `json:"errmsg,omitempty"`
 	Data    interface{} `json:"data,omitempty"`

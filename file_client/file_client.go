@@ -26,10 +26,20 @@ var (
 	dir, exe = filepath.Split(path)
 )
 var (
-	ErrOk            = ErrorMsg{0, "Ok"}
-	ErrSegOk         = ErrorMsg{1, "upload file segment succ"}
-	ErrFileMd5       = ErrorMsg{2, "upload file over, but md5 failed"}
-	ErrCheckReUpload = ErrorMsg{4, "check and re-upload file"}
+	ErrOk                  = ErrorMsg{0, "Ok"}                                    //上传完成，并且成功
+	ErrSegOk               = ErrorMsg{1, "upload file segment succ"}              //上传分段成功
+	ErrFileMd5             = ErrorMsg{2, "upload file over, but md5 failed"}      //上传完成，文件出错
+	ErrRepeat              = ErrorMsg{3, "Repeat upload same file"}               //文件重复上传
+	ErrCheckReUpload       = ErrorMsg{4, "check and re-upload file"}              //文件校正重传
+	ErrParamsUUID          = ErrorMsg{5, "upload param error uuid"}               //上传参数错误 uuid
+	ErrParamsMD5           = ErrorMsg{6, "upload param error md5"}                //上传参数错误 文件md5
+	ErrParamsOffset        = ErrorMsg{7, "upload param error offset"}             //上传参数错误 文件已读大小偏移数
+	ErrParamsTotalLimit    = ErrorMsg{8, "upload param error total size"}         //上传参数错误 单个上传文件字节数
+	ErrParamsSegSizeLimit  = ErrorMsg{9, "upload per-segment size limited"}       //上传参数错误 单次上传字节数限制
+	ErrParamsAllTotalLimit = ErrorMsg{10, "upload all total szie limited"}        //上传参数错误 单次上传文件总大小
+	ErrParsePartData       = ErrorMsg{11, "parse multipart form-data err"}        //解析multipart form-data数据错误
+	ErrParseFormFile       = ErrorMsg{12, "parse multipart form-file err"}        //解析multipart form-file文件错误
+	ErrParamsSegSizeZero   = ErrorMsg{13, "upload multipart form-data size zero"} //上传form-data数据字节大小为0
 )
 
 // <summary>
@@ -44,6 +54,7 @@ type ErrorMsg struct {
 // Resp
 // <summary>
 type Resp struct {
+	Uuid    string   `json:"uuid,omitempty"`
 	ErrCode int      `json:"code,omitempty"`
 	ErrMsg  string   `json:"errmsg,omitempty"`
 	Data    []Result `json:"data,omitempty"`
@@ -88,6 +99,7 @@ func main() {
 
 	//////////////////////////////////////////// 先上传未传完的文件 ////////////////////////////////////////////
 	for {
+		logs.LogDebug("")
 		if len(results) == 0 {
 			break
 		}
@@ -105,6 +117,7 @@ func main() {
 			// 定位读取文件偏移(上传进度)，从断点处继续上传
 			offset_c := result.Now
 			for {
+				logs.LogDebug("")
 				// 当前文件没有读完继续
 				if result.Total > 0 && offset_c < result.Total {
 					payload := &bytes.Buffer{}
@@ -150,6 +163,7 @@ func main() {
 						return
 					}
 					for {
+						logs.LogDebug("")
 						/// response
 						body, err := ioutil.ReadAll(res.Body)
 						if err != nil {
@@ -167,6 +181,22 @@ func main() {
 						}
 						for _, result := range resp.Data {
 							switch result.ErrCode {
+							case ErrParseFormFile.ErrCode:
+								fallthrough
+							case ErrParamsSegSizeLimit.ErrCode:
+								fallthrough
+							case ErrParamsSegSizeZero.ErrCode:
+								fallthrough
+							case ErrParamsTotalLimit.ErrCode:
+								fallthrough
+							case ErrParamsOffset.ErrCode:
+								fallthrough
+							case ErrParamsMD5.ErrCode:
+								fallthrough
+							case ErrParamsAllTotalLimit.ErrCode:
+								fallthrough
+							case ErrRepeat.ErrCode:
+								logs.LogError("--- *** --- uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 							case ErrSegOk.ErrCode:
 								if result.Now <= 0 {
 									break
@@ -192,22 +222,29 @@ func main() {
 									logs.LogFatal("%v", err.Error())
 								}
 							case ErrCheckReUpload.ErrCode:
-								//校正需要重传
+								// 校正需要重传
 								if results == nil {
 									results = map[string]Result{}
 								}
 								results[result.Md5] = result
 								logs.LogError("--- *** --- uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
-							case ErrOk.ErrCode, ErrFileMd5.ErrCode:
+							case ErrFileMd5.ErrCode:
+								fallthrough
+							case ErrOk.ErrCode:
 								delete(results, result.Md5)
 								offset[result.Md5] = total[result.Md5]
 								removeMd5File(&MD5, result.Md5)
-								//上传完成，删除临时文件
+								// 上传完成，删除临时文件
 								os.Remove(tmp_dir + result.Md5 + ".tmp")
 								logs.LogTrace("--- *** --- uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 							}
 						}
-						// logs.LogInfo("--- *** ---\n%v", string(body))
+						switch resp.ErrCode {
+						case ErrParamsUUID.ErrCode:
+							fallthrough
+						case ErrParsePartData.ErrCode:
+							logs.LogError("--- *** --- uuid:%v %v", resp.Uuid, resp.ErrMsg)
+						}
 					}
 					res.Body.Close()
 					if n > 0 {
@@ -224,6 +261,7 @@ func main() {
 	}
 	//////////////////////////////////////////// 再上传其他文件 ////////////////////////////////////////////
 	for {
+		logs.LogDebug("")
 		finished := true
 		Filelist := []string{}
 		// 每次断点续传的payload数据
@@ -283,6 +321,7 @@ func main() {
 				return
 			}
 			for {
+				logs.LogDebug("")
 				/// response
 				body, err := ioutil.ReadAll(res.Body)
 				if err != nil {
@@ -300,6 +339,22 @@ func main() {
 				}
 				for _, result := range resp.Data {
 					switch result.ErrCode {
+					case ErrParseFormFile.ErrCode:
+						fallthrough
+					case ErrParamsSegSizeLimit.ErrCode:
+						fallthrough
+					case ErrParamsSegSizeZero.ErrCode:
+						fallthrough
+					case ErrParamsTotalLimit.ErrCode:
+						fallthrough
+					case ErrParamsOffset.ErrCode:
+						fallthrough
+					case ErrParamsMD5.ErrCode:
+						fallthrough
+					case ErrParamsAllTotalLimit.ErrCode:
+						fallthrough
+					case ErrRepeat.ErrCode:
+						logs.LogError("--- --- --- uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 					case ErrSegOk.ErrCode:
 						if result.Now <= 0 {
 							break
@@ -325,18 +380,25 @@ func main() {
 							logs.LogFatal("%v", err.Error())
 						}
 					case ErrCheckReUpload.ErrCode:
-						//校正需要重传
+						// 校正需要重传
 						offset[result.Md5] = result.Now
 						logs.LogError("--- --- --- uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
-					case ErrOk.ErrCode, ErrFileMd5.ErrCode:
+					case ErrFileMd5.ErrCode:
+						fallthrough
+					case ErrOk.ErrCode:
 						offset[result.Md5] = total[result.Md5]
 						removeMd5File(&MD5, result.Md5)
-						//上传完成，删除临时文件
+						// 上传完成，删除临时文件
 						os.Remove(tmp_dir + result.Md5 + ".tmp")
 						logs.LogTrace("--- --- --- uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 					}
 				}
-				// logs.LogInfo("--- --- ---\n%v", string(body))
+				switch resp.ErrCode {
+				case ErrParamsUUID.ErrCode:
+					fallthrough
+				case ErrParsePartData.ErrCode:
+					logs.LogError("--- --- --- uuid:%v %v", resp.Uuid, resp.ErrMsg)
+				}
 			}
 			res.Body.Close()
 		} else {
