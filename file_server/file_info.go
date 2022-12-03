@@ -202,6 +202,6 @@ func (s *FileInfos) RangeRemoveWithCond(cond func(*FileInfo) bool, cb func(*File
 	}
 	s.l.Unlock()
 	if len(list) > 0 {
-		logs.LogError("md5:%v size=%v", list, n)
+		logs.LogError("removed:%v size=%v", len(list), n)
 	}
 }

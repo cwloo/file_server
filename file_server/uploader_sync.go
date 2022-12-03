@@ -137,7 +137,7 @@ func (s *SyncUploader) upaloading(req *Req) {
 		total := req.r.FormValue(k + ".total")
 		md5 := strings.ToLower(k)
 		s.tryAdd(md5)
-		file, header, err := req.r.FormFile(k)
+		part, header, err := req.r.FormFile(k)
 		if err != nil {
 			logs.LogError("%v", err.Error())
 			return
@@ -217,7 +217,7 @@ func (s *SyncUploader) upaloading(req *Req) {
 			continue
 		}
 		fd.Seek(0, io.SeekEnd)
-		_, err = io.Copy(fd, file)
+		_, err = io.Copy(fd, part)
 		if err != nil {
 			result = append(result,
 				Result{
@@ -246,7 +246,7 @@ func (s *SyncUploader) upaloading(req *Req) {
 		if err != nil {
 			logs.LogError("%v", err.Error())
 		}
-		err = file.Close()
+		err = part.Close()
 		if err != nil {
 			logs.LogError("%v", err.Error())
 		}

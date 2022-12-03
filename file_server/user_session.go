@@ -130,6 +130,6 @@ func (s *SessionToHandler) RangeRemoveWithCond(cond func(Uploader) bool, cb func
 	}
 	s.l.Unlock()
 	if len(list) > 0 {
-		logs.LogError("uuid:%v size=%v", list, n)
+		logs.LogError("removed:%v size=%v", len(list), n)
 	}
 }
