@@ -154,7 +154,7 @@ func main() {
 					req.Header.Set("Connection", "keep-alive")
 					req.Header.Set("Keep-Alive", strings.Join([]string{"timeout=", strconv.Itoa(120)}, ""))
 					req.Header.Set("Content-Type", writer.FormDataContentType())
-					logs.LogInfo("request =>> %v %v %v uuid:%v", method, url, result.File, uuid)
+					logs.LogInfo("request =>> %v %v[%v] %v uuid:%v", method, url, 1, result.File, uuid)
 					/// request
 					res, err := client.Do(req)
 					if err != nil {
@@ -313,7 +313,7 @@ func main() {
 			req.Header.Set("Connection", "keep-alive")
 			req.Header.Set("Keep-Alive", strings.Join([]string{"timeout=", strconv.Itoa(120)}, ""))
 			req.Header.Set("Content-Type", writer.FormDataContentType())
-			logs.LogInfo("request =>> %v %v %v uuid:%v", method, url, Filelist, uuid)
+			logs.LogInfo("request =>> %v %v[%v] %v uuid:%v", method, url, len(filelist), Filelist, uuid)
 			/// request
 			res, err := client.Do(req)
 			if err != nil {
