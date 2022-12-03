@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -195,7 +196,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 								Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10) + "/" + total + " 上传成功!"}, "")})
 					} else {
 						fileInfos.Remove(info.Md5)
-						// os.Remove(f)
+						os.Remove(dir_upload + info.DstName)
 						result = append(result,
 							Result{
 								Uuid:    uuid,
@@ -229,7 +230,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 								Result:  strings.Join([]string{"uuid:", info.Uuid, " uploading ", info.DstName, " progress:", strconv.FormatInt(info.Now, 10) + "/" + total + " 别人上传成功!"}, "")})
 					} else {
 						fileInfos.Remove(info.Md5)
-						// os.Remove(f)
+						os.Remove(dir_upload + info.DstName)
 						result = append(result,
 							Result{
 								Uuid:    uuid,
