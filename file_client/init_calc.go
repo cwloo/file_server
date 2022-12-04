@@ -13,12 +13,14 @@ func calcFileSize(MD5 map[string]string) (total map[string]int64, offset map[str
 	total = map[string]int64{}
 	offset = map[string]int64{}
 	for f, md5 := range MD5 {
-		offset[md5] = int64(0)
 		sta, err := os.Stat(f)
 		if err != nil && os.IsNotExist(err) {
 			logs.LogFatal("%v", err.Error())
 		}
-		total[md5] = sta.Size()
+		if sta.Size() > 0 {
+			offset[md5] = int64(0)
+			total[md5] = sta.Size()
+		}
 	}
 	return
 }

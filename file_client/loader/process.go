@@ -57,19 +57,19 @@ func kill(pid int) {
 			err = p.Kill()
 			if err != nil {
 				Lock.Unlock()
-				goto Err
+				goto ERR
 			}
 			delete(Process, p.Pid)
 			Lock.Unlock()
-			goto end
+			goto OK
 		}
 	}
 	Lock.Unlock()
 	return
-Err:
+ERR:
 	logs.LogError("%v", err.Error())
 	return
-end:
+OK:
 	logs.LogError("%v", pid)
 }
 

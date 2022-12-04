@@ -13,72 +13,128 @@ import (
 // <summary>
 // FileInfo
 // <summary>
-type FileInfo struct {
-	Uuid    string
-	Md5     string
-	SrcName string
-	DstName string
-	Now     int64
-	Total   int64
+type FileInfo interface {
+	Assert()
+	Uuid() string
+	Md5() string
+	Now() int64
+	Total() int64
+	SrcName() string
+	DstName() string
+	Update(size int64)
+	Done() bool
+	Ok() bool
+	Time() time.Time
+	UpdateTime(time time.Time)
+	HitTime() time.Time
+	UpdateHitTime(time time.Time)
+}
+
+// <summary>
+// Fileinfo
+// <summary>
+type Fileinfo struct {
+	uuid    string
+	md5     string
+	srcName string
+	dstName string
+	now     int64
+	total   int64
 	time    time.Time
 	hitTime time.Time
 }
 
-func (s *FileInfo) Assert() {
-	if s.Uuid == "" {
+func NewFileInfo(uuid, md5, Filename string, total int64) FileInfo {
+	s := &Fileinfo{
+		uuid:    uuid,
+		md5:     md5,
+		srcName: Filename,
+		dstName: strings.Join([]string{uuid, ".", utils.RandomCharString(10), ".", Filename}, ""),
+		total:   total,
+	}
+	s.Assert()
+	return s
+}
+
+func (s *Fileinfo) Assert() {
+	if s.uuid == "" {
 		logs.LogFatal("")
 	}
-	if s.Md5 == "" {
+	if s.md5 == "" {
 		logs.LogFatal("")
 	}
-	if s.SrcName == "" {
+	if s.srcName == "" {
 		logs.LogFatal("")
 	}
-	if s.DstName == "" {
+	if s.dstName == "" {
 		logs.LogFatal("")
 	}
-	// if s.Now == int64(0) {
+	// if s.now == int64(0) {
 	// 	logs.LogFatal("")
 	// }
-	if s.Total == int64(0) {
+	if s.total == int64(0) {
 		logs.LogFatal("")
 	}
 }
 
-func (s *FileInfo) Update(size int64) {
+func (s *Fileinfo) Uuid() string {
+	return s.uuid
+}
+
+func (s *Fileinfo) Md5() string {
+	return s.md5
+}
+
+func (s *Fileinfo) Now() int64 {
+	return s.now
+}
+
+func (s *Fileinfo) Total() int64 {
+	return s.total
+}
+
+func (s *Fileinfo) SrcName() string {
+	return s.srcName
+}
+
+func (s *Fileinfo) DstName() string {
+	return s.dstName
+}
+
+func (s *Fileinfo) Update(size int64) {
 	if size <= 0 {
 		logs.LogFatal("error")
 	}
-	s.Now += size
-	if s.Now > s.Total {
+	s.now += size
+	if s.now > s.total {
 		logs.LogFatal("error")
 	}
 }
 
-func (s *FileInfo) Done() bool {
-	return s.Now == s.Total
+func (s *Fileinfo) Done() bool {
+	return s.now == s.total
 }
 
-func (s *FileInfo) Ok() bool {
-	if s.Now != s.Total {
+func (s *Fileinfo) Ok() bool {
+	if s.now != s.total {
 		logs.LogFatal("error")
 	}
 	return s.time.Unix() > 0
 }
 
-func (s *FileInfo) Time() time.Time {
+func (s *Fileinfo) Time() time.Time {
 	return s.time
 }
 
-func (s *FileInfo) UpdateTime(time time.Time) {
+func (s *Fileinfo) UpdateTime(time time.Time) {
 	s.time = time
 }
 
-func (s *FileInfo) HitTime() time.Time {
+func (s *Fileinfo) HitTime() time.Time {
 	return s.hitTime
 }
 
-func (s *FileInfo) UpdateHitTime(time time.Time) {
+func (s *Fileinfo) UpdateHitTime(time time.Time) {
 	s.hitTime = time
 }
 
@@ -87,11 +143,11 @@ func (s *FileInfo) UpdateHitTime(time time.Time) {
 // <summary>
 type FileInfos struct {
 	l *sync.Mutex
-	m map[string]*FileInfo
+	m map[string]FileInfo
 }
 
 func NewFileInfos() *FileInfos {
-	return &FileInfos{m: map[string]*FileInfo{}, l: &sync.Mutex{}}
+	return &FileInfos{m: map[string]FileInfo{}, l: &sync.Mutex{}}
 }
 
 func (s *FileInfos) Len() int {
@@ -101,7 +157,7 @@ func (s *FileInfos) Len() int {
 	return c
 }
 
-func (s *FileInfos) Get(md5 string) (info *FileInfo) {
+func (s *FileInfos) Get(md5 string) (info FileInfo) {
 	s.l.Lock()
 	if c, ok := s.m[md5]; ok {
 		info = c
@@ -110,8 +166,8 @@ func (s *FileInfos) Get(md5 string) (info *FileInfo) {
 	return
 }
 
-func (s *FileInfos) Do(md5 string, cb func(*FileInfo)) {
-	var info *FileInfo
+func (s *FileInfos) Do(md5 string, cb func(FileInfo)) {
+	var info FileInfo
 	s.l.Lock()
 	if c, ok := s.m[md5]; ok {
 		info = c
@@ -124,19 +180,13 @@ OK:
 	cb(info)
 }
 
-func (s *FileInfos) GetAdd(md5 string, uuid, Filename, total string) (info *FileInfo, ok bool) {
+func (s *FileInfos) GetAdd(md5 string, uuid, Filename, total string) (info FileInfo, ok bool) {
 	n := 0
 	s.l.Lock()
 	info, ok = s.m[md5]
 	if !ok {
 		size, _ := strconv.ParseInt(total, 10, 0)
-		info = &FileInfo{
-			Uuid:    uuid,
-			Md5:     md5,
-			SrcName: Filename,
-			DstName: strings.Join([]string{uuid, ".", utils.RandomCharString(10), ".", Filename}, ""),
-			Total:   size,
-		}
+		info = NewFileInfo(uuid, md5, Filename, size)
 		s.m[md5] = info
 		n = len(s.m)
 		s.l.Unlock()
@@ -149,7 +199,7 @@ OK:
 	return
 }
 
-func (s *FileInfos) Remove(md5 string) (info *FileInfo) {
+func (s *FileInfos) Remove(md5 string) (info FileInfo) {
 	n := 0
 	s.l.Lock()
 	if c, ok := s.m[md5]; ok {
@@ -166,7 +216,7 @@ OK:
 	return
 }
 
-func (s *FileInfos) RemoveWithCond(md5 string, cond func(*FileInfo) bool, cb func(*FileInfo)) (info *FileInfo) {
+func (s *FileInfos) RemoveWithCond(md5 string, cond func(FileInfo) bool, cb func(FileInfo)) (info FileInfo) {
 	n := 0
 	s.l.Lock()
 	if c, ok := s.m[md5]; ok {
@@ -186,7 +236,7 @@ OK:
 	return
 }
 
-func (s *FileInfos) Range(cb func(string, *FileInfo)) {
+func (s *FileInfos) Range(cb func(string, FileInfo)) {
 	s.l.Lock()
 	for md5, info := range s.m {
 		cb(md5, info)
@@ -194,7 +244,7 @@ func (s *FileInfos) Range(cb func(string, *FileInfo)) {
 	s.l.Unlock()
 }
 
-func (s *FileInfos) RangeRemoveWithCond(cond func(*FileInfo) bool, cb func(*FileInfo)) {
+func (s *FileInfos) RangeRemoveWithCond(cond func(FileInfo) bool, cb func(FileInfo)) {
 	n := 0
 	list := []string{}
 	s.l.Lock()

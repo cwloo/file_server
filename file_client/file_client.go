@@ -110,6 +110,7 @@ func main() {
 			}
 			// 已经过期，当前文件无法继续上传
 			if time.Now().Unix() >= result.Expired {
+				delete(results, md5)
 				os.Remove(tmp_dir + md5 + ".tmp")
 				continue
 			}
@@ -117,7 +118,7 @@ func main() {
 			offset_c := result.Now
 			for {
 				// 当前文件没有读完继续
-				if result.Total > 0 && offset_c < result.Total {
+				if offset_c < result.Total {
 					payload := &bytes.Buffer{}
 					writer := multipart.NewWriter(payload)
 					_ = writer.WriteField("uuid", result.Uuid)
@@ -268,7 +269,7 @@ func main() {
 		// 要上传的文件列表，各个文件都上传一点
 		for f, md5 := range MD5 {
 			// 当前文件没有读完继续
-			if total[md5] > 0 && offset[md5] < total[md5] {
+			if offset[md5] < total[md5] {
 				finished = false
 				Filelist = append(Filelist, filepath.Base(f))
 				_ = writer.WriteField(md5+".offset", strconv.FormatInt(offset[md5], 10)) //文件偏移量

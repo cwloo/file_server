@@ -24,13 +24,13 @@ func handlerExpiredFile() {
 
 // 清理长期未访问的已上传文件记录
 func checkExpiredFile() {
-	fileInfos.RangeRemoveWithCond(func(info *FileInfo) bool {
+	fileInfos.RangeRemoveWithCond(func(info FileInfo) bool {
 		if info.Ok() {
 			return time.Since(info.HitTime()) >= time.Duration(FileExpiredTimeout)*time.Second
 		}
 		return false
-	}, func(info *FileInfo) {
-		os.Remove(dir_upload + info.DstName)
+	}, func(info FileInfo) {
+		os.Remove(dir_upload + info.DstName())
 	})
 }
 
