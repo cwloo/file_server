@@ -74,20 +74,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		/// header.size检查
-		if !checkMultiPartFileHeader(header) {
-			result = append(result,
-				Result{
-					Uuid:    uuid,
-					File:    header.Filename,
-					Md5:     md5,
-					ErrCode: ErrParamsSegSizeLimit.ErrCode,
-					ErrMsg:  ErrParamsSegSizeLimit.ErrMsg,
-					Message: ""})
-			logs.LogError("uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
-			continue
-		}
-		/// header.size检查
-		if header.Size <= 0 {
+		if !checkMultiPartSize(header) {
 			result = append(result,
 				Result{
 					Uuid:    uuid,
@@ -95,6 +82,19 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 					Md5:     md5,
 					ErrCode: ErrParamsSegSizeZero.ErrCode,
 					ErrMsg:  ErrParamsSegSizeZero.ErrMsg,
+					Message: ""})
+			logs.LogError("uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
+			continue
+		}
+		/// header.size检查
+		if !checkMultiPartSizeLimit(header) {
+			result = append(result,
+				Result{
+					Uuid:    uuid,
+					File:    header.Filename,
+					Md5:     md5,
+					ErrCode: ErrParamsSegSizeLimit.ErrCode,
+					ErrMsg:  ErrParamsSegSizeLimit.ErrMsg,
 					Message: ""})
 			logs.LogError("uuid:%v %v=%v[%v] %v seg_size[%v]", uuid, k, header.Filename, md5, total, header.Size)
 			continue
