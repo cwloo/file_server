@@ -14,18 +14,17 @@ import (
 // FileInfo
 // <summary>
 type FileInfo interface {
-	Assert()
 	Uuid() string
 	Md5() string
 	Now() int64
 	Total() int64
 	SrcName() string
 	DstName() string
-	Update(size int64)
+	Assert()
+	Update(size int64, cb func(FileInfo) (bool, time.Time)) (done, ok bool, start time.Time)
 	Done() bool
 	Ok() bool
 	Time() time.Time
-	UpdateTime(time time.Time)
 	HitTime() time.Time
 	UpdateHitTime(time time.Time)
 }
@@ -42,6 +41,7 @@ type Fileinfo struct {
 	total   int64
 	time    time.Time
 	hitTime time.Time
+	l       *sync.RWMutex
 }
 
 func NewFileInfo(uuid, md5, Filename string, total int64) FileInfo {
@@ -51,30 +51,10 @@ func NewFileInfo(uuid, md5, Filename string, total int64) FileInfo {
 		srcName: Filename,
 		dstName: strings.Join([]string{uuid, ".", utils.RandomCharString(10), ".", Filename}, ""),
 		total:   total,
+		l:       &sync.RWMutex{},
 	}
 	s.Assert()
 	return s
-}
-
-func (s *Fileinfo) Assert() {
-	if s.uuid == "" {
-		logs.LogFatal("")
-	}
-	if s.md5 == "" {
-		logs.LogFatal("")
-	}
-	if s.srcName == "" {
-		logs.LogFatal("")
-	}
-	if s.dstName == "" {
-		logs.LogFatal("")
-	}
-	// if s.now == int64(0) {
-	// 	logs.LogFatal("")
-	// }
-	if s.total == int64(0) {
-		logs.LogFatal("")
-	}
 }
 
 func (s *Fileinfo) Uuid() string {
@@ -101,41 +81,84 @@ func (s *Fileinfo) DstName() string {
 	return s.dstName
 }
 
-func (s *Fileinfo) Update(size int64) {
+func (s *Fileinfo) Assert() {
+	if s.uuid == "" {
+		logs.LogFatal("")
+	}
+	if s.md5 == "" {
+		logs.LogFatal("")
+	}
+	if s.srcName == "" {
+		logs.LogFatal("")
+	}
+	if s.dstName == "" {
+		logs.LogFatal("")
+	}
+	// if s.now == int64(0) {
+	// 	logs.LogFatal("")
+	// }
+	if s.total == int64(0) {
+		logs.LogFatal("")
+	}
+}
+
+func (s *Fileinfo) Update(size int64, cb func(FileInfo) (bool, time.Time)) (done, ok bool, start time.Time) {
 	if size <= 0 {
 		logs.LogFatal("error")
 	}
+	s.l.Lock()
 	s.now += size
 	if s.now > s.total {
 		logs.LogFatal("error")
 	}
+	done = s.now == s.total
+	if done {
+		ok, start = cb(s)
+		if ok {
+			now := time.Now()
+			s.time = now
+			s.hitTime = now
+		}
+	}
+	s.l.Unlock()
+	return
 }
 
 func (s *Fileinfo) Done() bool {
-	return s.now == s.total
+	s.l.RLock()
+	done := s.now == s.total
+	s.l.RUnlock()
+	return done
 }
 
 func (s *Fileinfo) Ok() bool {
+	s.l.RLock()
 	if s.now != s.total {
 		logs.LogFatal("error")
 	}
-	return s.time.Unix() > 0
+	ok := s.time.Unix() > 0
+	s.l.RUnlock()
+	return ok
 }
 
 func (s *Fileinfo) Time() time.Time {
-	return s.time
-}
-
-func (s *Fileinfo) UpdateTime(time time.Time) {
-	s.time = time
+	s.l.RLock()
+	t := s.time
+	s.l.RUnlock()
+	return t
 }
 
 func (s *Fileinfo) HitTime() time.Time {
-	return s.hitTime
+	s.l.RLock()
+	t := s.hitTime
+	s.l.RUnlock()
+	return t
 }
 
 func (s *Fileinfo) UpdateHitTime(time time.Time) {
+	s.l.Lock()
 	s.hitTime = time
+	s.l.Unlock()
 }
 
 // <summary>

@@ -281,8 +281,6 @@ func (s *AsyncUploader) uploading(req *Req) {
 			offset_n, _ := strconv.ParseInt(offset, 10, 0)
 			logs.LogDebug("--------------------- ****** checking re-upload uuid:%v %v=%v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), k, header.Filename, md5, info.Now(), total, offset_n, header.Size)
 			continue
-		} else {
-			info.Update(header.Size)
 		}
 		err = fd.Close()
 		if err != nil {
@@ -292,9 +290,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 		if err != nil {
 			logs.LogError("%v", err.Error())
 		}
-		if info.Done() {
-			s.setOk(info.Md5())
-			// logs.LogDebug("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, k, header.Filename, md5, info.DstName(), info.Now(), total, header.Size)
+		done, ok, start := info.Update(header.Size, func(info FileInfo) (bool, time.Time) {
 			start := time.Now()
 			fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 			if err != nil {
@@ -304,16 +300,17 @@ func (s *AsyncUploader) uploading(req *Req) {
 			if err != nil {
 				logs.LogFatal("%v", err.Error())
 			}
-			md5_calc := utils.MD5Byte(b, false)
+			md5 := utils.MD5Byte(b, false)
 			err = fd.Close()
 			if err != nil {
 				logs.LogFatal("%v", err.Error())
 			}
-			md5Ok := (md5_calc == info.Md5())
-			if md5Ok {
-				now := time.Now()
-				info.UpdateTime(now)
-				info.UpdateHitTime(now)
+			return md5 == info.Md5(), start
+		})
+		if done {
+			s.setOk(info.Md5())
+			// logs.LogDebug("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, k, header.Filename, md5, info.DstName(), info.Now(), total, header.Size)
+			if ok {
 				// fileInfos.Remove(info.Md5())
 				result = append(result,
 					Result{
