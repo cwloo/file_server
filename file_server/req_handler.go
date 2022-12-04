@@ -180,8 +180,8 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 				if total != strconv.FormatInt(info.Total, 10) {
 					logs.LogFatal("uuid:%v:%v(%v) info.total:%v total:%v", info.Uuid, info.SrcName, info.Md5, info.Total, total)
 				}
-				if info.Ok() {
-					if info.Md5Ok {
+				if info.Done() {
+					if info.Ok() {
 						info.UpdateHitTime(time.Now())
 						// fileInfos.Remove(info.Md5)
 						result = append(result,
@@ -214,8 +214,8 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			} else {
 				/// 已在其它上传任务中
 
-				if info.Ok() {
-					if info.Md5Ok {
+				if info.Done() {
+					if info.Ok() {
 						info.UpdateHitTime(time.Now())
 						// fileInfos.Remove(info.Md5)
 						result = append(result,

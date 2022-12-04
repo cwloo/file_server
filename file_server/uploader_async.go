@@ -95,7 +95,7 @@ func (s *AsyncUploader) Clear() {
 				if info.Uuid != s.uuid {
 					logs.LogFatal("error")
 				}
-				if info.Ok() {
+				if info.Done() {
 					logs.LogFatal("error")
 				}
 				return true
@@ -108,10 +108,10 @@ func (s *AsyncUploader) Clear() {
 				if info.Uuid != s.uuid {
 					logs.LogFatal("error")
 				}
-				if !info.Ok() {
+				if !info.Done() {
 					logs.LogFatal("error")
 				}
-				return !info.Md5Ok
+				return !info.Ok()
 			}, func(info *FileInfo) {
 				os.Remove(dir_upload + info.DstName)
 			})
@@ -189,7 +189,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 			return
 		}
 		////// 还未接收完
-		if info.Ok() {
+		if info.Done() {
 			logs.LogFatal("uuid:%v:%v(%v) finished", info.Uuid, info.SrcName, info.Md5)
 		}
 		////// 校验uuid
@@ -292,7 +292,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 		if err != nil {
 			logs.LogError("%v", err.Error())
 		}
-		if info.Ok() {
+		if info.Done() {
 			s.setOk(info.Md5)
 			// logs.LogDebug("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, k, header.Filename, md5, info.DstName, info.Now, total, header.Size)
 			start := time.Now()
@@ -309,10 +309,10 @@ func (s *AsyncUploader) uploading(req *Req) {
 			if err != nil {
 				logs.LogFatal("%v", err.Error())
 			}
-			info.Md5Ok = (md5_calc == info.Md5)
-			if info.Md5Ok {
+			md5Ok := (md5_calc == info.Md5)
+			if md5Ok {
 				now := time.Now()
-				info.UpdateDoneTime(now)
+				info.UpdateTime(now)
 				info.UpdateHitTime(now)
 				// fileInfos.Remove(info.Md5)
 				result = append(result,

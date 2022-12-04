@@ -14,15 +14,14 @@ import (
 // FileInfo
 // <summary>
 type FileInfo struct {
-	Uuid     string
-	Md5      string
-	SrcName  string
-	DstName  string
-	Now      int64
-	Total    int64
-	doneTime time.Time
-	hitTime  time.Time
-	Md5Ok    bool
+	Uuid    string
+	Md5     string
+	SrcName string
+	DstName string
+	Now     int64
+	Total   int64
+	time    time.Time
+	hitTime time.Time
 }
 
 func (s *FileInfo) Assert() {
@@ -56,16 +55,23 @@ func (s *FileInfo) Update(size int64) {
 	}
 }
 
-func (s *FileInfo) Ok() bool {
+func (s *FileInfo) Done() bool {
 	return s.Now == s.Total
 }
 
-func (s *FileInfo) DoneTime() time.Time {
-	return s.doneTime
+func (s *FileInfo) Ok() bool {
+	if s.Now != s.Total {
+		logs.LogFatal("error")
+	}
+	return s.time.Unix() > 0
 }
 
-func (s *FileInfo) UpdateDoneTime(time time.Time) {
-	s.doneTime = time
+func (s *FileInfo) Time() time.Time {
+	return s.time
+}
+
+func (s *FileInfo) UpdateTime(time time.Time) {
+	s.time = time
 }
 
 func (s *FileInfo) HitTime() time.Time {
