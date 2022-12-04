@@ -42,10 +42,10 @@ func checkAlltotal(total int64) bool {
 	return total < MaxAllTotalSize
 }
 
-func checkMultiPartSizeLimit(header *multipart.FileHeader) bool {
-	return header.Size < MaxSegmentSize
-}
-
 func checkMultiPartSize(header *multipart.FileHeader) bool {
 	return header.Size > 0
+}
+
+func checkMultiPartSizeLimit(header *multipart.FileHeader) bool {
+	return header.Size < MaxSegmentSize
 }
