@@ -133,7 +133,7 @@ func (s *AsyncUploader) tryAdd(md5 string) {
 	s.l.Unlock()
 }
 
-func (s *AsyncUploader) setOk(md5 string) {
+func (s *AsyncUploader) setDone(md5 string) {
 	s.l.Lock()
 	if _, ok := s.file[md5]; ok {
 		s.file[md5] = true
@@ -141,7 +141,7 @@ func (s *AsyncUploader) setOk(md5 string) {
 	s.l.Unlock()
 }
 
-func (s *AsyncUploader) hasAllOk() bool {
+func (s *AsyncUploader) allDone() bool {
 	s.l.RLock()
 	for _, v := range s.file {
 		if !v {
@@ -156,7 +156,7 @@ func (s *AsyncUploader) hasAllOk() bool {
 func (s *AsyncUploader) handler(msg any, args ...any) (exit bool) {
 	req := msg.(*Req)
 	s.uploading(req)
-	exit = s.hasAllOk()
+	exit = s.allDone()
 	if exit {
 		logs.LogTrace("--------------------- ****** 无待上传文件，结束任务 uuid:%v ...", s.uuid)
 	}
@@ -308,7 +308,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 			return md5 == info.Md5(), start
 		})
 		if done {
-			s.setOk(info.Md5())
+			s.setDone(info.Md5())
 			// logs.LogDebug("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, k, header.Filename, md5, info.DstName(), info.Now(), total, header.Size)
 			if ok {
 				// fileInfos.Remove(info.Md5())
