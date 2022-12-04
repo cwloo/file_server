@@ -133,10 +133,12 @@ func (s *Fileinfo) Done() bool {
 
 func (s *Fileinfo) Ok() bool {
 	s.l.RLock()
-	if s.now != s.total {
-		logs.LogFatal("error")
-	}
 	ok := s.time.Unix() > 0
+	if ok {
+		if s.now != s.total {
+			logs.LogFatal("error")
+		}
+	}
 	s.l.RUnlock()
 	return ok
 }
