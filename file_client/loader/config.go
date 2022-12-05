@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
 )
 
@@ -24,7 +25,7 @@ type IniConfig struct {
 func readIni(filename string) (c *IniConfig) {
 	ini := utils.Ini{}
 	if err := ini.Load(filename); err != nil {
-		panic(err.Error())
+		logs.LogFatal(err.Error())
 	}
 	c = &IniConfig{}
 	c.Flag = ini.GetInt("flag", "flag")
@@ -45,7 +46,7 @@ func readIni(filename string) (c *IniConfig) {
 func InitConfig() {
 	Config = readIni("conf.ini")
 	if Config == nil {
-		panic(utils.Stack())
+		logs.LogFatal(utils.Stack())
 	}
 	switch Config.Flag {
 	case 1:

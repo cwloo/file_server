@@ -2,7 +2,7 @@ module github.com/cwloo/uploader
 
 go 1.19
 
-require github.com/cwloo/gonet v0.1.13
+require github.com/cwloo/gonet v0.1.16
 
 require (
 	github.com/robfig/cron/v3 v3.0.1 // indirect
