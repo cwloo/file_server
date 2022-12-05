@@ -2,8 +2,6 @@ package main
 
 import (
 	"net/http"
-	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/cwloo/gonet/core/base/task"
@@ -16,12 +14,13 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	path, _ := os.Executable()
-	dir, exe := filepath.Split(path)
-
-	logs.LogTimezone(logs.MY_CST)
-	logs.LogInit(dir+"logs", logs.LVL_DEBUG, exe, 100000000)
-	logs.LogMode(logs.M_STDOUT_FILE)
+	InitConfig()
+	// logs.LogTimezone(logs.MY_CST)
+	// logs.LogMode(logs.M_STDOUT_FILE)
+	// logs.LogInit(dir+"logs", logs.LVL_DEBUG, exe, 100000000)
+	logs.LogTimezone(logs.TimeZone(Config.Log_timezone))
+	logs.LogMode(logs.Mode(Config.Log_mode))
+	logs.LogInit(dir+"logs", int32(Config.Log_level), exe, 100000000)
 
 	task.After(time.Duration(PendingTimeout)*time.Second, cb.NewFunctor00(func() {
 		handlerPendingUploader()
@@ -35,7 +34,7 @@ func main() {
 	mux.HandleFunc("/upload", uploadFile)
 
 	server := &http.Server{
-		Addr:              "192.168.1.113:8088",
+		Addr:              Config.HttpAddr,
 		Handler:           mux,
 		ReadTimeout:       time.Duration(PendingTimeout) * time.Second,
 		ReadHeaderTimeout: time.Duration(PendingTimeout) * time.Second,

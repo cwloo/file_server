@@ -76,21 +76,25 @@ type Result struct {
 }
 
 func main() {
-	logs.LogTimezone(logs.MY_CST)
-	logs.LogInit(dir+"logs", logs.LVL_DEBUG, exe, 100000000)
-	logs.LogMode(logs.M_STDOUT_FILE)
+	InitConfig()
+	// logs.LogTimezone(logs.MY_CST)
+	// logs.LogMode(logs.M_STDOUT_FILE)
+	// logs.LogInit(dir+"logs", logs.LVL_DEBUG, exe, 100000000)
+	logs.LogTimezone(logs.TimeZone(Config.Log_timezone))
+	logs.LogMode(logs.Mode(Config.Log_mode))
+	logs.LogInit(dir+"logs", int32(Config.Log_level), exe, 100000000)
 
 	_, filelist := parseargs()
 	if len(filelist) == 0 {
 		return
 	}
 
-	tmp_dir := dir + "tmp/" // + fmt.Sprintf(".%v", id)
+	tmp_dir := dir + "tmp/"
 	os.MkdirAll(tmp_dir, 0666)
 
 	client := httpclient()
 	method := "POST"
-	url := "http://192.168.1.113:8088/upload"
+	url := strings.Join([]string{"http://", Config.HttpAddr, "/upload"}, "")
 
 	uuid := utils.CreateGUID()           //本次上传标识
 	MD5 := calcFileMd5(filelist)         //文件md5值
@@ -334,6 +338,7 @@ func main() {
 					logs.LogFatal("%v", err.Error())
 					break
 				}
+				// 读取每个文件上传状态数据
 				for _, result := range resp.Data {
 					switch result.ErrCode {
 					case ErrParseFormFile.ErrCode:
@@ -352,6 +357,7 @@ func main() {
 						fallthrough
 					case ErrRepeat.ErrCode:
 						logs.LogError("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+					// 上传成功(分段续传)，继续读取文件剩余字节继续上传
 					case ErrSegOk.ErrCode:
 						logs.LogError("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 						if result.Now <= 0 {

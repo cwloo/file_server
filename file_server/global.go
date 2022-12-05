@@ -34,7 +34,7 @@ var (
 	ErrParseFormFile       = ErrorMsg{12, "parse multipart form-file err"}        //解析multipart form-file文件错误          --上传失败
 	ErrParamsSegSizeZero   = ErrorMsg{13, "upload multipart form-data size zero"} //上传form-data数据字节大小为0             --上传失败
 	path, _                = os.Executable()
-	dir, _                 = filepath.Split(path)
+	dir, exe               = filepath.Split(path)
 	dir_upload             = dir + "upload/"
 	i32                    = cc.NewI32()
 	fileInfos              = NewFileInfos()
