@@ -44,7 +44,7 @@ func main() {
 	}
 	f, err := exec.LookPath(dir + Config.Exec)
 	if err != nil {
-		logs.LogError("%v", err)
+		logs.LogError(err.Error())
 		return
 	}
 	//子进程数量

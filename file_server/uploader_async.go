@@ -180,7 +180,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 		s.tryAdd(md5)
 		part, header, err := req.r.FormFile(k)
 		if err != nil {
-			logs.LogError("%v", err.Error())
+			logs.LogError(err.Error())
 			return
 		}
 		info := fileInfos.Get(md5)
@@ -253,7 +253,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 					ErrMsg:  ErrCheckReUpload.ErrMsg,
 					Message: strings.Join([]string{"uuid:", info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10), "/", total}, ""),
 				})
-			logs.LogError("%v", err.Error())
+			logs.LogError(err.Error())
 			offset_n, _ := strconv.ParseInt(offset, 10, 0)
 			logs.LogDebug("--------------------- ****** checking re-upload uuid:%v %v=%v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), k, header.Filename, md5, info.Now(), total, offset_n, header.Size)
 			continue
@@ -273,10 +273,10 @@ func (s *AsyncUploader) uploading(req *Req) {
 					ErrMsg:  ErrCheckReUpload.ErrMsg,
 					Message: strings.Join([]string{"uuid:", info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10), "/", total}, ""),
 				})
-			logs.LogError("%v", err.Error())
+			logs.LogError(err.Error())
 			err = fd.Close()
 			if err != nil {
-				logs.LogError("%v", err.Error())
+				logs.LogError(err.Error())
 			}
 			offset_n, _ := strconv.ParseInt(offset, 10, 0)
 			logs.LogDebug("--------------------- ****** checking re-upload uuid:%v %v=%v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), k, header.Filename, md5, info.Now(), total, offset_n, header.Size)
@@ -284,26 +284,26 @@ func (s *AsyncUploader) uploading(req *Req) {
 		}
 		err = fd.Close()
 		if err != nil {
-			logs.LogError("%v", err.Error())
+			logs.LogError(err.Error())
 		}
 		err = part.Close()
 		if err != nil {
-			logs.LogError("%v", err.Error())
+			logs.LogError(err.Error())
 		}
 		done, ok, start := info.Update(header.Size, func(info FileInfo) (bool, time.Time) {
 			start := time.Now()
 			fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 			if err != nil {
-				logs.LogFatal("%v", err.Error())
+				logs.LogFatal(err.Error())
 			}
 			b, err := ioutil.ReadAll(fd)
 			if err != nil {
-				logs.LogFatal("%v", err.Error())
+				logs.LogFatal(err.Error())
 			}
 			md5 := utils.MD5Byte(b, false)
 			err = fd.Close()
 			if err != nil {
-				logs.LogFatal("%v", err.Error())
+				logs.LogFatal(err.Error())
 			}
 			return md5 == info.Md5(), start
 		})

@@ -62,7 +62,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 		/// header检查
 		_, header, err := r.FormFile(k)
 		if err != nil {
-			logs.LogError("%v", err.Error())
+			logs.LogError(err.Error())
 			result = append(result,
 				Result{
 					Uuid:    uuid,

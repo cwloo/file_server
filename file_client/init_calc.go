@@ -15,7 +15,7 @@ func calcFileSize(MD5 map[string]string) (total map[string]int64, offset map[str
 	for f, md5 := range MD5 {
 		sta, err := os.Stat(f)
 		if err != nil && os.IsNotExist(err) {
-			logs.LogFatal("%v", err.Error())
+			logs.LogFatal(err.Error())
 		}
 		if sta.Size() > 0 {
 			offset[md5] = int64(0)
@@ -34,18 +34,18 @@ func calcFileMd5(filelist []string) (md5 map[string]string) {
 		}
 		fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 		if err != nil {
-			logs.LogError("%v", err.Error())
+			logs.LogError(err.Error())
 			return nil
 		}
 		b, err := ioutil.ReadAll(fd)
 		if err != nil {
-			logs.LogFatal("%v", err.Error())
+			logs.LogFatal(err.Error())
 			return nil
 		}
 		md5[f] = utils.MD5Byte(b, false)
 		err = fd.Close()
 		if err != nil {
-			logs.LogFatal("%v", err.Error())
+			logs.LogFatal(err.Error())
 		}
 	}
 	return
@@ -79,24 +79,24 @@ func loadTmpFile(dir string, MD5 map[string]string) (results map[string]Result) 
 		}
 		fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 		if err != nil {
-			logs.LogFatal("%v", err.Error())
+			logs.LogFatal(err.Error())
 			return
 		}
 		data, err := ioutil.ReadAll(fd)
 		if err != nil {
-			logs.LogFatal("%v", err.Error())
+			logs.LogFatal(err.Error())
 			return
 		}
 		var result Result
 		err = json.Unmarshal(data, &result)
 		if err != nil {
-			logs.LogFatal("%v", err.Error())
+			logs.LogFatal(err.Error())
 			return
 		}
 		results[md5] = result
 		err = fd.Close()
 		if err != nil {
-			logs.LogFatal("%v", err.Error())
+			logs.LogFatal(err.Error())
 			return
 		}
 	}

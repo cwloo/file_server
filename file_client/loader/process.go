@@ -33,7 +33,7 @@ func startProcess(name string, args []string) bool {
 func monitor(p *os.Process) {
 	sta, err := p.Wait()
 	if err != nil {
-		logs.LogError("%v", err.Error())
+		logs.LogError(err.Error())
 	}
 	if p.Pid != sta.Pid() {
 		logs.LogFatal("%v %v", p.Pid, sta.Pid())
@@ -67,7 +67,7 @@ func kill(pid int) {
 	Lock.Unlock()
 	return
 ERR:
-	logs.LogError("%v", err.Error())
+	logs.LogError(err.Error())
 	return
 OK:
 	logs.LogError("%v", pid)
@@ -78,7 +78,7 @@ func killAll() {
 	for _, p := range Process {
 		err := p.Kill()
 		if err != nil {
-			logs.LogError("%v", err.Error())
+			logs.LogError(err.Error())
 		} else {
 			delete(Process, p.Pid)
 		}

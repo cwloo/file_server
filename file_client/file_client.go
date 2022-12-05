@@ -133,29 +133,29 @@ func main() {
 					_ = writer.WriteField(md5+".total", strconv.FormatInt(result.Total, 10)) //文件总大小
 					part, err := writer.CreateFormFile(md5, filepath.Base(f))
 					if err != nil {
-						logs.LogFatal("%v", err.Error())
+						logs.LogFatal(err.Error())
 					}
 					fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 					if err != nil {
-						logs.LogFatal("%v", err.Error())
+						logs.LogFatal(err.Error())
 					}
 					// 每次断点续传上传 BUFSIZ 字节大小
 					fd.Seek(offset_c, io.SeekStart)
 					n, err := io.CopyN(part, fd, int64(BUFSIZ))
 					if err != nil && err != io.EOF {
-						logs.LogFatal("%v", err.Error())
+						logs.LogFatal(err.Error())
 					}
 					err = fd.Close()
 					if err != nil {
-						logs.LogFatal("%v", err.Error())
+						logs.LogFatal(err.Error())
 					}
 					err = writer.Close()
 					if err != nil {
-						logs.LogFatal("%v", err.Error())
+						logs.LogFatal(err.Error())
 					}
 					req, err := http.NewRequest(method, url, payload)
 					if err != nil {
-						logs.LogFatal("%v", err.Error())
+						logs.LogFatal(err.Error())
 					}
 					req.Header.Set("Connection", "keep-alive")
 					req.Header.Set("Keep-Alive", strings.Join([]string{"timeout=", strconv.Itoa(120)}, ""))
@@ -164,7 +164,7 @@ func main() {
 					/// request
 					res, err := client.Do(req)
 					if err != nil {
-						logs.LogError("%v", err.Error())
+						logs.LogError(err.Error())
 						logs.LogClose()
 						return
 					}
@@ -172,7 +172,7 @@ func main() {
 						/// response
 						body, err := ioutil.ReadAll(res.Body)
 						if err != nil {
-							logs.LogError("%v", err.Error())
+							logs.LogError(err.Error())
 							break
 						}
 						if len(body) == 0 {
@@ -181,7 +181,7 @@ func main() {
 						resp := Resp{}
 						err = json.Unmarshal(body, &resp)
 						if err != nil {
-							logs.LogFatal("%v", err.Error())
+							logs.LogFatal(err.Error())
 							break
 						}
 						for _, result := range resp.Data {
@@ -210,22 +210,22 @@ func main() {
 								// 上传进度写入临时文件
 								fd, err := os.OpenFile(tmp_dir+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 								if err != nil {
-									logs.LogError("%v", err.Error())
+									logs.LogError(err.Error())
 									return
 								}
 								b, err := json.Marshal(&result)
 								if err != nil {
-									logs.LogFatal("%v", err.Error())
+									logs.LogFatal(err.Error())
 									break
 								}
 								_, err = fd.Write(b)
 								if err != nil {
-									logs.LogFatal("%v", err.Error())
+									logs.LogFatal(err.Error())
 									break
 								}
 								err = fd.Close()
 								if err != nil {
-									logs.LogFatal("%v", err.Error())
+									logs.LogFatal(err.Error())
 								}
 							case ErrCheckReUpload.ErrCode:
 								// 校正需要重传
@@ -283,21 +283,21 @@ func main() {
 				_ = writer.WriteField(md5+".total", strconv.FormatInt(total[md5], 10))   //文件总大小
 				part, err := writer.CreateFormFile(md5, filepath.Base(f))
 				if err != nil {
-					logs.LogFatal("%v", err.Error())
+					logs.LogFatal(err.Error())
 				}
 				fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 				if err != nil {
-					logs.LogFatal("%v", err.Error())
+					logs.LogFatal(err.Error())
 				}
 				// 每次断点续传上传 BUFSIZ 字节大小
 				fd.Seek(offset[md5], io.SeekStart)
 				n, err := io.CopyN(part, fd, int64(BUFSIZ))
 				if err != nil && err != io.EOF {
-					logs.LogFatal("%v", err.Error())
+					logs.LogFatal(err.Error())
 				}
 				err = fd.Close()
 				if err != nil {
-					logs.LogFatal("%v", err.Error())
+					logs.LogFatal(err.Error())
 				}
 				if n > 0 {
 					offset[md5] += n
@@ -307,12 +307,12 @@ func main() {
 		}
 		err := writer.Close()
 		if err != nil {
-			logs.LogFatal("%v", err.Error())
+			logs.LogFatal(err.Error())
 		}
 		if !finished {
 			req, err := http.NewRequest(method, url, payload)
 			if err != nil {
-				logs.LogFatal("%v", err.Error())
+				logs.LogFatal(err.Error())
 			}
 			req.Header.Set("Connection", "keep-alive")
 			req.Header.Set("Keep-Alive", strings.Join([]string{"timeout=", strconv.Itoa(120)}, ""))
@@ -321,7 +321,7 @@ func main() {
 			/// request
 			res, err := client.Do(req)
 			if err != nil {
-				logs.LogError("%v", err.Error())
+				logs.LogError(err.Error())
 				logs.LogClose()
 				return
 			}
@@ -329,7 +329,7 @@ func main() {
 				/// response
 				body, err := ioutil.ReadAll(res.Body)
 				if err != nil {
-					logs.LogError("%v", err.Error())
+					logs.LogError(err.Error())
 					break
 				}
 				if len(body) == 0 {
@@ -338,7 +338,7 @@ func main() {
 				resp := Resp{}
 				err = json.Unmarshal(body, &resp)
 				if err != nil {
-					logs.LogFatal("%v", err.Error())
+					logs.LogFatal(err.Error())
 					break
 				}
 				// 读取每个文件上传状态数据
@@ -369,22 +369,22 @@ func main() {
 						// 上传进度写入临时文件
 						fd, err := os.OpenFile(tmp_dir+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 						if err != nil {
-							logs.LogError("%v", err.Error())
+							logs.LogError(err.Error())
 							break
 						}
 						b, err := json.Marshal(&result)
 						if err != nil {
-							logs.LogFatal("%v", err.Error())
+							logs.LogFatal(err.Error())
 							break
 						}
 						_, err = fd.Write(b)
 						if err != nil {
-							logs.LogFatal("%v", err.Error())
+							logs.LogFatal(err.Error())
 							break
 						}
 						err = fd.Close()
 						if err != nil {
-							logs.LogFatal("%v", err.Error())
+							logs.LogFatal(err.Error())
 						}
 					case ErrCheckReUpload.ErrCode:
 						// 校正需要重传
