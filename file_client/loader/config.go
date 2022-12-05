@@ -46,7 +46,7 @@ func readIni(filename string) (c *IniConfig) {
 func InitConfig() {
 	Config = readIni("conf.ini")
 	if Config == nil {
-		logs.LogFatal(utils.Stack())
+		logs.LogFatal("error")
 	}
 	switch Config.Flag {
 	case 1:
