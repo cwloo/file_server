@@ -75,6 +75,7 @@ type Result struct {
 	Message string `json:"message,omitempty"`
 }
 
+// ./loader 父进程启动
 func main() {
 	InitConfig()
 	// logs.LogTimezone(logs.MY_CST)

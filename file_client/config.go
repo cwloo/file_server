@@ -33,7 +33,7 @@ func readIni(filename string) (c *IniConfig) {
 }
 
 func InitConfig() {
-	Config = readIni("loader/conf.ini")
+	Config = readIni("conf.ini")
 	if Config == nil {
 		panic(utils.Stack())
 	}
