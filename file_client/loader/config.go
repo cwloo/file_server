@@ -17,6 +17,7 @@ type IniConfig struct {
 	Log_dir      string
 	Log_level    int
 	Log_mode     int
+	Log_style    int
 	Log_timezone int64
 }
 
@@ -30,6 +31,7 @@ func readIni(filename string) (c *IniConfig) {
 	c.Log_dir = ini.GetString("log", "dir")
 	c.Log_level = ini.GetInt("log", "level")
 	c.Log_mode = ini.GetInt("log", "mode")
+	c.Log_style = ini.GetInt("log", "style")
 	c.Log_timezone = ini.GetInt64("log", "timezone")
 	c.Sub = ini.GetInt("sub", "num")
 	c.Exec = ini.GetString("sub", "execname")
