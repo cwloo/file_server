@@ -104,7 +104,6 @@ func main() {
 	MD5 := calcFileMd5(filelist)         //文件md5值
 	total, offset := calcFileSize(MD5)   //文件大小/偏移
 	results := loadTmpFile(tmp_dir, MD5) //未决临时文件
-
 	//////////////////////////////////////////// 先上传未传完的文件 ////////////////////////////////////////////
 	for {
 		if len(results) == 0 {
@@ -123,15 +122,15 @@ func main() {
 				continue
 			}
 			// 定位读取文件偏移(上传进度)，从断点处继续上传
-			offset_c := result.Now
+			offset[result.Md5] = result.Now
 			for {
 				// 当前文件没有读完继续
-				if offset_c < result.Total {
+				if offset[result.Md5] < result.Total {
 					payload := &bytes.Buffer{}
 					writer := multipart.NewWriter(payload)
 					_ = writer.WriteField("uuid", result.Uuid)
-					_ = writer.WriteField(md5+".offset", strconv.FormatInt(offset_c, 10))    //文件偏移量
-					_ = writer.WriteField(md5+".total", strconv.FormatInt(result.Total, 10)) //文件总大小
+					_ = writer.WriteField(md5+".offset", strconv.FormatInt(offset[result.Md5], 10)) //文件偏移量
+					_ = writer.WriteField(md5+".total", strconv.FormatInt(result.Total, 10))        //文件总大小
 					part, err := writer.CreateFormFile(md5, filepath.Base(f))
 					if err != nil {
 						logs.LogFatal(err.Error())
@@ -141,8 +140,8 @@ func main() {
 						logs.LogFatal(err.Error())
 					}
 					// 单个文件分片上传大小
-					fd.Seek(offset_c, io.SeekStart)
-					n, err := io.CopyN(part, fd, int64(SegmentSize))
+					fd.Seek(offset[result.Md5], io.SeekStart)
+					_, err = io.CopyN(part, fd, int64(SegmentSize))
 					if err != nil && err != io.EOF {
 						logs.LogFatal(err.Error())
 					}
@@ -191,8 +190,9 @@ func main() {
 						case ErrParamsUUID.ErrCode:
 							fallthrough
 						case ErrParsePartData.ErrCode:
-							logs.LogFatal("*** uuid:%v %v", resp.Uuid, resp.ErrMsg)
-							return
+							// 需要继续重试
+							logs.LogError("*** uuid:%v %v", resp.Uuid, resp.ErrMsg)
+							continue
 						}
 						// 读取每个文件上传状态数据
 						for _, result := range resp.Data {
@@ -238,14 +238,18 @@ func main() {
 								if err != nil {
 									logs.LogFatal(err.Error())
 								}
+								// 更新文件读取偏移
+								offset[result.Md5] += result.Now
 							case ErrCheckReUpload.ErrCode:
 								// 校正需要重传
 								if results == nil {
 									results = map[string]Result{}
 								}
 								results[result.Md5] = result
+								offset[result.Md5] = result.Now
 								logs.LogError("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 							case ErrFileMd5.ErrCode:
+								// 上传失败了
 								fallthrough
 							case ErrOk.ErrCode:
 								delete(results, result.Md5)
@@ -258,15 +262,7 @@ func main() {
 						}
 					}
 					res.Body.Close()
-					if n > 0 {
-						offset_c += n
-						if offset_c == result.Total {
-							break
-						}
-					}
-				} // else if offset_now == result.Total {
-				//	break
-				//}
+				}
 			}
 		}
 	}
@@ -296,17 +292,13 @@ func main() {
 				}
 				// 单个文件分片上传大小
 				fd.Seek(offset[md5], io.SeekStart)
-				n, err := io.CopyN(part, fd, int64(SegmentSize))
+				_, err = io.CopyN(part, fd, int64(SegmentSize))
 				if err != nil && err != io.EOF {
 					logs.LogFatal(err.Error())
 				}
 				err = fd.Close()
 				if err != nil {
 					logs.LogFatal(err.Error())
-				}
-				if n > 0 {
-					offset[md5] += n
-					continue
 				}
 			}
 		}
@@ -352,8 +344,9 @@ func main() {
 				case ErrParamsUUID.ErrCode:
 					fallthrough
 				case ErrParsePartData.ErrCode:
-					logs.LogFatal("--- uuid:%v %v", resp.Uuid, resp.ErrMsg)
-					return
+					// 需要继续重试
+					logs.LogError("--- uuid:%v %v", resp.Uuid, resp.ErrMsg)
+					continue
 				}
 				// 读取每个文件上传状态数据
 				for _, result := range resp.Data {
@@ -400,11 +393,14 @@ func main() {
 						if err != nil {
 							logs.LogFatal(err.Error())
 						}
+						// 更新文件读取偏移
+						offset[result.Md5] += result.Now
 					case ErrCheckReUpload.ErrCode:
 						// 校正需要重传
 						offset[result.Md5] = result.Now
 						logs.LogError("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 					case ErrFileMd5.ErrCode:
+						// 上传失败了
 						fallthrough
 					case ErrOk.ErrCode:
 						offset[result.Md5] = total[result.Md5]
