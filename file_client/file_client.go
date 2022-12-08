@@ -239,7 +239,7 @@ func main() {
 									logs.LogFatal(err.Error())
 								}
 								// 更新文件读取偏移
-								offset[result.Md5] += result.Now
+								offset[result.Md5] = result.Now
 							case ErrCheckReUpload.ErrCode:
 								// 校正需要重传
 								if results == nil {
@@ -394,7 +394,7 @@ func main() {
 							logs.LogFatal(err.Error())
 						}
 						// 更新文件读取偏移
-						offset[result.Md5] += result.Now
+						offset[result.Md5] = result.Now
 					case ErrCheckReUpload.ErrCode:
 						// 校正需要重传
 						offset[result.Md5] = result.Now
