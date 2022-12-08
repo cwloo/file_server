@@ -15,12 +15,12 @@ func checkMD5(md5 string) bool {
 	return md5 != "" && (len(md5) == 32)
 }
 
-func checkTotal(total string) bool {
+func checkSingle(total string) bool {
 	if total == "" {
 		return false
 	}
 	size, _ := strconv.ParseInt(total, 10, 0)
-	if size <= 0 || size >= MaxTotalSize {
+	if size <= 0 || size >= MaxSingleSize {
 		return false
 	}
 	return true
@@ -38,8 +38,8 @@ func checkOffset(offset, total string) bool {
 	return true
 }
 
-func checkAlltotal(total int64) bool {
-	return total < MaxAllTotalSize
+func checkTotal(total int64) bool {
+	return total < MaxTotalSize
 }
 
 func checkMultiPartSize(header *multipart.FileHeader) bool {

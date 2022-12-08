@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"strconv"
+	"strings"
 
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
@@ -16,7 +18,11 @@ type IniConfig struct {
 	Log_mode     int
 	Log_style    int
 	Log_timezone int64
+	HttpProto    string
 	HttpAddr     string
+	UploadPath   string
+	GetPath      string
+	SegmentSize  int64
 }
 
 func readIni(filename string) (c *IniConfig) {
@@ -31,7 +37,19 @@ func readIni(filename string) (c *IniConfig) {
 	c.Log_mode = ini.GetInt("log", "mode")
 	c.Log_style = ini.GetInt("log", "style")
 	c.Log_timezone = ini.GetInt64("log", "timezone")
+	c.HttpProto = ini.GetString("httpserver", "proto")
 	c.HttpAddr = ini.GetString("httpserver", "addr")
+	c.UploadPath = ini.GetString("path", "upload")
+	c.GetPath = ini.GetString("path", "get")
+	str := ini.GetString("upload", "segmentSize")
+	slice := strings.Split(str, "*")
+	val := int64(1)
+	for _, v := range slice {
+		v = strings.ReplaceAll(v, " ", "")
+		c, _ := strconv.ParseInt(v, 10, 0)
+		val *= c
+	}
+	c.SegmentSize = val
 	return
 }
 
@@ -45,4 +63,5 @@ func InitConfig() {
 		flag.Parse()
 	default:
 	}
+	Init()
 }

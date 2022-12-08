@@ -8,14 +8,14 @@ import (
 	"github.com/cwloo/gonet/core/base/cc"
 )
 
-const (
+var (
 	UseAsyncUploader         = true               //使用异步上传方式
 	MaxMemory          int64 = 1024 * 1024 * 1024 //multipart缓存限制
-	MaxTotalSize       int64 = 1024 * 1024 * 1024 //单个文件上传不超过1G
-	MaxSegmentSize     int64 = 1024 * 1024 * 20   //单个文件断点续传字节数限制
-	MaxAllTotalSize    int64 = 1024 * 1024 * 1024 //单次上传文件总大小字节数限制
-	PendingTimeout           = 30                 //间隔秒数清理未决的上传任务
-	FileExpiredTimeout       = 120                //间隔秒数清理长期未访问已上传文件记录
+	MaxSegmentSize     int64 = 1024 * 1024 * 20   //单个文件分片上传限制
+	MaxSingleSize      int64 = 1024 * 1024 * 1024 //单个文件上传大小限制
+	MaxTotalSize       int64 = 1024 * 1024 * 1024 //单次上传文件总大小限制
+	PendingTimeout           = 30                 //定期清理未决的上传任务
+	FileExpiredTimeout       = 120                //定期清理长期未访问已上传文件记录
 )
 
 var (
@@ -84,4 +84,14 @@ type Result struct {
 	ErrCode int    `json:"code,omitempty"`
 	ErrMsg  string `json:"errmsg,omitempty"`
 	Message string `json:"message,omitempty"`
+}
+
+func Init() {
+	UseAsyncUploader = Config.UseAsync > 0
+	MaxMemory = Config.MaxMemory
+	MaxSegmentSize = Config.MaxSegmentSize
+	MaxSingleSize = Config.MaxSingleSize
+	MaxTotalSize = Config.MaxTotalSize
+	PendingTimeout = Config.PendingTimeout
+	FileExpiredTimeout = Config.FileExpiredTimeout
 }

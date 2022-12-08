@@ -11,7 +11,7 @@ import (
 	"github.com/cwloo/gonet/logs"
 )
 
-func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
+func handlerUpload(w http.ResponseWriter, r *http.Request) {
 	// w.WriteHeader(http.StatusOK)
 	err := r.ParseMultipartForm(MaxMemory)
 	if err != nil {
@@ -21,6 +21,9 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			ErrMsg:  ErrParsePartData.ErrMsg,
 		}
 		j, _ := json.Marshal(resp)
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 		_, err := w.Write(j)
 		if err != nil {
@@ -43,6 +46,9 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			ErrMsg:  ErrParamsUUID.ErrMsg,
 		}
 		j, _ := json.Marshal(resp)
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 		_, err := w.Write(j)
 		if err != nil {
@@ -100,7 +106,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		/// total检查
-		if !checkTotal(total) {
+		if !checkSingle(total) {
 			result = append(result,
 				Result{
 					Uuid:    uuid,
@@ -143,7 +149,7 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 			/// 没有上传，判断能否上传
 			size, _ := strconv.ParseInt(total, 10, 0)
 			allTotal += size
-			if !checkAlltotal(allTotal) {
+			if !checkTotal(allTotal) {
 				result = append(result,
 					Result{
 						Uuid:    uuid,
@@ -289,6 +295,9 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 		}
 		if resp != nil {
 			j, _ := json.Marshal(resp)
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+			w.Header().Set("Content-Type", "application/json")
 			w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 			_, err := w.Write(j)
 			if err != nil {
@@ -298,6 +307,9 @@ func handlerUploadFile(w http.ResponseWriter, r *http.Request) {
 		} else {
 			resp = &Resp{}
 			j, _ := json.Marshal(resp)
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+			w.Header().Set("Content-Type", "application/json")
 			w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 			_, err := w.Write(j)
 			if err != nil {

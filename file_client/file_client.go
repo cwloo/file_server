@@ -17,8 +17,8 @@ import (
 	"github.com/cwloo/gonet/utils"
 )
 
-const (
-	BUFSIZ = 1024 * 1024 * 10
+var (
+	SegmentSize int64 = 1024 * 1024 * 10 // 单个文件分片上传大小
 )
 
 var (
@@ -98,7 +98,7 @@ func main() {
 
 	client := httpclient()
 	method := "POST"
-	url := strings.Join([]string{"http://", Config.HttpAddr, "/upload"}, "")
+	url := strings.Join([]string{Config.HttpProto, Config.HttpAddr, Config.UploadPath}, "")
 
 	uuid := utils.CreateGUID()           //本次上传标识
 	MD5 := calcFileMd5(filelist)         //文件md5值
@@ -140,9 +140,9 @@ func main() {
 					if err != nil {
 						logs.LogFatal(err.Error())
 					}
-					// 每次断点续传上传 BUFSIZ 字节大小
+					// 单个文件分片上传大小
 					fd.Seek(offset_c, io.SeekStart)
-					n, err := io.CopyN(part, fd, int64(BUFSIZ))
+					n, err := io.CopyN(part, fd, int64(SegmentSize))
 					if err != nil && err != io.EOF {
 						logs.LogFatal(err.Error())
 					}
@@ -182,9 +182,19 @@ func main() {
 						resp := Resp{}
 						err = json.Unmarshal(body, &resp)
 						if err != nil {
-							logs.LogFatal(err.Error())
-							break
+							logs.LogError(err.Error())
+							logs.LogWarn("%v", string(body))
+							continue
 						}
+						// 检查有无 resp 错误码
+						switch resp.ErrCode {
+						case ErrParamsUUID.ErrCode:
+							fallthrough
+						case ErrParsePartData.ErrCode:
+							logs.LogFatal("*** uuid:%v %v", resp.Uuid, resp.ErrMsg)
+							return
+						}
+						// 读取每个文件上传状态数据
 						for _, result := range resp.Data {
 							switch result.ErrCode {
 							case ErrParseFormFile.ErrCode:
@@ -246,12 +256,6 @@ func main() {
 								logs.LogTrace("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 							}
 						}
-						switch resp.ErrCode {
-						case ErrParamsUUID.ErrCode:
-							fallthrough
-						case ErrParsePartData.ErrCode:
-							logs.LogError("*** uuid:%v %v", resp.Uuid, resp.ErrMsg)
-						}
 					}
 					res.Body.Close()
 					if n > 0 {
@@ -290,9 +294,9 @@ func main() {
 				if err != nil {
 					logs.LogFatal(err.Error())
 				}
-				// 每次断点续传上传 BUFSIZ 字节大小
+				// 单个文件分片上传大小
 				fd.Seek(offset[md5], io.SeekStart)
-				n, err := io.CopyN(part, fd, int64(BUFSIZ))
+				n, err := io.CopyN(part, fd, int64(SegmentSize))
 				if err != nil && err != io.EOF {
 					logs.LogFatal(err.Error())
 				}
@@ -311,6 +315,7 @@ func main() {
 			logs.LogFatal(err.Error())
 		}
 		if !finished {
+		retry:
 			req, err := http.NewRequest(method, url, payload)
 			if err != nil {
 				logs.LogFatal(err.Error())
@@ -323,8 +328,8 @@ func main() {
 			res, err := client.Do(req)
 			if err != nil {
 				logs.LogError(err.Error())
-				logs.LogClose()
-				return
+				// logs.LogClose()
+				goto retry
 			}
 			for {
 				/// response
@@ -339,8 +344,16 @@ func main() {
 				resp := Resp{}
 				err = json.Unmarshal(body, &resp)
 				if err != nil {
-					logs.LogFatal(err.Error())
-					break
+					logs.LogError(err.Error())
+					logs.LogWarn("%v", string(body))
+					continue
+				}
+				switch resp.ErrCode {
+				case ErrParamsUUID.ErrCode:
+					fallthrough
+				case ErrParsePartData.ErrCode:
+					logs.LogFatal("--- uuid:%v %v", resp.Uuid, resp.ErrMsg)
+					return
 				}
 				// 读取每个文件上传状态数据
 				for _, result := range resp.Data {
@@ -401,12 +414,6 @@ func main() {
 						logs.LogTrace("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 					}
 				}
-				switch resp.ErrCode {
-				case ErrParamsUUID.ErrCode:
-					fallthrough
-				case ErrParsePartData.ErrCode:
-					logs.LogError("--- uuid:%v %v", resp.Uuid, resp.ErrMsg)
-				}
 			}
 			res.Body.Close()
 		} else {
@@ -414,4 +421,8 @@ func main() {
 		}
 	}
 	logs.LogClose()
+}
+
+func Init() {
+	SegmentSize = Config.SegmentSize
 }

@@ -309,7 +309,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 		})
 		if done {
 			s.setDone(info.Md5())
-			// logs.LogDebug("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, k, header.Filename, md5, info.DstName(), info.Now(), total, header.Size)
+			logs.LogDebug("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, k, header.Filename, md5, info.DstName(), info.Now(), total, header.Size)
 			if ok {
 				// fileInfos.Remove(info.Md5())
 				result = append(result,
@@ -350,11 +350,11 @@ func (s *AsyncUploader) uploading(req *Req) {
 					ErrCode: ErrSegOk.ErrCode,
 					ErrMsg:  ErrSegOk.ErrMsg,
 					Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + total}, "")})
-			// if info.Now() == header.Size {
-			// 	logs.LogTrace("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v first_segment", req.uuid, k, header.Filename, md5, info.DstName(), info.Now(), total, header.Size)
-			// } else {
-			// 	logs.LogWarn("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v continue_segment", req.uuid, k, header.Filename, md5, info.DstName(), info.Now(), total, header.Size)
-			// }
+			if info.Now() == header.Size {
+				logs.LogTrace("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v first_segment", req.uuid, k, header.Filename, md5, info.DstName(), info.Now(), total, header.Size)
+			} else {
+				logs.LogWarn("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v continue_segment", req.uuid, k, header.Filename, md5, info.DstName(), info.Now(), total, header.Size)
+			}
 		}
 	}
 	if resp == nil {
@@ -370,8 +370,10 @@ func (s *AsyncUploader) uploading(req *Req) {
 	}
 	if resp != nil {
 		j, _ := json.Marshal(resp)
-		req.w.Header().Set("Content-Length", strconv.Itoa(len(j)))
+		req.w.Header().Set("Access-Control-Allow-Origin", "*")
+		req.w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
 		req.w.Header().Set("Content-Type", "application/json")
+		req.w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 		/// http.ResponseWriter 生命周期原因，不支持异步，所以加了 notify
 		_, err := req.w.Write(j)
 		if err != nil {
@@ -382,6 +384,9 @@ func (s *AsyncUploader) uploading(req *Req) {
 	} else {
 		resp = &Resp{}
 		j, _ := json.Marshal(resp)
+		req.w.Header().Set("Access-Control-Allow-Origin", "*")
+		req.w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+		req.w.Header().Set("Content-Type", "application/json")
 		req.w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 		/// http.ResponseWriter 生命周期原因，不支持异步，所以加了 notify
 		_, err := req.w.Write(j)
