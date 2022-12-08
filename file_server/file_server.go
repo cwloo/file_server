@@ -21,8 +21,7 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		ErrMsg:  "OK",
 	}
 	j, _ := json.Marshal(resp)
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+	setResponseHeader(w, r)
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 	_, err := w.Write(j)

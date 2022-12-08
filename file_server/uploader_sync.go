@@ -328,8 +328,7 @@ func (s *SyncUploader) upaloading(req *Req) {
 	}
 	if resp != nil {
 		j, _ := json.Marshal(resp)
-		req.w.Header().Set("Access-Control-Allow-Origin", "*")
-		req.w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+		setResponseHeader(req.w, req.r)
 		req.w.Header().Set("Content-Type", "application/json")
 		req.w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 		/// http.ResponseWriter 生命周期原因，不支持异步
@@ -341,8 +340,7 @@ func (s *SyncUploader) upaloading(req *Req) {
 	} else {
 		resp = &Resp{}
 		j, _ := json.Marshal(resp)
-		req.w.Header().Set("Access-Control-Allow-Origin", "*")
-		req.w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+		setResponseHeader(req.w, req.r)
 		req.w.Header().Set("Content-Type", "application/json")
 		req.w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 		/// http.ResponseWriter 生命周期原因，不支持异步

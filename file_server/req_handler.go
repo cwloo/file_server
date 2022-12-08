@@ -11,6 +11,18 @@ import (
 	"github.com/cwloo/gonet/logs"
 )
 
+func setResponseHeader(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token, Authorization, Token,X-Token,X-User-Id,C-Token,cz-sdk-key,cz-sdk-sign")
+	w.Header().Set("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE,PUT")
+	w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type, New-Token, New-Expires-At,New-C-Token, New-C-Expires-At")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	w.Header().Set("Host", r.Header.Get("Host"))
+	w.Header().Set("X-Real-IP", r.Header.Get("X-Real-IP"))
+	w.Header().Set("X-Forwarded-For", r.Header.Get("X-Forwarded-For"))
+}
+
 func handlerUpload(w http.ResponseWriter, r *http.Request) {
 	// w.WriteHeader(http.StatusOK)
 	err := r.ParseMultipartForm(MaxMemory)
@@ -21,8 +33,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 			ErrMsg:  ErrParsePartData.ErrMsg,
 		}
 		j, _ := json.Marshal(resp)
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+		setResponseHeader(w, r)
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 		_, err := w.Write(j)
@@ -46,8 +57,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 			ErrMsg:  ErrParamsUUID.ErrMsg,
 		}
 		j, _ := json.Marshal(resp)
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+		setResponseHeader(w, r)
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 		_, err := w.Write(j)
@@ -295,8 +305,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 		}
 		if resp != nil {
 			j, _ := json.Marshal(resp)
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+			setResponseHeader(w, r)
 			w.Header().Set("Content-Type", "application/json")
 			w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 			_, err := w.Write(j)
@@ -307,8 +316,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 		} else {
 			resp = &Resp{}
 			j, _ := json.Marshal(resp)
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
+			setResponseHeader(w, r)
 			w.Header().Set("Content-Type", "application/json")
 			w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 			_, err := w.Write(j)
