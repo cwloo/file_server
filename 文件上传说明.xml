@@ -6,7 +6,7 @@
 	
 	<!-- 待上传的文件1 -->
 	<!-- c5459c3b484665d272116b2a53d2c922 计算出的文件MD5 -->
-	<!-- c5459c3b484665d272116b2a53d2c922.offset 该文件读取偏移(断点续传，需要提交多次form，每次form包含指定文件读取偏移) -->
+	<!-- c5459c3b484665d272116b2a53d2c922.offset 该文件读取偏移 -->
 	<!-- c5459c3b484665d272116b2a53d2c922.total 该文件总字节数 -->
 	<input type="file" name="c5459c3b484665d272116b2a53d2c922" filename="nox_setup_v7.0.3.8_full.exe" />
 	<input type="text" name="c5459c3b484665d272116b2a53d2c922.offset" value="0" />
@@ -19,6 +19,20 @@
     <input type="submit" value="提交" />
 </form>
 
+--4cdb2ae6a249aca16578da6484d6012836d0a2d1198e15ec3653aa9488bf
+Content-Disposition: form-data; name=\"uuid\"
+9uas4ljy-ttb3-ttb3-vx93-vx93lbnod0za
+--4cdb2ae6a249aca16578da6484d6012836d0a2d1198e15ec3653aa9488bf
+Content-Disposition: form-data; name=\"50c23496389c3b2b9e67d202ffb48d03.offset\"
+
+0
+--4cdb2ae6a249aca16578da6484d6012836d0a2d1198e15ec3653aa9488bf
+Content-Disposition: form-data; name=\"50c23496389c3b2b9e67d202ffb48d03.total\"
+
+75526055
+--4cdb2ae6a249aca16578da6484d6012836d0a2d1198e15ec3653aa948
+
+form-data; name=\"c5459c3b484665d272116b2a53d2c922\"; filename=\"nox_setup_v7.0.3.8_full.exe\", "Content-Type": "application/octet-stream"
 
 <!-- 上传错误码 -->
 <!-- ErrOk                  = ErrorMsg{0, "Ok"}                                    //上传完成，并且成功
@@ -141,3 +155,77 @@ case ErrParsePartData.ErrCode:
 }
 }
 res.Body.Close()
+
+
+
+
+switch resp.ErrCode {
+				case ErrParamsUUID.ErrCode:
+					fallthrough
+				case ErrParsePartData.ErrCode:
+					// 需要继续重试
+					logs.LogError("--- uuid:%v %v", resp.Uuid, resp.ErrMsg)
+					continue
+				}
+				// 读取每个文件上传状态数据
+				for _, result := range resp.Data {
+					switch result.ErrCode {
+					case ErrParseFormFile.ErrCode:
+						fallthrough
+					case ErrParamsSegSizeLimit.ErrCode:
+						fallthrough
+					case ErrParamsSegSizeZero.ErrCode:
+						fallthrough
+					case ErrParamsTotalLimit.ErrCode:
+						fallthrough
+					case ErrParamsOffset.ErrCode:
+						fallthrough
+					case ErrParamsMD5.ErrCode:
+						fallthrough
+					case ErrParamsAllTotalLimit.ErrCode:
+						fallthrough
+					case ErrRepeat.ErrCode:
+						logs.LogError("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+					// 上传成功(分段续传)，继续读取文件剩余字节继续上传
+					case ErrSegOk.ErrCode:
+						logs.LogError("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+						if result.Now <= 0 {
+							break
+						}
+						// 上传进度写入临时文件
+						fd, err := os.OpenFile(tmp_dir+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
+						if err != nil {
+							logs.LogError(err.Error())
+							break
+						}
+						b, err := json.Marshal(&result)
+						if err != nil {
+							logs.LogFatal(err.Error())
+							break
+						}
+						_, err = fd.Write(b)
+						if err != nil {
+							logs.LogFatal(err.Error())
+							break
+						}
+						err = fd.Close()
+						if err != nil {
+							logs.LogFatal(err.Error())
+						}
+						// 更新文件读取偏移
+						offset[result.Md5] = result.Now
+					case ErrCheckReUpload.ErrCode:
+						// 校正需要重传
+						offset[result.Md5] = result.Now
+						logs.LogError("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+					case ErrFileMd5.ErrCode:
+						// 上传失败了
+						fallthrough
+					case ErrOk.ErrCode:
+						offset[result.Md5] = total[result.Md5]
+						removeMd5File(&MD5, result.Md5)
+						// 上传完成，删除临时文件
+						os.Remove(tmp_dir + result.Md5 + ".tmp")
+						logs.LogTrace("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+					}
+				}
