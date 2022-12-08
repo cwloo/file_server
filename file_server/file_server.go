@@ -12,7 +12,12 @@ import (
 )
 
 func Upload(w http.ResponseWriter, r *http.Request) {
-	handlerUpload(w, r)
+	switch MultiFile {
+	case true:
+		handlerMultiUpload(w, r)
+	default:
+		handlerUpload(w, r)
+	}
 }
 
 func Get(w http.ResponseWriter, r *http.Request) {

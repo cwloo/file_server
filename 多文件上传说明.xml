@@ -1,4 +1,4 @@
-<!-- 批量上传文件form表单样式 -->
+<!-- 多文件批量上传form表单样式 -->
 <form name="testform" action="<%=path%>/upload" method="post" enctype="multipart/form-data">
     
 	<!-- 本次上传任务uuid，按如下规则生成。一次完整上传任务，断点续传每次提交的uuid必须相同 --> 
@@ -12,6 +12,7 @@
 	<input type="text" name="c5459c3b484665d272116b2a53d2c922.offset" value="0" />
 	<input type="text" name="c5459c3b484665d272116b2a53d2c922.total" value="345435" />
 	
+	<!-- 待上传的文件2 -->
 	<input type="file" name="c3b6ad64d46b6974d8e720785e9f177f" filename="nox_setup_v7.0.3.8_full.exe" />
 	<input type="text" name="c3b6ad64d46b6974d8e720785e9f177f.offset" value="0" />
 	<input type="text" name="c3b6ad64d46b6974d8e720785e9f177f.total" value="5456454" />

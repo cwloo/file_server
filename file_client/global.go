@@ -1,24 +1,19 @@
 package main
 
 import (
-	"net/http"
 	"os"
 	"path/filepath"
-
-	"github.com/cwloo/gonet/core/base/cc"
 )
 
 var (
-	MultiFile                = false              //一次可以上传多个文件
-	UseAsyncUploader         = true               //使用异步上传方式
-	MaxMemory          int64 = 1024 * 1024 * 1024 //multipart缓存限制
-	MaxSegmentSize     int64 = 1024 * 1024 * 20   //单个文件分片上传限制
-	MaxSingleSize      int64 = 1024 * 1024 * 1024 //单个文件上传大小限制
-	MaxTotalSize       int64 = 1024 * 1024 * 1024 //单次上传文件总大小限制
-	PendingTimeout           = 30                 //定期清理未决的上传任务
-	FileExpiredTimeout       = 120                //定期清理长期未访问已上传文件记录
+	MultiFile         = false            //一次可以上传多个文件
+	SegmentSize int64 = 1024 * 1024 * 10 //单个文件分片上传大小
 )
 
+var (
+	path, _  = os.Executable()
+	dir, exe = filepath.Split(path)
+)
 var (
 	ErrOk                  = ErrorMsg{0, "Ok"}                                    //上传完成，并且成功
 	ErrSegOk               = ErrorMsg{1, "upload file segment succ"}              //上传成功(分段续传)                       --需要继续分段上传剩余数据
@@ -35,12 +30,6 @@ var (
 	ErrParseFormFile       = ErrorMsg{12, "parse multipart form-file err"}        //解析multipart form-file文件错误          --上传失败
 	ErrParamsSegSizeZero   = ErrorMsg{13, "upload multipart form-data size zero"} //上传form-data数据字节大小为0             --上传失败
 	ErrMultiFileNotSupport = ErrorMsg{14, "upload multifiles not supported"}      //MultiFile为false时，一次只能上传一个文件
-	path, _                = os.Executable()
-	dir, exe               = filepath.Split(path)
-	dir_upload             = dir + "upload/"
-	i32                    = cc.NewI32()
-	fileInfos              = NewFileInfos()
-	uploaders              = NewSessionToHandler()
 )
 
 // <summary>
@@ -52,28 +41,13 @@ type ErrorMsg struct {
 }
 
 // <summary>
-// Req
-// <summary>
-type Req struct {
-	uuid   string
-	md5    string
-	offset string
-	total  string
-	keys   []string
-	w      http.ResponseWriter
-	r      *http.Request
-	resp   *Resp
-	result []Result
-}
-
-// <summary>
 // Resp
 // <summary>
 type Resp struct {
-	Uuid    string      `json:"uuid,omitempty"`
-	ErrCode int         `json:"code,omitempty"`
-	ErrMsg  string      `json:"errmsg,omitempty"`
-	Data    interface{} `json:"data,omitempty"`
+	Uuid    string   `json:"uuid,omitempty"`
+	ErrCode int      `json:"code,omitempty"`
+	ErrMsg  string   `json:"errmsg,omitempty"`
+	Data    []Result `json:"data,omitempty"`
 }
 
 // <summary>
@@ -92,12 +66,6 @@ type Result struct {
 }
 
 func Init() {
+	SegmentSize = Config.SegmentSize
 	MultiFile = Config.MultiFile > 0
-	UseAsyncUploader = Config.UseAsync > 0
-	MaxMemory = Config.MaxMemory
-	MaxSegmentSize = Config.MaxSegmentSize
-	MaxSingleSize = Config.MaxSingleSize
-	MaxTotalSize = Config.MaxTotalSize
-	PendingTimeout = Config.PendingTimeout
-	FileExpiredTimeout = Config.FileExpiredTimeout
 }
