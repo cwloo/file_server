@@ -1,0 +1,69 @@
+@BotFather
+
+/newbot
+
+robot_ro_88888
+
+
+robot_ro_88888_bot
+
+
+5812496658:AAFdtrueIf8RdEJW74jIh-rko6qV4Mfp5M0
+
+/mybots
+
+
+hello @robot_ro_88888_bot
+https://api.telegram.org/bot5812496658:AAFdtrueIf8RdEJW74jIh-rko6qV4Mfp5M0/getUpdates
+https://api.telegram.org/bot<token>/getUpdates
+
+
+{
+	"ok": true,
+	"result": [{
+		"update_id": 202452699,
+		"message": {
+			"message_id": 3,
+			"from": {
+				"id": 1697560586,
+				"is_bot": false,
+				"first_name": "ro",
+				"username": "ro_88888",
+				"language_code": "zh-hans"
+			},
+			"chat": {
+				"id": 1697560586,
+				"first_name": "ro",
+				"username": "ro_88888",
+				"type": "private"
+			},
+			"date": 1670590965,
+			"text": "chat_id#"
+		}
+	}, {
+		"update_id": 202452700,
+		"message": {
+			"message_id": 4,
+			"from": {
+				"id": 1697560586,
+				"is_bot": false,
+				"first_name": "ro",
+				"username": "ro_88888",
+				"language_code": "zh-hans"
+			},
+			"chat": {
+				"id": 1697560586,
+				"first_name": "ro",
+				"username": "ro_88888",
+				"type": "private"
+			},
+			"date": 1670591057,
+			"text": "hello @robot_ro_88888_bot",
+			"entities": [{
+				"offset": 6,
+				"length": 19,
+				"type": "mention"
+			}]
+		}
+	}]
+}

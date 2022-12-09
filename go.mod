@@ -4,7 +4,10 @@ go 1.19
 
 require github.com/cwloo/gonet v0.1.16
 
-require gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 // indirect
+require (
+	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1 // indirect
+	gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 // indirect
+)
 
 require (
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.6+incompatible

@@ -7,17 +7,19 @@ import (
 
 	"github.com/cwloo/gonet/core/base/cc"
 	"github.com/cwloo/uploader/file_server/config"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 var (
-	MultiFile                = false              //一次可以上传多个文件
-	UseAsyncUploader         = true               //使用异步上传方式
-	MaxMemory          int64 = 1024 * 1024 * 1024 //multipart缓存限制
-	MaxSegmentSize     int64 = 1024 * 1024 * 20   //单个文件分片上传限制
-	MaxSingleSize      int64 = 1024 * 1024 * 1024 //单个文件上传大小限制
-	MaxTotalSize       int64 = 1024 * 1024 * 1024 //单次上传文件总大小限制
-	PendingTimeout           = 30                 //定期清理未决的上传任务
-	FileExpiredTimeout       = 120                //定期清理长期未访问已上传文件记录
+	TgBot              *tgbotapi.BotAPI                      //tg机器人通知
+	MultiFile                           = false              //一次可以上传多个文件
+	UseAsyncUploader                    = true               //使用异步上传方式
+	MaxMemory          int64            = 1024 * 1024 * 1024 //multipart缓存限制
+	MaxSegmentSize     int64            = 1024 * 1024 * 20   //单个文件分片上传限制
+	MaxSingleSize      int64            = 1024 * 1024 * 1024 //单个文件上传大小限制
+	MaxTotalSize       int64            = 1024 * 1024 * 1024 //单次上传文件总大小限制
+	PendingTimeout                      = 30                 //定期清理未决的上传任务
+	FileExpiredTimeout                  = 120                //定期清理长期未访问已上传文件记录
 )
 
 var (
@@ -94,7 +96,16 @@ type Result struct {
 }
 
 func Init() {
-	config.Config.UploadLocalDir = dir_upload
+	if config.Config.UploadlDir != "" {
+		dir_upload = config.Config.UploadlDir
+	}
+	_, err := os.Stat(dir_upload)
+	if err != nil && os.IsNotExist(err) {
+		os.MkdirAll(dir_upload, os.ModePerm)
+	}
+	if config.Config.Log_dir == "" {
+		config.Config.Log_dir = dir + "logs"
+	}
 	MultiFile = config.Config.MultiFile > 0
 	UseAsyncUploader = config.Config.UseAsync > 0
 	MaxMemory = config.Config.MaxMemory
@@ -103,4 +114,5 @@ func Init() {
 	MaxTotalSize = config.Config.MaxTotalSize
 	PendingTimeout = config.Config.PendingTimeout
 	FileExpiredTimeout = config.Config.FileExpiredTimeout
+	TgBot = NewTgBot(config.Config.TgBot_Token)
 }

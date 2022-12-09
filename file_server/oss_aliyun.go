@@ -17,7 +17,7 @@ func (*AliyunOSS) UploadFile(info FileInfo) (string, string, error) {
 		logs.LogError(err.Error())
 		return "", "", errors.New("function AliyunOSS.NewBucket() Failed, err:" + err.Error())
 	}
-	localFile := config.Config.UploadLocalDir + info.DstName()
+	localFile := config.Config.UploadlDir + info.DstName()
 	// yunFilePath := filepath.Join("uploads", time.Now().Format("2006-01-02")) + "/" + info.SrcName()
 	yunFilePath := config.Config.AliyunOSS_BasePath + "/uploads/" + time.Now().Format("2006-01-02") + "/" + info.SrcName()
 	start := time.Now()
@@ -25,6 +25,7 @@ func (*AliyunOSS) UploadFile(info FileInfo) (string, string, error) {
 	err = bucket.UploadFile(yunFilePath, localFile, 1000*1024, oss.Routines(5)) //bucket.PutObject(yunFilePath, f)
 	if err != nil {
 		logs.LogError(err.Error())
+		SendTgBotMsg(err.Error())
 		return "", "", errors.New("function formUploader.Put() Failed, err:" + err.Error())
 	}
 	logs.LogWarn("finished oss elapsed:%vs", time.Since(start))

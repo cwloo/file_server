@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"time"
 
 	"github.com/cwloo/gonet/core/base/task"
@@ -30,7 +29,7 @@ func checkExpiredFile() {
 		}
 		return false
 	}, func(info FileInfo) {
-		os.Remove(dir_upload + info.DstName())
+		// os.Remove(dir_upload + info.DstName())
 	})
 }
 

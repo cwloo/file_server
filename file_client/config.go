@@ -24,6 +24,9 @@ type IniConfig struct {
 	GetPath      string
 	SegmentSize  int64
 	MultiFile    int
+
+	TgBot_ChatId int64
+	TgBot_Token  string
 }
 
 func readIni(filename string) (c *IniConfig) {
@@ -32,6 +35,8 @@ func readIni(filename string) (c *IniConfig) {
 		logs.LogFatal(err.Error())
 	}
 	c = &IniConfig{}
+	c.TgBot_ChatId = ini.GetInt64("tg_bot", "chatId")
+	c.TgBot_Token = ini.GetString("tg_bot", "token")
 	c.Flag = ini.GetInt("flag", "flag")
 	c.Log_dir = ini.GetString("log", "dir")
 	c.Log_level = ini.GetInt("log", "level")

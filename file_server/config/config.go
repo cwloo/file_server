@@ -30,7 +30,7 @@ type IniConfig struct {
 	PendingTimeout     int
 	FileExpiredTimeout int
 
-	UploadLocalDir            string
+	UploadlDir                string
 	OssType                   string
 	AliyunOSS_BasePath        string
 	AliyunOSS_BucketUrl       string
@@ -38,6 +38,9 @@ type IniConfig struct {
 	AliyunOSS_Endpoint        string
 	AliyunOSS_AccessKeyId     string
 	AliyunOSS_AccessKeySecret string
+
+	TgBot_ChatId int64
+	TgBot_Token  string
 }
 
 func readIni(filename string) (c *IniConfig) {
@@ -46,7 +49,9 @@ func readIni(filename string) (c *IniConfig) {
 		logs.LogFatal(err.Error())
 	}
 	c = &IniConfig{}
-
+	c.TgBot_ChatId = ini.GetInt64("tg_bot", "chatId")
+	c.TgBot_Token = ini.GetString("tg_bot", "token")
+	c.UploadlDir = ini.GetString("upload", "dir")
 	c.OssType = ini.GetString("upload", "ossType")
 	c.AliyunOSS_BasePath = ini.GetString("aliyunOSS", "basePath")
 	c.AliyunOSS_BucketUrl = ini.GetString("aliyunOSS", "bucketUrl")

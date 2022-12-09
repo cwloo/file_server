@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -87,6 +88,7 @@ func (s *AsyncUploader) NotifyClose() {
 }
 
 func (s *AsyncUploader) Clear() {
+	msgs := []string{}
 	s.l.RLock()
 	for md5, ok := range s.file {
 		if !ok {
@@ -100,6 +102,7 @@ func (s *AsyncUploader) Clear() {
 				}
 				return true
 			}, func(info FileInfo) {
+				msgs = append(msgs, fmt.Sprintf("uuid:%v %v[%v] %v [Err]", info.Uuid(), info.SrcName(), md5, info.DstName()))
 				os.Remove(dir_upload + info.DstName())
 			})
 		} else {
@@ -114,11 +117,13 @@ func (s *AsyncUploader) Clear() {
 				ok, _ := info.Ok()
 				return !ok
 			}, func(info FileInfo) {
+				msgs = append(msgs, fmt.Sprintf("uuid:%v %v[%v] %v chkmd5 [Err]", info.Uuid(), info.SrcName(), md5, info.DstName()))
 				os.Remove(dir_upload + info.DstName())
 			})
 		}
 	}
 	s.l.RUnlock()
+	SendTgBotMsg(msgs...)
 }
 
 func (s *AsyncUploader) onQuit(slot run.Slot) {
@@ -336,6 +341,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 						Url:     ossUrl,
 						Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + req.total + " 上传成功!"}, "")})
 				logs.LogWarn("uuid:%v %v[%v] %v chkmd5 [ok] %v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), ossUrl, time.Since(start).Milliseconds())
+				SendTgBotMsg(fmt.Sprintf("uuid:%v %v[%v] %v chkmd5 [ok] %v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), ossUrl, time.Since(start).Milliseconds()))
 			} else {
 				fileInfos.Remove(info.Md5())
 				os.Remove(f)
@@ -350,6 +356,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 						ErrMsg:  ErrFileMd5.ErrMsg,
 						Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + req.total + " 上传完毕 MD5校验失败!"}, "")})
 				logs.LogError("uuid:%v %v[%v] %v chkmd5 [Err] elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), time.Since(start).Milliseconds())
+				SendTgBotMsg(fmt.Sprintf("uuid:%v %v[%v] %v chkmd5 [Err] elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), time.Since(start).Milliseconds()))
 			}
 		} else {
 			result = append(result,
@@ -573,6 +580,7 @@ func (s *AsyncUploader) multi_uploading(req *Req) {
 						Url:     ossUrl,
 						Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + total + " 上传成功!"}, "")})
 				logs.LogWarn("uuid:%v %v[%v] %v chkmd5 [ok] %v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), ossUrl, time.Since(start).Milliseconds())
+				SendTgBotMsg(fmt.Sprintf("uuid:%v %v[%v] %v chkmd5 [ok] %v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), ossUrl, time.Since(start).Milliseconds()))
 			} else {
 				fileInfos.Remove(info.Md5())
 				os.Remove(f)
@@ -587,6 +595,7 @@ func (s *AsyncUploader) multi_uploading(req *Req) {
 						ErrMsg:  ErrFileMd5.ErrMsg,
 						Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + total + " 上传完毕 MD5校验失败!"}, "")})
 				logs.LogError("uuid:%v %v[%v] %v chkmd5 [Err] elapsed:%vms", req.uuid, header.Filename, md5, info.DstName(), time.Since(start).Milliseconds())
+				SendTgBotMsg(fmt.Sprintf("uuid:%v %v[%v] %v chkmd5 [Err] elapsed:%vms", req.uuid, header.Filename, md5, info.DstName(), time.Since(start).Milliseconds()))
 			}
 		} else {
 			result = append(result,
