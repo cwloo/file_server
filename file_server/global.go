@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/cwloo/gonet/core/base/cc"
+	"github.com/cwloo/uploader/file_server/config"
 )
 
 var (
@@ -89,15 +90,17 @@ type Result struct {
 	ErrCode int    `json:"code,omitempty"`
 	ErrMsg  string `json:"errmsg,omitempty"`
 	Message string `json:"message,omitempty"`
+	Url     string `json:"url,omitempty"`
 }
 
 func Init() {
-	MultiFile = Config.MultiFile > 0
-	UseAsyncUploader = Config.UseAsync > 0
-	MaxMemory = Config.MaxMemory
-	MaxSegmentSize = Config.MaxSegmentSize
-	MaxSingleSize = Config.MaxSingleSize
-	MaxTotalSize = Config.MaxTotalSize
-	PendingTimeout = Config.PendingTimeout
-	FileExpiredTimeout = Config.FileExpiredTimeout
+	config.Config.UploadLocalDir = dir_upload
+	MultiFile = config.Config.MultiFile > 0
+	UseAsyncUploader = config.Config.UseAsync > 0
+	MaxMemory = config.Config.MaxMemory
+	MaxSegmentSize = config.Config.MaxSegmentSize
+	MaxSingleSize = config.Config.MaxSingleSize
+	MaxTotalSize = config.Config.MaxTotalSize
+	PendingTimeout = config.Config.PendingTimeout
+	FileExpiredTimeout = config.Config.FileExpiredTimeout
 }

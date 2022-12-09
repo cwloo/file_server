@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"flag"
@@ -29,6 +29,15 @@ type IniConfig struct {
 	MaxTotalSize       int64
 	PendingTimeout     int
 	FileExpiredTimeout int
+
+	UploadLocalDir            string
+	OssType                   string
+	AliyunOSS_BasePath        string
+	AliyunOSS_BucketUrl       string
+	AliyunOSS_BucketName      string
+	AliyunOSS_Endpoint        string
+	AliyunOSS_AccessKeyId     string
+	AliyunOSS_AccessKeySecret string
 }
 
 func readIni(filename string) (c *IniConfig) {
@@ -37,6 +46,15 @@ func readIni(filename string) (c *IniConfig) {
 		logs.LogFatal(err.Error())
 	}
 	c = &IniConfig{}
+
+	c.OssType = ini.GetString("upload", "ossType")
+	c.AliyunOSS_BasePath = ini.GetString("aliyunOSS", "basePath")
+	c.AliyunOSS_BucketUrl = ini.GetString("aliyunOSS", "bucketUrl")
+	c.AliyunOSS_BucketName = ini.GetString("aliyunOSS", "bucketName")
+	c.AliyunOSS_Endpoint = ini.GetString("aliyunOSS", "endpoint")
+	c.AliyunOSS_AccessKeyId = ini.GetString("aliyunOSS", "accessKeyId")
+	c.AliyunOSS_AccessKeySecret = ini.GetString("aliyunOSS", "accessKeySecret")
+
 	c.Flag = ini.GetInt("flag", "flag")
 	c.Log_dir = ini.GetString("log", "dir")
 	c.Log_level = ini.GetInt("log", "level")
@@ -115,5 +133,4 @@ func InitConfig() {
 		flag.Parse()
 	default:
 	}
-	Init()
 }

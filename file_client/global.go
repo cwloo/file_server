@@ -63,6 +63,7 @@ type Result struct {
 	ErrCode int    `json:"code,omitempty"`
 	ErrMsg  string `json:"errmsg,omitempty"`
 	Message string `json:"message,omitempty"`
+	Url     string `json:"url,omitempty"`
 }
 
 func Init() {

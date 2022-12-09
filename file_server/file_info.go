@@ -1,13 +1,12 @@
 package main
 
 import (
+	"path/filepath"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/cwloo/gonet/logs"
-	"github.com/cwloo/gonet/utils"
 )
 
 // <summary>
@@ -21,9 +20,10 @@ type FileInfo interface {
 	SrcName() string
 	DstName() string
 	Assert()
-	Update(size int64, cb func(FileInfo) (bool, time.Time)) (done, ok bool, start time.Time)
+	Update(size int64, cb func(FileInfo) (bool, time.Time, string)) (done, ok bool, start time.Time, url string)
 	Done() bool
-	Ok() bool
+	Ok() (bool, string)
+	Url() string
 	Time() time.Time
 	HitTime() time.Time
 	UpdateHitTime(time time.Time)
@@ -39,17 +39,24 @@ type Fileinfo struct {
 	dstName string
 	now     int64
 	total   int64
+	url     string
 	time    time.Time
 	hitTime time.Time
 	l       *sync.RWMutex
 }
 
 func NewFileInfo(uuid, md5, Filename string, total int64) FileInfo {
+	ext := filepath.Ext(Filename)
+	// name := strings.TrimSuffix(Filename, ext)
+	// name = utils.MD5(name, false)
+	name := md5
+	// dstName := strings.Join([]string{uuid, ".", utils.RandomCharString(10), ".", Filename}, "")
+	dstName := name + "_" + time.Now().Format("20060102150405") + ext
 	s := &Fileinfo{
 		uuid:    uuid,
 		md5:     md5,
 		srcName: Filename,
-		dstName: strings.Join([]string{uuid, ".", utils.RandomCharString(10), ".", Filename}, ""),
+		dstName: dstName,
 		total:   total,
 		l:       &sync.RWMutex{},
 	}
@@ -102,7 +109,7 @@ func (s *Fileinfo) Assert() {
 	}
 }
 
-func (s *Fileinfo) Update(size int64, cb func(FileInfo) (bool, time.Time)) (done, ok bool, start time.Time) {
+func (s *Fileinfo) Update(size int64, cb func(FileInfo) (bool, time.Time, string)) (done, ok bool, start time.Time, url string) {
 	if size <= 0 {
 		logs.LogFatal("error")
 	}
@@ -113,11 +120,12 @@ func (s *Fileinfo) Update(size int64, cb func(FileInfo) (bool, time.Time)) (done
 	}
 	done = s.now == s.total
 	if done {
-		ok, start = cb(s)
+		ok, start, url = cb(s)
 		if ok {
 			now := time.Now()
 			s.time = now
 			s.hitTime = now
+			s.url = url
 		}
 	}
 	s.l.Unlock()
@@ -131,16 +139,24 @@ func (s *Fileinfo) Done() bool {
 	return done
 }
 
-func (s *Fileinfo) Ok() bool {
+func (s *Fileinfo) Ok() (bool, string) {
 	s.l.RLock()
 	ok := s.time.Unix() > 0
+	url := s.url
 	if ok {
 		if s.now != s.total {
 			logs.LogFatal("error")
 		}
 	}
 	s.l.RUnlock()
-	return ok
+	return ok, url
+}
+
+func (s *Fileinfo) Url() string {
+	s.l.RLock()
+	url := s.url
+	s.l.RUnlock()
+	return url
 }
 
 func (s *Fileinfo) Time() time.Time {

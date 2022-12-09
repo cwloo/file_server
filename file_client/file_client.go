@@ -149,7 +149,7 @@ func upload() {
 							case ErrRepeat.ErrCode:
 								logs.LogError("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 							case ErrSegOk.ErrCode:
-								logs.LogError("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+								logs.LogError("*** uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 								if result.Now <= 0 {
 									break
 								}
@@ -182,7 +182,7 @@ func upload() {
 								}
 								results[result.Md5] = result
 								offset[result.Md5] = result.Now
-								logs.LogError("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+								logs.LogError("*** uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 							case ErrFileMd5.ErrCode:
 								// 上传失败了
 								fallthrough
@@ -192,7 +192,7 @@ func upload() {
 								removeMd5File(&MD5, result.Md5)
 								// 上传完成，删除临时文件
 								os.Remove(tmp_dir + result.Md5 + ".tmp")
-								logs.LogTrace("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+								logs.LogTrace("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Url)
 							}
 						}
 					}
@@ -309,7 +309,7 @@ func upload() {
 						logs.LogError("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 					// 上传成功(分段续传)，继续读取文件剩余字节继续上传
 					case ErrSegOk.ErrCode:
-						logs.LogError("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+						logs.LogError("--- uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 						if result.Now <= 0 {
 							break
 						}
@@ -347,7 +347,7 @@ func upload() {
 						removeMd5File(&MD5, result.Md5)
 						// 上传完成，删除临时文件
 						os.Remove(tmp_dir + result.Md5 + ".tmp")
-						logs.LogTrace("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+						logs.LogTrace("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Url)
 					}
 				}
 			}
@@ -488,7 +488,7 @@ func multiUpload() {
 							case ErrRepeat.ErrCode:
 								logs.LogError("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 							case ErrSegOk.ErrCode:
-								logs.LogError("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+								logs.LogError("*** uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 								if result.Now <= 0 {
 									break
 								}
@@ -531,7 +531,7 @@ func multiUpload() {
 								removeMd5File(&MD5, result.Md5)
 								// 上传完成，删除临时文件
 								os.Remove(tmp_dir + result.Md5 + ".tmp")
-								logs.LogTrace("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+								logs.LogTrace("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Url)
 							}
 						}
 					}
@@ -644,7 +644,7 @@ func multiUpload() {
 						logs.LogError("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 					// 上传成功(分段续传)，继续读取文件剩余字节继续上传
 					case ErrSegOk.ErrCode:
-						logs.LogError("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+						logs.LogError("--- uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 						if result.Now <= 0 {
 							break
 						}
@@ -682,7 +682,7 @@ func multiUpload() {
 						removeMd5File(&MD5, result.Md5)
 						// 上传完成，删除临时文件
 						os.Remove(tmp_dir + result.Md5 + ".tmp")
-						logs.LogTrace("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+						logs.LogTrace("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Url)
 					}
 				}
 			}

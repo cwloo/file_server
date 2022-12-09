@@ -218,7 +218,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 					logs.LogFatal("uuid:%v:%v(%v) info.total:%v total:%v", info.Uuid(), info.SrcName(), info.Md5(), info.Total(), total)
 				}
 				if info.Done() {
-					if info.Ok() {
+					if ok, url := info.Ok(); ok {
 						info.UpdateHitTime(time.Now())
 						// fileInfos.Remove(info.Md5())
 						result = append(result,
@@ -230,7 +230,9 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 								Total:   info.Total(),
 								ErrCode: ErrOk.ErrCode,
 								ErrMsg:  ErrOk.ErrMsg,
+								Url:     url,
 								Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + total + " 上传成功!"}, "")})
+						logs.LogWarn("uuid:%v %v[%v] %v chkmd5 [ok] %v", uuid, header.Filename, info.Md5(), info.DstName(), url)
 					} else {
 						fileInfos.Remove(info.Md5())
 						os.Remove(dir_upload + info.DstName())
@@ -252,7 +254,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 				/// 已在其它上传任务中
 
 				if info.Done() {
-					if info.Ok() {
+					if ok, url := info.Ok(); ok {
 						info.UpdateHitTime(time.Now())
 						// fileInfos.Remove(info.Md5)
 						result = append(result,
@@ -264,7 +266,9 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 								Total:   info.Total(),
 								ErrCode: ErrOk.ErrCode,
 								ErrMsg:  ErrOk.ErrMsg,
+								Url:     url,
 								Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + total + " 别人上传成功!"}, "")})
+						logs.LogWarn("uuid:%v %v[%v] %v chkmd5 [ok] %v", uuid, header.Filename, info.Md5(), info.DstName(), url)
 					} else {
 						fileInfos.Remove(info.Md5())
 						os.Remove(dir_upload + info.DstName())
@@ -527,7 +531,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 					logs.LogFatal("uuid:%v:%v(%v) info.total:%v total:%v", info.Uuid(), info.SrcName(), info.Md5(), info.Total(), total)
 				}
 				if info.Done() {
-					if info.Ok() {
+					if ok, url := info.Ok(); ok {
 						info.UpdateHitTime(time.Now())
 						// fileInfos.Remove(info.Md5())
 						result = append(result,
@@ -539,7 +543,9 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 								Total:   info.Total(),
 								ErrCode: ErrOk.ErrCode,
 								ErrMsg:  ErrOk.ErrMsg,
+								Url:     url,
 								Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + total + " 上传成功!"}, "")})
+						logs.LogWarn("uuid:%v %v[%v] %v chkmd5 [ok] %v", uuid, header.Filename, info.Md5(), info.DstName(), url)
 					} else {
 						fileInfos.Remove(info.Md5())
 						os.Remove(dir_upload + info.DstName())
@@ -561,7 +567,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 				/// 已在其它上传任务中
 
 				if info.Done() {
-					if info.Ok() {
+					if ok, url := info.Ok(); ok {
 						info.UpdateHitTime(time.Now())
 						// fileInfos.Remove(info.Md5)
 						result = append(result,
@@ -573,7 +579,9 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 								Total:   info.Total(),
 								ErrCode: ErrOk.ErrCode,
 								ErrMsg:  ErrOk.ErrMsg,
+								Url:     url,
 								Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + total + " 别人上传成功!"}, "")})
+						logs.LogWarn("uuid:%v %v[%v] %v chkmd5 [ok] %v", uuid, header.Filename, info.Md5(), info.DstName(), url)
 					} else {
 						fileInfos.Remove(info.Md5())
 						os.Remove(dir_upload + info.DstName())

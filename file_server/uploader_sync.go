@@ -82,7 +82,8 @@ func (s *SyncUploader) Clear() {
 				if !info.Done() {
 					logs.LogFatal("error")
 				}
-				return !info.Ok()
+				ok, _ := info.Ok()
+				return !ok
 			}, func(info FileInfo) {
 				os.Remove(dir_upload + info.DstName())
 			})
@@ -250,7 +251,7 @@ func (s *SyncUploader) uploading(req *Req) {
 		if err != nil {
 			logs.LogError(err.Error())
 		}
-		done, ok, start := info.Update(header.Size, func(info FileInfo) (bool, time.Time) {
+		done, ok, start, ossUrl := info.Update(header.Size, func(info FileInfo) (bool, time.Time, string) {
 			start := time.Now()
 			fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 			if err != nil {
@@ -265,7 +266,16 @@ func (s *SyncUploader) uploading(req *Req) {
 			if err != nil {
 				logs.LogFatal(err.Error())
 			}
-			return md5 == info.Md5(), start
+			ossUrl := ""
+			ok := md5 == info.Md5()
+			if ok {
+				oss := NewOss()
+				ossUrl, _, err = oss.UploadFile(info)
+				if err != nil {
+					logs.LogError(err.Error())
+				}
+			}
+			return ok, start, ossUrl
 		})
 		if done {
 			s.setDone(info.Md5())
@@ -281,8 +291,9 @@ func (s *SyncUploader) uploading(req *Req) {
 						Total:   info.Total(),
 						ErrCode: ErrOk.ErrCode,
 						ErrMsg:  ErrOk.ErrMsg,
+						Url:     ossUrl,
 						Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + req.total + " 上传成功!"}, "")})
-				logs.LogDebug("uuid:%v %v=%v[%v] %v chkmd5 [ok] elapsed:%vms", req.uuid, k, header.Filename, req.md5, info.DstName(), time.Since(start).Milliseconds())
+				logs.LogWarn("uuid:%v %v[%v] %v chkmd5 [ok] %v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), ossUrl, time.Since(start).Milliseconds())
 			} else {
 				fileInfos.Remove(info.Md5())
 				os.Remove(f)
@@ -296,7 +307,7 @@ func (s *SyncUploader) uploading(req *Req) {
 						ErrCode: ErrFileMd5.ErrCode,
 						ErrMsg:  ErrFileMd5.ErrMsg,
 						Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + req.total + " 上传完毕 MD5校验失败!"}, "")})
-				logs.LogError("uuid:%v %v=%v[%v] %v chkmd5 [Err] elapsed:%vms", req.uuid, k, header.Filename, req.md5, info.DstName(), time.Since(start).Milliseconds())
+				logs.LogError("uuid:%v %v[%v] %v chkmd5 [Err] elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), time.Since(start).Milliseconds())
 			}
 		} else {
 			result = append(result,
@@ -311,9 +322,9 @@ func (s *SyncUploader) uploading(req *Req) {
 					ErrMsg:  ErrSegOk.ErrMsg,
 					Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + req.total}, "")})
 			if info.Now() == header.Size {
-				logs.LogTrace("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v first_segment", req.uuid, k, header.Filename, req.md5, info.DstName(), info.Now(), req.total, header.Size)
+				logs.LogTrace("uuid:%v %v[%v] %v ==>>> %v/%v +%v first_segment", req.uuid, header.Filename, req.md5, info.DstName(), info.Now(), req.total, header.Size)
 			} else {
-				logs.LogWarn("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v continue_segment", req.uuid, k, header.Filename, req.md5, info.DstName(), info.Now(), req.total, header.Size)
+				logs.LogWarn("uuid:%v %v[%v] %v ==>>> %v/%v +%v continue_segment", req.uuid, header.Filename, req.md5, info.DstName(), info.Now(), req.total, header.Size)
 			}
 		}
 	}
@@ -474,7 +485,7 @@ func (s *SyncUploader) multi_uploading(req *Req) {
 		if err != nil {
 			logs.LogError(err.Error())
 		}
-		done, ok, start := info.Update(header.Size, func(info FileInfo) (bool, time.Time) {
+		done, ok, start, ossUrl := info.Update(header.Size, func(info FileInfo) (bool, time.Time, string) {
 			start := time.Now()
 			fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 			if err != nil {
@@ -489,7 +500,16 @@ func (s *SyncUploader) multi_uploading(req *Req) {
 			if err != nil {
 				logs.LogFatal(err.Error())
 			}
-			return md5 == info.Md5(), start
+			ossUrl := ""
+			ok := md5 == info.Md5()
+			if ok {
+				oss := NewOss()
+				ossUrl, _, err = oss.UploadFile(info)
+				if err != nil {
+					logs.LogError(err.Error())
+				}
+			}
+			return ok, start, ossUrl
 		})
 		if done {
 			s.setDone(info.Md5())
@@ -505,8 +525,9 @@ func (s *SyncUploader) multi_uploading(req *Req) {
 						Total:   info.Total(),
 						ErrCode: ErrOk.ErrCode,
 						ErrMsg:  ErrOk.ErrMsg,
+						Url:     ossUrl,
 						Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + total + " 上传成功!"}, "")})
-				logs.LogDebug("uuid:%v %v=%v[%v] %v chkmd5 [ok] elapsed:%vms", req.uuid, k, header.Filename, md5, info.DstName(), time.Since(start).Milliseconds())
+				logs.LogWarn("uuid:%v %v[%v] %v chkmd5 [ok] %v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), ossUrl, time.Since(start).Milliseconds())
 			} else {
 				fileInfos.Remove(info.Md5())
 				os.Remove(f)
@@ -520,7 +541,7 @@ func (s *SyncUploader) multi_uploading(req *Req) {
 						ErrCode: ErrFileMd5.ErrCode,
 						ErrMsg:  ErrFileMd5.ErrMsg,
 						Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + total + " 上传完毕 MD5校验失败!"}, "")})
-				logs.LogError("uuid:%v %v=%v[%v] %v chkmd5 [Err] elapsed:%vms", req.uuid, k, header.Filename, md5, info.DstName(), time.Since(start).Milliseconds())
+				logs.LogError("uuid:%v %v[%v] %v chkmd5 [Err] elapsed:%vms", req.uuid, header.Filename, md5, info.DstName(), time.Since(start).Milliseconds())
 			}
 		} else {
 			result = append(result,
@@ -535,9 +556,9 @@ func (s *SyncUploader) multi_uploading(req *Req) {
 					ErrMsg:  ErrSegOk.ErrMsg,
 					Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + total}, "")})
 			if info.Now() == header.Size {
-				logs.LogTrace("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v first_segment", req.uuid, k, header.Filename, md5, info.DstName(), info.Now(), total, header.Size)
+				logs.LogTrace("uuid:%v %v[%v] %v ==>>> %v/%v +%v first_segment", req.uuid, header.Filename, md5, info.DstName(), info.Now(), total, header.Size)
 			} else {
-				logs.LogWarn("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v continue_segment", req.uuid, k, header.Filename, md5, info.DstName(), info.Now(), total, header.Size)
+				logs.LogWarn("uuid:%v %v[%v] %v ==>>> %v/%v +%v continue_segment", req.uuid, header.Filename, md5, info.DstName(), info.Now(), total, header.Size)
 			}
 		}
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/cwloo/gonet/core/base/task"
 	"github.com/cwloo/gonet/core/cb"
 	"github.com/cwloo/gonet/logs"
+	"github.com/cwloo/uploader/file_server/config"
 )
 
 func Upload(w http.ResponseWriter, r *http.Request) {
@@ -38,15 +39,16 @@ func Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	InitConfig()
+	config.InitConfig()
+	Init()
 	// logs.LogTimezone(logs.MY_CST)
 	// logs.LogMode(logs.M_STDOUT_FILE)
 	// logs.LogStyle(logs.F_DETAIL)
 	// logs.LogInit(dir+"logs", logs.LVL_DEBUG, exe, 100000000)
-	logs.LogTimezone(logs.TimeZone(Config.Log_timezone))
-	logs.LogMode(logs.Mode(Config.Log_mode))
-	logs.LogStyle(logs.Style(Config.Log_style))
-	logs.LogInit(dir+"logs", int32(Config.Log_level), exe, 100000000)
+	logs.LogTimezone(logs.TimeZone(config.Config.Log_timezone))
+	logs.LogMode(logs.Mode(config.Config.Log_mode))
+	logs.LogStyle(logs.Style(config.Config.Log_style))
+	logs.LogInit(dir+"logs", int32(config.Config.Log_level), exe, 100000000)
 
 	task.After(time.Duration(PendingTimeout)*time.Second, cb.NewFunctor00(func() {
 		handlerPendingUploader()
@@ -57,11 +59,11 @@ func main() {
 	}))
 
 	mux := http.NewServeMux()
-	mux.HandleFunc(Config.UploadPath, Upload)
-	mux.HandleFunc(Config.GetPath, Get)
+	mux.HandleFunc(config.Config.UploadPath, Upload)
+	mux.HandleFunc(config.Config.GetPath, Get)
 
 	server := &http.Server{
-		Addr:              Config.HttpAddr,
+		Addr:              config.Config.HttpAddr,
 		Handler:           mux,
 		ReadTimeout:       time.Duration(PendingTimeout) * time.Second,
 		ReadHeaderTimeout: time.Duration(PendingTimeout) * time.Second,
