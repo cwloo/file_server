@@ -11,7 +11,6 @@ require (
 
 require (
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.6+incompatible
-	// github.com/aliyun/aliyun-oss-go-sdk v0.0.0
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/stretchr/testify v1.8.1 // indirect
 	golang.org/x/time v0.3.0 // indirect
