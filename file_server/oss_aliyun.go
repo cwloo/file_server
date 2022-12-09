@@ -25,7 +25,7 @@ func (*AliyunOSS) UploadFile(info FileInfo) (string, string, error) {
 	err = bucket.UploadFile(yunFilePath, localFile, 1000*1024, oss.Routines(5)) //bucket.PutObject(yunFilePath, f)
 	if err != nil {
 		logs.LogError(err.Error())
-		SendTgBotMsg(err.Error())
+		TgErrMsg(err.Error())
 		return "", "", errors.New("function formUploader.Put() Failed, err:" + err.Error())
 	}
 	logs.LogWarn("finished oss elapsed:%vs", time.Since(start))
