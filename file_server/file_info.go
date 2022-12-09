@@ -3,6 +3,7 @@ package main
 import (
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -47,11 +48,9 @@ type Fileinfo struct {
 
 func NewFileInfo(uuid, md5, Filename string, total int64) FileInfo {
 	ext := filepath.Ext(Filename)
-	// name := strings.TrimSuffix(Filename, ext)
-	// name = utils.MD5(name, false)
-	name := md5
+	// md5 = utils.MD5(strings.TrimSuffix(Filename, ext), false)
 	// dstName := strings.Join([]string{uuid, ".", utils.RandomCharString(10), ".", Filename}, "")
-	dstName := name + "_" + time.Now().Format("20060102150405") + ext
+	dstName := strings.Join([]string{md5, "_", time.Now().Format("20060102150405"), ext}, "")
 	s := &Fileinfo{
 		uuid:    uuid,
 		md5:     md5,
