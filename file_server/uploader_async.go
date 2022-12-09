@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -15,7 +14,6 @@ import (
 	"github.com/cwloo/gonet/core/base/pipe"
 	"github.com/cwloo/gonet/core/base/run"
 	"github.com/cwloo/gonet/logs"
-	"github.com/cwloo/gonet/utils"
 )
 
 // <summary>
@@ -300,19 +298,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 		}
 		done, ok, start, ossUrl := info.Update(header.Size, func(info FileInfo) (bool, time.Time, string) {
 			start := time.Now()
-			fd, err := os.OpenFile(f, os.O_RDONLY, 0)
-			if err != nil {
-				logs.LogFatal(err.Error())
-			}
-			b, err := ioutil.ReadAll(fd)
-			if err != nil {
-				logs.LogFatal(err.Error())
-			}
-			md5 := utils.MD5Byte(b, false)
-			err = fd.Close()
-			if err != nil {
-				logs.LogFatal(err.Error())
-			}
+			md5 := calFileMd5(f)
 			ossUrl := ""
 			ok := md5 == info.Md5()
 			if ok {
@@ -539,19 +525,7 @@ func (s *AsyncUploader) multi_uploading(req *Req) {
 		}
 		done, ok, start, ossUrl := info.Update(header.Size, func(info FileInfo) (bool, time.Time, string) {
 			start := time.Now()
-			fd, err := os.OpenFile(f, os.O_RDONLY, 0)
-			if err != nil {
-				logs.LogFatal(err.Error())
-			}
-			b, err := ioutil.ReadAll(fd)
-			if err != nil {
-				logs.LogFatal(err.Error())
-			}
-			md5 := utils.MD5Byte(b, false)
-			err = fd.Close()
-			if err != nil {
-				logs.LogFatal(err.Error())
-			}
+			md5 := calFileMd5(f)
 			ossUrl := ""
 			ok := md5 == info.Md5()
 			if ok {
