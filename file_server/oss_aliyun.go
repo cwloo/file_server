@@ -4,6 +4,7 @@ import (
 	"io"
 	"mime/multipart"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
@@ -41,7 +42,7 @@ func (*Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader, done bool
 	}
 	_ = part.Close()
 	_ = fd.Close()
-	yunFilePath := config.Config.Aliyun_BasePath + "/uploads/" + time.Now().Format("2006-01-02") + "/" + info.SrcName()
+	yunFilePath := strings.Join([]string{config.Config.Aliyun_BasePath, "/uploads/", info.Date(), "/", info.YunName()}, "")
 	start := time.Now()
 	logs.LogWarn("start oss %v", start)
 	err = bucket.UploadFile(yunFilePath, f, 1000*1024, oss.Routines(5)) //bucket.PutObject(yunFilePath, f)

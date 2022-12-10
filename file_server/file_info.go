@@ -20,6 +20,8 @@ type FileInfo interface {
 	Total() int64
 	SrcName() string
 	DstName() string
+	YunName() string
+	Date() string
 	Assert()
 	Update(size int64, cb_seg func(FileInfo, bool) (string, error), cb func(FileInfo) (time.Time, bool)) (done, ok bool, url string, start time.Time)
 	Done() bool
@@ -38,24 +40,31 @@ type Fileinfo struct {
 	md5     string
 	srcName string
 	dstName string
+	yunName string
 	now     int64
 	total   int64
 	url     string
+	date    string
 	time    time.Time
 	hitTime time.Time
 	l       *sync.RWMutex
 }
 
 func NewFileInfo(uuid, md5, Filename string, total int64) FileInfo {
+	now := time.Now()
+	YMD := now.Format("2006-01-02")
+	YMDHMS := now.Format("20060102150405")
 	ext := filepath.Ext(Filename)
-	// md5 = utils.MD5(strings.TrimSuffix(Filename, ext), false)
-	// dstName := strings.Join([]string{uuid, ".", utils.RandomCharString(10), ".", Filename}, "")
-	dstName := strings.Join([]string{md5, "_", time.Now().Format("20060102150405"), ext}, "")
+	suffix := strings.TrimSuffix(Filename, ext)
+	yunName := strings.Join([]string{suffix, "-", YMDHMS, ext}, "")
+	dstName := strings.Join([]string{md5, "_", YMDHMS, ext}, "")
 	s := &Fileinfo{
 		uuid:    uuid,
 		md5:     md5,
+		date:    YMD,
 		srcName: Filename,
 		dstName: dstName,
+		yunName: yunName,
 		total:   total,
 		l:       &sync.RWMutex{},
 	}
@@ -87,6 +96,14 @@ func (s *Fileinfo) DstName() string {
 	return s.dstName
 }
 
+func (s *Fileinfo) YunName() string {
+	return s.yunName
+}
+
+func (s *Fileinfo) Date() string {
+	return s.date
+}
+
 func (s *Fileinfo) Assert() {
 	if s.uuid == "" {
 		logs.LogFatal("")
@@ -100,10 +117,16 @@ func (s *Fileinfo) Assert() {
 	if s.dstName == "" {
 		logs.LogFatal("")
 	}
+	if s.yunName == "" {
+		logs.LogFatal("")
+	}
 	// if s.now == int64(0) {
 	// 	logs.LogFatal("")
 	// }
 	if s.total == int64(0) {
+		logs.LogFatal("")
+	}
+	if s.date == "" {
 		logs.LogFatal("")
 	}
 }
