@@ -18,7 +18,7 @@ var (
 	MaxSegmentSize     int64            = 1024 * 1024 * 20   //单个文件分片上传限制
 	MaxSingleSize      int64            = 1024 * 1024 * 1024 //单个文件上传大小限制
 	MaxTotalSize       int64            = 1024 * 1024 * 1024 //单次上传文件总大小限制
-	PendingTimeout                      = 30                 //定期清理未决的上传任务
+	PendingTimeout                      = 30                 //定期清理未决的上传任务，即前端上传能暂停的最长时间
 	FileExpiredTimeout                  = 120                //定期清理长期未访问已上传文件记录
 )
 
@@ -38,9 +38,9 @@ var (
 	ErrParseFormFile       = ErrorMsg{12, "parse multipart form-file err"}        //解析multipart form-file文件错误          --上传失败
 	ErrParamsSegSizeZero   = ErrorMsg{13, "upload multipart form-data size zero"} //上传form-data数据字节大小为0             --上传失败
 	ErrMultiFileNotSupport = ErrorMsg{14, "upload multifiles not supported"}      //MultiFile为false时，一次只能上传一个文件
-	path, _                = os.Executable()
-	dir, exe               = filepath.Split(path)
-	dir_upload             = dir + "upload/"
+	path, _                = os.Executable()                                      //
+	dir, exe               = filepath.Split(path)                                 //
+	dir_upload             = dir + "upload/"                                      //上传服务端本地目录，末尾要加上'/'
 	i32                    = cc.NewI32()
 	fileInfos              = NewFileInfos()
 	uploaders              = NewSessionToHandler()
