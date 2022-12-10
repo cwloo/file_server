@@ -1,9 +1,7 @@
 package main
 
 import (
-	"io"
 	"mime/multipart"
-	"os"
 	"strings"
 	"time"
 
@@ -43,34 +41,36 @@ func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader, done bo
 		logs.LogError(err.Error())
 		return "", "", err
 	}
-	f := dir_upload_tmp + info.DstName()
-	fd, err := os.OpenFile(f, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
-	if err != nil {
-		_ = part.Close()
-		logs.LogError(err.Error())
-		return "", "", err
-	}
-	_, err = io.Copy(fd, part)
-	if err != nil {
-		_ = part.Close()
-		_ = fd.Close()
-		os.Remove(f)
-		logs.LogError(err.Error())
-		return "", "", err
-	}
-	_ = part.Close()
-	_ = fd.Close()
+	// f := dir_upload_tmp + info.DstName()
+	// fd, err := os.OpenFile(f, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+	// if err != nil {
+	// 	_ = part.Close()
+	// 	logs.LogError(err.Error())
+	// 	return "", "", err
+	// }
+	// _, err = io.Copy(fd, part)
+	// if err != nil {
+	// 	_ = part.Close()
+	// 	_ = fd.Close()
+	// 	os.Remove(f)
+	// 	logs.LogError(err.Error())
+	// 	return "", "", err
+	// }
 	start := time.Now()
 	logs.LogWarn("start oss %v", start)
 	// err = s.bucket.UploadFile(s.yunFilePath, f, header.Size, oss.Routines(5))
-	part_oss, err := s.bucket.UploadPart(s.imur, fd, header.Size, 1, oss.Routines(5))
+	part_oss, err := s.bucket.UploadPart(s.imur, part, header.Size, 1, oss.Routines(5))
 	if err != nil {
-		os.Remove(f)
+		_ = part.Close()
+		// _ = fd.Close()
+		// os.Remove(f)
 		logs.LogError(err.Error())
 		TgErrMsg(err.Error())
 		return "", "", err
 	}
-	os.Remove(f)
+	_ = part.Close()
+	// _ = fd.Close()
+	// os.Remove(f)
 	s.parts = append(s.parts, part_oss)
 	if done {
 		_, err := s.bucket.CompleteMultipartUpload(s.imur, s.parts)
