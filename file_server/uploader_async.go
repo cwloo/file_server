@@ -300,7 +300,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 			}
 		default:
 		}
-		done, ok, start, url := info.Update(header.Size, func(info FileInfo, done bool) (url string, err error) {
+		done, ok, url, start := info.Update(header.Size, func(info FileInfo, done bool) (url string, err error) {
 			oss := NewOss()
 			url, _, err = oss.UploadFile(info, header, done)
 			if err != nil {
@@ -540,7 +540,7 @@ func (s *AsyncUploader) multi_uploading(req *Req) {
 			}
 		default:
 		}
-		done, ok, start, url := info.Update(header.Size, func(info FileInfo, done bool) (url string, err error) {
+		done, ok, url, start := info.Update(header.Size, func(info FileInfo, done bool) (url string, err error) {
 			oss := NewOss()
 			url, _, err = oss.UploadFile(info, header, done)
 			if err != nil {
