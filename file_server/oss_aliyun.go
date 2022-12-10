@@ -24,7 +24,7 @@ func (*Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader, done bool
 		logs.LogError(err.Error())
 		return "", "", err
 	}
-	f := config.Config.UploadlDir + "temp/" + info.DstName()
+	f := dir_upload_tmp + info.DstName()
 	fd, err := os.OpenFile(f, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		_ = part.Close()

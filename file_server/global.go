@@ -42,6 +42,7 @@ var (
 	path, _                = os.Executable()                                      //
 	dir, exe               = filepath.Split(path)                                 //
 	dir_upload             = dir + "upload/"                                      //上传服务端本地目录，末尾要加上'/'
+	dir_upload_tmp         = dir + "upload/temp/"
 	i32                    = cc.NewI32()
 	fileInfos              = NewFileInfos()
 	uploaders              = NewSessionToHandler()
@@ -99,10 +100,15 @@ type Result struct {
 func Init() {
 	if config.Config.UploadlDir != "" {
 		dir_upload = config.Config.UploadlDir
+		dir_upload_tmp = config.Config.UploadlDir + "temp/"
 	}
 	_, err := os.Stat(dir_upload)
 	if err != nil && os.IsNotExist(err) {
 		os.MkdirAll(dir_upload, os.ModePerm)
+	}
+	_, err = os.Stat(dir_upload_tmp)
+	if err != nil && os.IsNotExist(err) {
+		os.MkdirAll(dir_upload_tmp, os.ModePerm)
 	}
 	if config.Config.Log_dir == "" {
 		config.Config.Log_dir = dir + "logs"
