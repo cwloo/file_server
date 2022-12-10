@@ -258,8 +258,7 @@ func (s *SyncUploader) uploading(req *Req) {
 			}
 		default:
 		}
-		done, ok, url, start := info.Update(header.Size, func(info FileInfo, done bool) (url string, err error) {
-			oss := NewOss()
+		done, ok, url, start := info.Update(header.Size, func(info FileInfo, oss OSS, done bool) (url string, err error) {
 			url, _, err = oss.UploadFile(info, header, done)
 			if err != nil {
 				logs.LogError(err.Error())
@@ -495,8 +494,7 @@ func (s *SyncUploader) multi_uploading(req *Req) {
 			}
 		default:
 		}
-		done, ok, url, start := info.Update(header.Size, func(info FileInfo, done bool) (url string, err error) {
-			oss := NewOss()
+		done, ok, url, start := info.Update(header.Size, func(info FileInfo, oss OSS, done bool) (url string, err error) {
 			url, _, err = oss.UploadFile(info, header, done)
 			if err != nil {
 				logs.LogError(err.Error())

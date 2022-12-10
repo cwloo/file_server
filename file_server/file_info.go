@@ -23,7 +23,7 @@ type FileInfo interface {
 	YunName() string
 	Date() string
 	Assert()
-	Update(size int64, cb_seg func(FileInfo, bool) (string, error), cb func(FileInfo) (time.Time, bool)) (done, ok bool, url string, start time.Time)
+	Update(size int64, cb_seg func(FileInfo, OSS, bool) (string, error), cb func(FileInfo) (time.Time, bool)) (done, ok bool, url string, start time.Time)
 	Done() bool
 	Ok() (bool, string)
 	Url() string
@@ -48,6 +48,7 @@ type Fileinfo struct {
 	time    time.Time
 	hitTime time.Time
 	l       *sync.RWMutex
+	oss     OSS
 }
 
 func NewFileInfo(uuid, md5, Filename string, total int64) FileInfo {
@@ -131,18 +132,22 @@ func (s *Fileinfo) Assert() {
 	}
 }
 
-func (s *Fileinfo) Update(size int64, cb_seg func(FileInfo, bool) (string, error), cb func(FileInfo) (time.Time, bool)) (done, ok bool, url string, start time.Time) {
+func (s *Fileinfo) Update(size int64, cb_seg func(FileInfo, OSS, bool) (string, error), cb func(FileInfo) (time.Time, bool)) (done, ok bool, url string, start time.Time) {
 	if size <= 0 {
 		logs.LogFatal("error")
 	}
 	s.l.Lock()
+	if s.now == 0 {
+		s.oss = NewOss()
+	}
 	s.now += size
 	if s.now > s.total {
 		logs.LogFatal("error")
 	}
 	done = s.now == s.total
-	url, _ = cb_seg(s, done)
+	url, _ = cb_seg(s, s.oss, done)
 	if done {
+		s.oss = nil
 		start, ok = cb(s)
 		if ok {
 			now := time.Now()

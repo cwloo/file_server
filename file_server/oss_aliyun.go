@@ -12,14 +12,32 @@ import (
 	"github.com/cwloo/uploader/file_server/config"
 )
 
-type Aliyun struct{}
+type Aliyun struct {
+	bucket      *oss.Bucket
+	yunFilePath string
+	imur        oss.InitiateMultipartUploadResult
+	parts       []oss.UploadPart
+}
 
-func (*Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader, done bool) (string, string, error) {
+func NewAliyun(info FileInfo) OSS {
 	bucket, err := NewBucket()
 	if err != nil {
-		logs.LogError(err.Error())
-		return "", "", err
+		logs.LogFatal(err.Error())
 	}
+	yunFilePath := strings.Join([]string{config.Config.Aliyun_BasePath, "/uploads/", info.Date(), "/", info.YunName()}, "")
+	imur, err := bucket.InitiateMultipartUpload(yunFilePath)
+	if err != nil {
+		logs.LogFatal(err.Error())
+	}
+	s := &Aliyun{
+		bucket:      bucket,
+		yunFilePath: yunFilePath,
+		imur:        imur,
+		parts:       []oss.UploadPart{}}
+	return s
+}
+
+func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader, done bool) (string, string, error) {
 	part, err := header.Open()
 	if err != nil {
 		logs.LogError(err.Error())
@@ -42,10 +60,10 @@ func (*Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader, done bool
 	}
 	_ = part.Close()
 	_ = fd.Close()
-	yunFilePath := strings.Join([]string{config.Config.Aliyun_BasePath, "/uploads/", info.Date(), "/", info.YunName()}, "")
 	start := time.Now()
 	logs.LogWarn("start oss %v", start)
-	err = bucket.UploadFile(yunFilePath, f, 1000*1024, oss.Routines(5)) //bucket.PutObject(yunFilePath, f)
+	// err = s.bucket.UploadFile(s.yunFilePath, f, header.Size, oss.Routines(5))
+	part_oss, err := s.bucket.UploadPart(s.imur, fd, header.Size, 1, oss.Routines(5))
 	if err != nil {
 		os.Remove(f)
 		logs.LogError(err.Error())
@@ -53,23 +71,17 @@ func (*Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader, done bool
 		return "", "", err
 	}
 	os.Remove(f)
+	s.parts = append(s.parts, part_oss)
+	if done {
+		_, err := s.bucket.CompleteMultipartUpload(s.imur, s.parts)
+		if err != nil {
+			logs.LogError(err.Error())
+			TgErrMsg(err.Error())
+			return "", "", err
+		}
+	}
 	logs.LogWarn("finished oss elapsed:%vs", time.Since(start))
-	return config.Config.Aliyun_BucketUrl + "/" + yunFilePath, yunFilePath, nil
-}
-
-func (*Aliyun) DeleteFile(key string) error {
-	bucket, err := NewBucket()
-	if err != nil {
-		logs.LogError(err.Error())
-		return err
-	}
-	err = bucket.DeleteObject(key)
-	if err != nil {
-		logs.LogError(err.Error())
-		return err
-	}
-
-	return nil
+	return config.Config.Aliyun_BucketUrl + "/" + s.yunFilePath, s.yunFilePath, nil
 }
 
 func NewBucket() (*oss.Bucket, error) {
@@ -77,14 +89,20 @@ func NewBucket() (*oss.Bucket, error) {
 		config.Config.Aliyun_AccessKeyId,
 		config.Config.Aliyun_AccessKeySecret, oss.Timeout(120000, 120000))
 	if err != nil {
-		logs.LogError(err.Error())
 		return nil, err
 	}
 	bucket, err := client.Bucket(config.Config.Aliyun_BucketName)
 	if err != nil {
-		logs.LogError(err.Error())
 		return nil, err
 	}
-
 	return bucket, nil
+}
+
+func (s *Aliyun) DeleteFile(key string) error {
+	err := s.bucket.DeleteObject(key)
+	if err != nil {
+		logs.LogError(err.Error())
+		return err
+	}
+	return nil
 }
