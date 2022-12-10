@@ -138,7 +138,7 @@ func (s *Fileinfo) Update(size int64, cb_seg func(FileInfo, OSS, bool) (string, 
 	}
 	s.l.Lock()
 	if s.now == 0 {
-		s.oss = NewOss()
+		s.oss = NewOss(s)
 	}
 	s.now += size
 	if s.now > s.total {

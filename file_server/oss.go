@@ -12,7 +12,7 @@ type OSS interface {
 	DeleteFile(key string) error
 }
 
-func NewOss() OSS {
+func NewOss(info FileInfo) OSS {
 	switch config.Config.OssType {
 	// case "local":
 	// 	return &Local{}
@@ -21,7 +21,7 @@ func NewOss() OSS {
 	// case "tencent-cos":
 	// 	return &TencentCOS{}
 	case "aliyun-oss":
-		return &Aliyun{}
+		return NewAliyun(info)
 	// case "huawei-obs":
 	// 	return HuaWeiObs
 	// case "aws-s3":
@@ -29,7 +29,7 @@ func NewOss() OSS {
 	// default:
 	// 	return &Local{}
 	default:
-		return &Aliyun{}
+		return NewAliyun(info)
 	}
 }
 
