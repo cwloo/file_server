@@ -57,6 +57,7 @@ func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader, done bo
 	// 	logs.LogError(err.Error())
 	// 	return "", "", err
 	// }
+	s.num++
 	start := time.Now()
 	logs.LogWarn("start oss %v", start)
 	// err = s.bucket.UploadFile(s.yunFilePath, f, header.Size, oss.Routines(5))
@@ -69,7 +70,6 @@ func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader, done bo
 		TgErrMsg(err.Error())
 		return "", "", err
 	}
-	s.num++
 	_ = part.Close()
 	// _ = fd.Close()
 	// os.Remove(f)
