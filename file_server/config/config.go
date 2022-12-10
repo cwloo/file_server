@@ -12,24 +12,24 @@ import (
 var Config *IniConfig
 
 type IniConfig struct {
-	Flag               int
-	Log_dir            string
-	Log_level          int
-	Log_mode           int
-	Log_style          int
-	Log_timezone       int64
-	HttpAddr           string
-	UploadPath         string
-	GetPath            string
-	MultiFile          int
-	UseAsync           int
-	MaxMemory          int64
-	MaxSegmentSize     int64
-	MaxSingleSize      int64
-	MaxTotalSize       int64
-	PendingTimeout     int
-	FileExpiredTimeout int
-
+	Flag                   int
+	Log_dir                string
+	Log_level              int
+	Log_mode               int
+	Log_style              int
+	Log_timezone           int64
+	HttpAddr               string
+	UploadPath             string
+	GetPath                string
+	CheckMd5               int
+	MultiFile              int
+	UseAsync               int
+	MaxMemory              int64
+	MaxSegmentSize         int64
+	MaxSingleSize          int64
+	MaxTotalSize           int64
+	PendingTimeout         int
+	FileExpiredTimeout     int
 	UploadlDir             string
 	OssType                string
 	Aliyun_BasePath        string
@@ -69,6 +69,7 @@ func readIni(filename string) (c *IniConfig) {
 	c.HttpAddr = ini.GetString("httpserver", "addr")
 	c.UploadPath = ini.GetString("path", "upload")
 	c.GetPath = ini.GetString("path", "get")
+	c.CheckMd5 = ini.GetInt("upload", "checkMd5")
 	c.MultiFile = ini.GetInt("upload", "multiFile")
 	c.UseAsync = ini.GetInt("upload", "useAsync")
 	str := ini.GetString("upload", "maxMemory")

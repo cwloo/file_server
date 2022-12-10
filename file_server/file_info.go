@@ -21,7 +21,7 @@ type FileInfo interface {
 	SrcName() string
 	DstName() string
 	Assert()
-	Update(size int64, cb func(FileInfo) (bool, time.Time, string)) (done, ok bool, start time.Time, url string)
+	Update(size int64, cb_seg func(FileInfo, bool) (string, error), cb func(FileInfo) (time.Time, bool)) (done, ok bool, start time.Time, url string)
 	Done() bool
 	Ok() (bool, string)
 	Url() string
@@ -108,7 +108,7 @@ func (s *Fileinfo) Assert() {
 	}
 }
 
-func (s *Fileinfo) Update(size int64, cb func(FileInfo) (bool, time.Time, string)) (done, ok bool, start time.Time, url string) {
+func (s *Fileinfo) Update(size int64, cb_seg func(FileInfo, bool) (string, error), cb func(FileInfo) (time.Time, bool)) (done, ok bool, start time.Time, url string) {
 	if size <= 0 {
 		logs.LogFatal("error")
 	}
@@ -118,8 +118,9 @@ func (s *Fileinfo) Update(size int64, cb func(FileInfo) (bool, time.Time, string
 		logs.LogFatal("error")
 	}
 	done = s.now == s.total
+	url, _ = cb_seg(s, done)
 	if done {
-		ok, start, url = cb(s)
+		start, ok = cb(s)
 		if ok {
 			now := time.Now()
 			s.time = now

@@ -12,6 +12,7 @@ import (
 
 var (
 	TgBot              *tgbotapi.BotAPI                      //tg机器人通知
+	CheckMd5                            = true               //上传完毕是否校验文件完整性
 	MultiFile                           = false              //一次可以上传多个文件
 	UseAsyncUploader                    = true               //使用异步上传方式
 	MaxMemory          int64            = 1024 * 1024 * 1024 //multipart缓存限制
@@ -106,6 +107,7 @@ func Init() {
 	if config.Config.Log_dir == "" {
 		config.Config.Log_dir = dir + "logs"
 	}
+	CheckMd5 = config.Config.CheckMd5 > 0
 	MultiFile = config.Config.MultiFile > 0
 	UseAsyncUploader = config.Config.UseAsync > 0
 	MaxMemory = config.Config.MaxMemory

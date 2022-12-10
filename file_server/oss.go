@@ -1,12 +1,14 @@
 package main
 
 import (
+	"mime/multipart"
+
 	"github.com/cwloo/uploader/file_server/config"
 )
 
 // OSS 对象存储接口
 type OSS interface {
-	UploadFile(info FileInfo) (string, string, error)
+	UploadFile(info FileInfo, header *multipart.FileHeader, done bool) (string, string, error)
 	DeleteFile(key string) error
 }
 

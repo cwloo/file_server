@@ -254,19 +254,23 @@ func (s *SyncUploader) uploading(req *Req) {
 		if err != nil {
 			logs.LogError(err.Error())
 		}
-		done, ok, start, url := info.Update(header.Size, func(info FileInfo) (bool, time.Time, string) {
-			start := time.Now()
-			md5 := calFileMd5(f)
-			url := ""
-			ok := md5 == info.Md5()
-			if ok {
-				oss := NewOss()
-				url, _, err = oss.UploadFile(info)
-				if err != nil {
-					logs.LogError(err.Error())
-				}
+		done, ok, start, url := info.Update(header.Size, func(info FileInfo, done bool) (url string, err error) {
+			oss := NewOss()
+			url, _, err = oss.UploadFile(info, header, done)
+			if err != nil {
+				logs.LogError(err.Error())
 			}
-			return ok, start, url
+			return
+		}, func(info FileInfo) (time.Time, bool) {
+			start := time.Now()
+			switch CheckMd5 {
+			case true:
+				md5 := calFileMd5(f)
+				ok := md5 == info.Md5()
+				return start, ok
+			default:
+				return start, true
+			}
 		})
 		if done {
 			s.setDone(info.Md5())
@@ -478,19 +482,23 @@ func (s *SyncUploader) multi_uploading(req *Req) {
 		if err != nil {
 			logs.LogError(err.Error())
 		}
-		done, ok, start, url := info.Update(header.Size, func(info FileInfo) (bool, time.Time, string) {
-			start := time.Now()
-			md5 := calFileMd5(f)
-			url := ""
-			ok := md5 == info.Md5()
-			if ok {
-				oss := NewOss()
-				url, _, err = oss.UploadFile(info)
-				if err != nil {
-					logs.LogError(err.Error())
-				}
+		done, ok, start, url := info.Update(header.Size, func(info FileInfo, done bool) (url string, err error) {
+			oss := NewOss()
+			url, _, err = oss.UploadFile(info, header, done)
+			if err != nil {
+				logs.LogError(err.Error())
 			}
-			return ok, start, url
+			return
+		}, func(info FileInfo) (time.Time, bool) {
+			start := time.Now()
+			switch CheckMd5 {
+			case true:
+				md5 := calFileMd5(f)
+				ok := md5 == info.Md5()
+				return start, ok
+			default:
+				return start, true
+			}
 		})
 		if done {
 			s.setDone(info.Md5())
