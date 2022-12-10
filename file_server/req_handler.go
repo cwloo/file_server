@@ -246,6 +246,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 								ErrCode: ErrFileMd5.ErrCode,
 								ErrMsg:  ErrFileMd5.ErrMsg,
 								Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + total + " 上传完毕 MD5校验失败!"}, "")})
+						logs.LogError("uuid:%v %v[%v] %v chkmd5 [Err]", uuid, header.Filename, md5, info.DstName())
 					}
 				} else {
 					keys = append(keys, k)
@@ -282,6 +283,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 								ErrCode: ErrFileMd5.ErrCode,
 								ErrMsg:  ErrFileMd5.ErrMsg,
 								Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + total + " 别人上传完毕 MD5校验失败!"}, "")})
+						logs.LogError("uuid:%v %v[%v] %v chkmd5 [Err]", uuid, header.Filename, md5, info.DstName())
 					}
 				} else {
 					result = append(result,
@@ -559,6 +561,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 								ErrCode: ErrFileMd5.ErrCode,
 								ErrMsg:  ErrFileMd5.ErrMsg,
 								Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + total + " 上传完毕 MD5校验失败!"}, "")})
+						logs.LogError("uuid:%v %v[%v] %v chkmd5 [Err]", uuid, header.Filename, md5, info.DstName())
 					}
 				} else {
 					keys = append(keys, k)
@@ -595,6 +598,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 								ErrCode: ErrFileMd5.ErrCode,
 								ErrMsg:  ErrFileMd5.ErrMsg,
 								Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + total + " 别人上传完毕 MD5校验失败!"}, "")})
+						logs.LogError("uuid:%v %v[%v] %v chkmd5 [Err]", uuid, header.Filename, md5, info.DstName())
 					}
 				} else {
 					result = append(result,

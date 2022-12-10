@@ -19,7 +19,7 @@ func NewOss() OSS {
 	// case "tencent-cos":
 	// 	return &TencentCOS{}
 	case "aliyun-oss":
-		return &AliyunOSS{}
+		return &Aliyun{}
 	// case "huawei-obs":
 	// 	return HuaWeiObs
 	// case "aws-s3":
@@ -27,7 +27,7 @@ func NewOss() OSS {
 	// default:
 	// 	return &Local{}
 	default:
-		return &AliyunOSS{}
+		return &Aliyun{}
 	}
 }
 
@@ -40,11 +40,11 @@ func UploadDomain() string {
 	// case "tencent-cos":
 	// 	return config.Config.TencentCOS.BaseURL + "/"
 	case "aliyun-oss":
-		return config.Config.AliyunOSS_BucketUrl + "/"
+		return config.Config.Aliyun_BucketUrl + "/"
 	// case "huawei-obs":
 	// 	return config.Config.HuaWeiObs.Path + "/"
 	// case "aws-s3":
-	// 	return config.Config.AliyunOSS.BucketUrl + "/"
+	// 	return config.Config.Aliyun.BucketUrl + "/"
 	default:
 		return ""
 	}

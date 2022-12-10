@@ -30,14 +30,14 @@ type IniConfig struct {
 	PendingTimeout     int
 	FileExpiredTimeout int
 
-	UploadlDir                string
-	OssType                   string
-	AliyunOSS_BasePath        string
-	AliyunOSS_BucketUrl       string
-	AliyunOSS_BucketName      string
-	AliyunOSS_Endpoint        string
-	AliyunOSS_AccessKeyId     string
-	AliyunOSS_AccessKeySecret string
+	UploadlDir             string
+	OssType                string
+	Aliyun_BasePath        string
+	Aliyun_BucketUrl       string
+	Aliyun_BucketName      string
+	Aliyun_Endpoint        string
+	Aliyun_AccessKeyId     string
+	Aliyun_AccessKeySecret string
 
 	TgBot_ChatId int64
 	TgBot_Token  string
@@ -53,12 +53,12 @@ func readIni(filename string) (c *IniConfig) {
 	c.TgBot_Token = ini.GetString("tg_bot", "token")
 	c.UploadlDir = ini.GetString("upload", "dir")
 	c.OssType = ini.GetString("upload", "ossType")
-	c.AliyunOSS_BasePath = ini.GetString("aliyunOSS", "basePath")
-	c.AliyunOSS_BucketUrl = ini.GetString("aliyunOSS", "bucketUrl")
-	c.AliyunOSS_BucketName = ini.GetString("aliyunOSS", "bucketName")
-	c.AliyunOSS_Endpoint = ini.GetString("aliyunOSS", "endpoint")
-	c.AliyunOSS_AccessKeyId = ini.GetString("aliyunOSS", "accessKeyId")
-	c.AliyunOSS_AccessKeySecret = ini.GetString("aliyunOSS", "accessKeySecret")
+	c.Aliyun_BasePath = ini.GetString("aliyun", "basePath")
+	c.Aliyun_BucketUrl = ini.GetString("aliyun", "bucketUrl")
+	c.Aliyun_BucketName = ini.GetString("aliyun", "bucketName")
+	c.Aliyun_Endpoint = ini.GetString("aliyun", "endpoint")
+	c.Aliyun_AccessKeyId = ini.GetString("aliyun", "accessKeyId")
+	c.Aliyun_AccessKeySecret = ini.GetString("aliyun", "accessKeySecret")
 
 	c.Flag = ini.GetInt("flag", "flag")
 	c.Log_dir = ini.GetString("log", "dir")

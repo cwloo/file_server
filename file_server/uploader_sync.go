@@ -71,7 +71,7 @@ func (s *SyncUploader) Clear() {
 				}
 				return true
 			}, func(info FileInfo) {
-				msgs = append(msgs, fmt.Sprintf("uuid:%v %v[%v] %v [Err]", info.Uuid(), info.SrcName(), md5, info.DstName()))
+				msgs = append(msgs, fmt.Sprintf("%v\n%v[%v]\n%v [Err]", info.Uuid(), info.SrcName(), md5, info.DstName()))
 				os.Remove(dir_upload + info.DstName())
 			})
 		} else {
@@ -86,7 +86,7 @@ func (s *SyncUploader) Clear() {
 				ok, _ := info.Ok()
 				return !ok
 			}, func(info FileInfo) {
-				msgs = append(msgs, fmt.Sprintf("uuid:%v %v[%v] %v chkmd5 [Err]", info.Uuid(), info.SrcName(), md5, info.DstName()))
+				msgs = append(msgs, fmt.Sprintf("%v\n%v[%v]\n%v chkmd5 [Err]", info.Uuid(), info.SrcName(), md5, info.DstName()))
 				os.Remove(dir_upload + info.DstName())
 			})
 		}
@@ -254,19 +254,19 @@ func (s *SyncUploader) uploading(req *Req) {
 		if err != nil {
 			logs.LogError(err.Error())
 		}
-		done, ok, start, ossUrl := info.Update(header.Size, func(info FileInfo) (bool, time.Time, string) {
+		done, ok, start, url := info.Update(header.Size, func(info FileInfo) (bool, time.Time, string) {
 			start := time.Now()
 			md5 := calFileMd5(f)
-			ossUrl := ""
+			url := ""
 			ok := md5 == info.Md5()
 			if ok {
 				oss := NewOss()
-				ossUrl, _, err = oss.UploadFile(info)
+				url, _, err = oss.UploadFile(info)
 				if err != nil {
 					logs.LogError(err.Error())
 				}
 			}
-			return ok, start, ossUrl
+			return ok, start, url
 		})
 		if done {
 			s.setDone(info.Md5())
@@ -282,10 +282,10 @@ func (s *SyncUploader) uploading(req *Req) {
 						Total:   info.Total(),
 						ErrCode: ErrOk.ErrCode,
 						ErrMsg:  ErrOk.ErrMsg,
-						Url:     ossUrl,
+						Url:     url,
 						Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + req.total + " 上传成功!"}, "")})
-				logs.LogWarn("uuid:%v %v[%v] %v chkmd5 [ok] %v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), ossUrl, time.Since(start).Milliseconds())
-				TgSuccMsg(fmt.Sprintf("uuid:%v %v[%v] %v chkmd5 [ok] %v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), ossUrl, time.Since(start).Milliseconds()))
+				logs.LogWarn("uuid:%v %v[%v] %v chkmd5 [ok] %v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), url, time.Since(start).Milliseconds())
+				TgSuccMsg(fmt.Sprintf("%v\n%v[%v]\n%v chkmd5 [ok]\n%v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), url, time.Since(start).Milliseconds()))
 			} else {
 				fileInfos.Remove(info.Md5())
 				os.Remove(f)
@@ -300,7 +300,7 @@ func (s *SyncUploader) uploading(req *Req) {
 						ErrMsg:  ErrFileMd5.ErrMsg,
 						Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + req.total + " 上传完毕 MD5校验失败!"}, "")})
 				logs.LogError("uuid:%v %v[%v] %v chkmd5 [Err] elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), time.Since(start).Milliseconds())
-				TgErrMsg(fmt.Sprintf("uuid:%v %v[%v] %v chkmd5 [Err] elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), time.Since(start).Milliseconds()))
+				TgErrMsg(fmt.Sprintf("%v\n%v[%v]\n%v chkmd5 [Err] elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), time.Since(start).Milliseconds()))
 			}
 		} else {
 			result = append(result,
@@ -478,19 +478,19 @@ func (s *SyncUploader) multi_uploading(req *Req) {
 		if err != nil {
 			logs.LogError(err.Error())
 		}
-		done, ok, start, ossUrl := info.Update(header.Size, func(info FileInfo) (bool, time.Time, string) {
+		done, ok, start, url := info.Update(header.Size, func(info FileInfo) (bool, time.Time, string) {
 			start := time.Now()
 			md5 := calFileMd5(f)
-			ossUrl := ""
+			url := ""
 			ok := md5 == info.Md5()
 			if ok {
 				oss := NewOss()
-				ossUrl, _, err = oss.UploadFile(info)
+				url, _, err = oss.UploadFile(info)
 				if err != nil {
 					logs.LogError(err.Error())
 				}
 			}
-			return ok, start, ossUrl
+			return ok, start, url
 		})
 		if done {
 			s.setDone(info.Md5())
@@ -506,10 +506,10 @@ func (s *SyncUploader) multi_uploading(req *Req) {
 						Total:   info.Total(),
 						ErrCode: ErrOk.ErrCode,
 						ErrMsg:  ErrOk.ErrMsg,
-						Url:     ossUrl,
+						Url:     url,
 						Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + total + " 上传成功!"}, "")})
-				logs.LogWarn("uuid:%v %v[%v] %v chkmd5 [ok] %v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), ossUrl, time.Since(start).Milliseconds())
-				TgSuccMsg(fmt.Sprintf("uuid:%v %v[%v] %v chkmd5 [ok] %v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), ossUrl, time.Since(start).Milliseconds()))
+				logs.LogWarn("uuid:%v %v[%v] %v chkmd5 [ok] %v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), url, time.Since(start).Milliseconds())
+				TgSuccMsg(fmt.Sprintf("%v\n%v[%v]\n%v chkmd5 [ok]\n%v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), url, time.Since(start).Milliseconds()))
 			} else {
 				fileInfos.Remove(info.Md5())
 				os.Remove(f)
@@ -524,7 +524,7 @@ func (s *SyncUploader) multi_uploading(req *Req) {
 						ErrMsg:  ErrFileMd5.ErrMsg,
 						Message: strings.Join([]string{"uuid:", info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + total + " 上传完毕 MD5校验失败!"}, "")})
 				logs.LogError("uuid:%v %v[%v] %v chkmd5 [Err] elapsed:%vms", req.uuid, header.Filename, md5, info.DstName(), time.Since(start).Milliseconds())
-				TgErrMsg(fmt.Sprintf("uuid:%v %v[%v] %v chkmd5 [Err] elapsed:%vms", req.uuid, header.Filename, md5, info.DstName(), time.Since(start).Milliseconds()))
+				TgErrMsg(fmt.Sprintf("%v\n%v[%v]\n%v chkmd5 [Err] elapsed:%vms", req.uuid, header.Filename, md5, info.DstName(), time.Since(start).Milliseconds()))
 			}
 		} else {
 			result = append(result,
