@@ -267,11 +267,16 @@ func (s *SyncUploader) uploading(req *Req) {
 			return
 		}, func(info FileInfo) (time.Time, bool) {
 			start := time.Now()
-			switch CheckMd5 {
+			switch WriteDisk {
 			case true:
-				md5 := calFileMd5(f)
-				ok := md5 == info.Md5()
-				return start, ok
+				switch CheckMd5 {
+				case true:
+					md5 := calFileMd5(f)
+					ok := md5 == info.Md5()
+					return start, ok
+				default:
+					return start, true
+				}
 			default:
 				return start, true
 			}
@@ -499,11 +504,16 @@ func (s *SyncUploader) multi_uploading(req *Req) {
 			return
 		}, func(info FileInfo) (time.Time, bool) {
 			start := time.Now()
-			switch CheckMd5 {
+			switch WriteDisk {
 			case true:
-				md5 := calFileMd5(f)
-				ok := md5 == info.Md5()
-				return start, ok
+				switch CheckMd5 {
+				case true:
+					md5 := calFileMd5(f)
+					ok := md5 == info.Md5()
+					return start, ok
+				default:
+					return start, true
+				}
 			default:
 				return start, true
 			}
