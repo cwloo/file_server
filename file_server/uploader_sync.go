@@ -195,64 +195,68 @@ func (s *SyncUploader) uploading(req *Req) {
 		}
 		////// 检查上传文件
 		f := dir_upload + info.DstName()
-		_, err = os.Stat(f)
-		if err != nil && os.IsNotExist(err) {
-		} else {
-			/// 第一次写如果文件存在则删除
-			if info.Now() == int64(0) {
-				os.Remove(f)
+		switch WriteDisk {
+		case true:
+			_, err = os.Stat(f)
+			if err != nil && os.IsNotExist(err) {
+			} else {
+				/// 第一次写如果文件存在则删除
+				if info.Now() == int64(0) {
+					os.Remove(f)
+				}
 			}
-		}
-		fd, err := os.OpenFile(f, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
-		if err != nil {
-			result = append(result,
-				Result{
-					Uuid:    info.Uuid(),
-					File:    info.SrcName(),
-					Md5:     info.Md5(),
-					Now:     info.Now(),
-					Total:   info.Total(),
-					Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
-					ErrCode: ErrCheckReUpload.ErrCode,
-					ErrMsg:  ErrCheckReUpload.ErrMsg,
-					Message: strings.Join([]string{"uuid:", info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10), "/", req.total}, ""),
-				})
-			logs.LogError(err.Error())
-			offset_n, _ := strconv.ParseInt(req.offset, 10, 0)
-			logs.LogInfo("--------------------- checking re-upload uuid:%v %v=%v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), k, header.Filename, req.md5, info.Now(), req.total, offset_n, header.Size)
-			continue
-		}
-		fd.Seek(0, io.SeekEnd)
-		_, err = io.Copy(fd, part)
-		if err != nil {
-			result = append(result,
-				Result{
-					Uuid:    info.Uuid(),
-					File:    info.SrcName(),
-					Md5:     info.Md5(),
-					Now:     info.Now(),
-					Total:   info.Total(),
-					Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
-					ErrCode: ErrCheckReUpload.ErrCode,
-					ErrMsg:  ErrCheckReUpload.ErrMsg,
-					Message: strings.Join([]string{"uuid:", info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10), "/", req.total}, ""),
-				})
-			logs.LogError(err.Error())
+			fd, err := os.OpenFile(f, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
+			if err != nil {
+				result = append(result,
+					Result{
+						Uuid:    info.Uuid(),
+						File:    info.SrcName(),
+						Md5:     info.Md5(),
+						Now:     info.Now(),
+						Total:   info.Total(),
+						Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
+						ErrCode: ErrCheckReUpload.ErrCode,
+						ErrMsg:  ErrCheckReUpload.ErrMsg,
+						Message: strings.Join([]string{"uuid:", info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10), "/", req.total}, ""),
+					})
+				logs.LogError(err.Error())
+				offset_n, _ := strconv.ParseInt(req.offset, 10, 0)
+				logs.LogInfo("--------------------- checking re-upload uuid:%v %v=%v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), k, header.Filename, req.md5, info.Now(), req.total, offset_n, header.Size)
+				continue
+			}
+			fd.Seek(0, io.SeekEnd)
+			_, err = io.Copy(fd, part)
+			if err != nil {
+				result = append(result,
+					Result{
+						Uuid:    info.Uuid(),
+						File:    info.SrcName(),
+						Md5:     info.Md5(),
+						Now:     info.Now(),
+						Total:   info.Total(),
+						Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
+						ErrCode: ErrCheckReUpload.ErrCode,
+						ErrMsg:  ErrCheckReUpload.ErrMsg,
+						Message: strings.Join([]string{"uuid:", info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10), "/", req.total}, ""),
+					})
+				logs.LogError(err.Error())
+				err = fd.Close()
+				if err != nil {
+					logs.LogError(err.Error())
+				}
+				offset_n, _ := strconv.ParseInt(req.offset, 10, 0)
+				logs.LogInfo("--------------------- checking re-upload uuid:%v %v=%v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), k, header.Filename, req.md5, info.Now(), req.total, offset_n, header.Size)
+				continue
+			}
 			err = fd.Close()
 			if err != nil {
 				logs.LogError(err.Error())
 			}
-			offset_n, _ := strconv.ParseInt(req.offset, 10, 0)
-			logs.LogInfo("--------------------- checking re-upload uuid:%v %v=%v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), k, header.Filename, req.md5, info.Now(), req.total, offset_n, header.Size)
-			continue
-		}
-		err = fd.Close()
-		if err != nil {
-			logs.LogError(err.Error())
-		}
-		err = part.Close()
-		if err != nil {
-			logs.LogError(err.Error())
+			err = part.Close()
+			if err != nil {
+				logs.LogError(err.Error())
+			}
+		default:
 		}
 		done, ok, start, url := info.Update(header.Size, func(info FileInfo, done bool) (url string, err error) {
 			oss := NewOss()
@@ -423,64 +427,68 @@ func (s *SyncUploader) multi_uploading(req *Req) {
 		}
 		////// 检查上传文件
 		f := dir_upload + info.DstName()
-		_, err = os.Stat(f)
-		if err != nil && os.IsNotExist(err) {
-		} else {
-			/// 第一次写如果文件存在则删除
-			if info.Now() == int64(0) {
-				os.Remove(f)
+		switch WriteDisk {
+		case true:
+			_, err = os.Stat(f)
+			if err != nil && os.IsNotExist(err) {
+			} else {
+				/// 第一次写如果文件存在则删除
+				if info.Now() == int64(0) {
+					os.Remove(f)
+				}
 			}
-		}
-		fd, err := os.OpenFile(f, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
-		if err != nil {
-			result = append(result,
-				Result{
-					Uuid:    info.Uuid(),
-					File:    info.SrcName(),
-					Md5:     info.Md5(),
-					Now:     info.Now(),
-					Total:   info.Total(),
-					Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
-					ErrCode: ErrCheckReUpload.ErrCode,
-					ErrMsg:  ErrCheckReUpload.ErrMsg,
-					Message: strings.Join([]string{"uuid:", info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10), "/", total}, ""),
-				})
-			logs.LogError(err.Error())
-			offset_n, _ := strconv.ParseInt(offset, 10, 0)
-			logs.LogInfo("--------------------- checking re-upload uuid:%v %v=%v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), k, header.Filename, md5, info.Now(), total, offset_n, header.Size)
-			continue
-		}
-		fd.Seek(0, io.SeekEnd)
-		_, err = io.Copy(fd, part)
-		if err != nil {
-			result = append(result,
-				Result{
-					Uuid:    info.Uuid(),
-					File:    info.SrcName(),
-					Md5:     info.Md5(),
-					Now:     info.Now(),
-					Total:   info.Total(),
-					Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
-					ErrCode: ErrCheckReUpload.ErrCode,
-					ErrMsg:  ErrCheckReUpload.ErrMsg,
-					Message: strings.Join([]string{"uuid:", info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10), "/", total}, ""),
-				})
-			logs.LogError(err.Error())
+			fd, err := os.OpenFile(f, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0777)
+			if err != nil {
+				result = append(result,
+					Result{
+						Uuid:    info.Uuid(),
+						File:    info.SrcName(),
+						Md5:     info.Md5(),
+						Now:     info.Now(),
+						Total:   info.Total(),
+						Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
+						ErrCode: ErrCheckReUpload.ErrCode,
+						ErrMsg:  ErrCheckReUpload.ErrMsg,
+						Message: strings.Join([]string{"uuid:", info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10), "/", total}, ""),
+					})
+				logs.LogError(err.Error())
+				offset_n, _ := strconv.ParseInt(offset, 10, 0)
+				logs.LogInfo("--------------------- checking re-upload uuid:%v %v=%v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), k, header.Filename, md5, info.Now(), total, offset_n, header.Size)
+				continue
+			}
+			fd.Seek(0, io.SeekEnd)
+			_, err = io.Copy(fd, part)
+			if err != nil {
+				result = append(result,
+					Result{
+						Uuid:    info.Uuid(),
+						File:    info.SrcName(),
+						Md5:     info.Md5(),
+						Now:     info.Now(),
+						Total:   info.Total(),
+						Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
+						ErrCode: ErrCheckReUpload.ErrCode,
+						ErrMsg:  ErrCheckReUpload.ErrMsg,
+						Message: strings.Join([]string{"uuid:", info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10), "/", total}, ""),
+					})
+				logs.LogError(err.Error())
+				err = fd.Close()
+				if err != nil {
+					logs.LogError(err.Error())
+				}
+				offset_n, _ := strconv.ParseInt(offset, 10, 0)
+				logs.LogInfo("--------------------- checking re-upload uuid:%v %v=%v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), k, header.Filename, md5, info.Now(), total, offset_n, header.Size)
+				continue
+			}
 			err = fd.Close()
 			if err != nil {
 				logs.LogError(err.Error())
 			}
-			offset_n, _ := strconv.ParseInt(offset, 10, 0)
-			logs.LogInfo("--------------------- checking re-upload uuid:%v %v=%v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), k, header.Filename, md5, info.Now(), total, offset_n, header.Size)
-			continue
-		}
-		err = fd.Close()
-		if err != nil {
-			logs.LogError(err.Error())
-		}
-		err = part.Close()
-		if err != nil {
-			logs.LogError(err.Error())
+			err = part.Close()
+			if err != nil {
+				logs.LogError(err.Error())
+			}
+		default:
 		}
 		done, ok, start, url := info.Update(header.Size, func(info FileInfo, done bool) (url string, err error) {
 			oss := NewOss()

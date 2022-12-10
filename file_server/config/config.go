@@ -22,6 +22,7 @@ type IniConfig struct {
 	UploadPath             string
 	GetPath                string
 	CheckMd5               int
+	WriteDisk              int
 	MultiFile              int
 	UseAsync               int
 	MaxMemory              int64
@@ -70,6 +71,7 @@ func readIni(filename string) (c *IniConfig) {
 	c.UploadPath = ini.GetString("path", "upload")
 	c.GetPath = ini.GetString("path", "get")
 	c.CheckMd5 = ini.GetInt("upload", "checkMd5")
+	c.WriteDisk = ini.GetInt("upload", "writeDisk")
 	c.MultiFile = ini.GetInt("upload", "multiFile")
 	c.UseAsync = ini.GetInt("upload", "useAsync")
 	str := ini.GetString("upload", "maxMemory")
