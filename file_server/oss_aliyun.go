@@ -15,6 +15,7 @@ type Aliyun struct {
 	yunFilePath string
 	imur        oss.InitiateMultipartUploadResult
 	parts       []oss.UploadPart
+	num         int
 }
 
 func NewAliyun(info FileInfo) OSS {
@@ -59,7 +60,7 @@ func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader, done bo
 	start := time.Now()
 	logs.LogWarn("start oss %v", start)
 	// err = s.bucket.UploadFile(s.yunFilePath, f, header.Size, oss.Routines(5))
-	part_oss, err := s.bucket.UploadPart(s.imur, part, header.Size, 1, oss.Routines(5))
+	part_oss, err := s.bucket.UploadPart(s.imur, part, header.Size, s.num, oss.Routines(5))
 	if err != nil {
 		_ = part.Close()
 		// _ = fd.Close()
@@ -68,6 +69,7 @@ func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader, done bo
 		TgErrMsg(err.Error())
 		return "", "", err
 	}
+	s.num++
 	_ = part.Close()
 	// _ = fd.Close()
 	// os.Remove(f)
