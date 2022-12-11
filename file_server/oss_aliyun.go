@@ -42,7 +42,6 @@ func NewAliyun(info FileInfo) OSS {
 		logs.LogError(err.Error())
 		return aliyums.Get().(*Aliyun)
 	}
-
 	s := aliyums.Get().(*Aliyun)
 	s.bucket = bucket
 	s.imur = &imur
