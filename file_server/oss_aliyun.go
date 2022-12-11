@@ -16,9 +16,9 @@ var uploadFromFile = false
 
 type Aliyun struct {
 	bucket  *oss.Bucket
-	yunPath string
 	imur    *oss.InitiateMultipartUploadResult
 	parts   []oss.UploadPart
+	yunPath string
 	num     int
 }
 
