@@ -109,7 +109,7 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader, d
 	default:
 	}
 	logs.LogWarn("finished oss elapsed:%vs", time.Since(start))
-	return config.Config.Aliyun_BucketUrl + "/" + yunPath, yunPath, nil
+	return strings.Join([]string{config.Config.Aliyun_BucketUrl, "/", yunPath}, ""), yunPath, nil
 }
 
 func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader, done bool) (string, string, error) {
@@ -155,7 +155,7 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader, don
 	default:
 	}
 	logs.LogWarn("finished oss elapsed:%vs", time.Since(start))
-	return config.Config.Aliyun_BucketUrl + "/" + yunPath, yunPath, nil
+	return strings.Join([]string{config.Config.Aliyun_BucketUrl, "/", yunPath}, ""), yunPath, nil
 }
 
 func (s *Aliyun) reset() {
