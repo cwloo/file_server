@@ -95,6 +95,7 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader, d
 	}
 	_ = part.Close()
 	s.parts = append(s.parts, part_oss)
+	logs.LogWarn("elapsed:%vs", time.Since(start))
 	switch done {
 	case true:
 		_, err := s.bucket.CompleteMultipartUpload(*s.imur, s.parts)
@@ -107,8 +108,8 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader, d
 		yunPath = s.yunPath
 		s.reset()
 	default:
+		return "", "", nil
 	}
-	logs.LogWarn("finished oss elapsed:%vs", time.Since(start))
 	return strings.Join([]string{config.Config.Aliyun_BucketUrl, "/", yunPath}, ""), yunPath, nil
 }
 
@@ -130,7 +131,6 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader, don
 	}
 	s.num++
 	start := time.Now()
-	logs.LogWarn("start oss %v", start)
 	// part_oss, err := s.bucket.UploadPartFromFile(*s.imur, f, info.Now()-header.Size, header.Size, s.num, oss.Routines(5))
 	part_oss, err := s.bucket.UploadPart(*s.imur, fd, header.Size, s.num, oss.Routines(5))
 	if err != nil {
@@ -141,6 +141,7 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader, don
 	}
 	_ = fd.Close()
 	s.parts = append(s.parts, part_oss)
+	logs.LogWarn("elapsed:%vs", time.Since(start))
 	switch done {
 	case true:
 		_, err := s.bucket.CompleteMultipartUpload(*s.imur, s.parts)
@@ -153,8 +154,8 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader, don
 		yunPath = s.yunPath
 		s.reset()
 	default:
+		return "", "", nil
 	}
-	logs.LogWarn("finished oss elapsed:%vs", time.Since(start))
 	return strings.Join([]string{config.Config.Aliyun_BucketUrl, "/", yunPath}, ""), yunPath, nil
 }
 
