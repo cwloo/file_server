@@ -77,6 +77,7 @@ func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader, done bo
 }
 
 func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader, done bool) (string, string, error) {
+	yunPath := ""
 	part, err := header.Open()
 	if err != nil {
 		logs.LogError(err.Error())
@@ -103,14 +104,16 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader, d
 			s.reset()
 			return "", "", err
 		}
+		yunPath = s.yunPath
 		s.reset()
 	default:
 	}
 	logs.LogWarn("finished oss elapsed:%vs", time.Since(start))
-	return config.Config.Aliyun_BucketUrl + "/" + s.yunPath, s.yunPath, nil
+	return config.Config.Aliyun_BucketUrl + "/" + yunPath, yunPath, nil
 }
 
 func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader, done bool) (string, string, error) {
+	yunPath := ""
 	f := dir_upload + info.DstName()
 	fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 	if err != nil {
@@ -147,11 +150,12 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader, don
 			s.reset()
 			return "", "", err
 		}
+		yunPath = s.yunPath
 		s.reset()
 	default:
 	}
 	logs.LogWarn("finished oss elapsed:%vs", time.Since(start))
-	return config.Config.Aliyun_BucketUrl + "/" + s.yunPath, s.yunPath, nil
+	return config.Config.Aliyun_BucketUrl + "/" + yunPath, yunPath, nil
 }
 
 func (s *Aliyun) reset() {
