@@ -94,13 +94,17 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader, d
 	}
 	_ = part.Close()
 	s.parts = append(s.parts, part_oss)
-	if done {
+	switch done {
+	case true:
 		_, err := s.bucket.CompleteMultipartUpload(*s.imur, s.parts)
 		if err != nil {
 			logs.LogError(err.Error())
 			TgErrMsg(err.Error())
+			s.reset()
 			return "", "", err
 		}
+		s.reset()
+	default:
 	}
 	logs.LogWarn("finished oss elapsed:%vs", time.Since(start))
 	return config.Config.Aliyun_BucketUrl + "/" + s.yunPath, s.yunPath, nil
@@ -134,7 +138,8 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader, don
 	}
 	_ = fd.Close()
 	s.parts = append(s.parts, part_oss)
-	if done {
+	switch done {
+	case true:
 		_, err := s.bucket.CompleteMultipartUpload(*s.imur, s.parts)
 		if err != nil {
 			logs.LogError(err.Error())
@@ -143,6 +148,7 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader, don
 			return "", "", err
 		}
 		s.reset()
+	default:
 	}
 	logs.LogWarn("finished oss elapsed:%vs", time.Since(start))
 	return config.Config.Aliyun_BucketUrl + "/" + s.yunPath, s.yunPath, nil
