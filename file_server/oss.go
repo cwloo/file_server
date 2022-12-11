@@ -10,6 +10,7 @@ import (
 type OSS interface {
 	UploadFile(info FileInfo, header *multipart.FileHeader, done bool) (string, string, error)
 	DeleteFile(key string) error
+	Put()
 }
 
 func NewOss(info FileInfo) OSS {

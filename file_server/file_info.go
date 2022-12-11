@@ -10,6 +10,14 @@ import (
 	"github.com/cwloo/gonet/logs"
 )
 
+var (
+	fileinfos = sync.Pool{
+		New: func() any {
+			return &Fileinfo{}
+		},
+	}
+)
+
 // <summary>
 // FileInfo
 // <summary>
@@ -30,6 +38,7 @@ type FileInfo interface {
 	Time() time.Time
 	HitTime() time.Time
 	UpdateHitTime(time time.Time)
+	Put()
 }
 
 // <summary>
@@ -59,18 +68,21 @@ func NewFileInfo(uuid, md5, Filename string, total int64) FileInfo {
 	suffix := strings.TrimSuffix(Filename, ext)
 	yunName := strings.Join([]string{suffix, "-", YMDHMS, ext}, "")
 	dstName := strings.Join([]string{md5, "_", YMDHMS, ext}, "")
-	s := &Fileinfo{
-		uuid:    uuid,
-		md5:     md5,
-		date:    YMD,
-		srcName: Filename,
-		dstName: dstName,
-		yunName: yunName,
-		total:   total,
-		l:       &sync.RWMutex{},
-	}
+	s := fileinfos.Get().(*Fileinfo)
+	s.uuid = uuid
+	s.md5 = md5
+	s.date = YMD
+	s.srcName = Filename
+	s.dstName = dstName
+	s.yunName = yunName
+	s.total = total
+	s.l = &sync.RWMutex{}
 	s.Assert()
 	return s
+}
+
+func (s *Fileinfo) Put() {
+	fileinfos.Put(s)
 }
 
 func (s *Fileinfo) Uuid() string {
@@ -147,6 +159,7 @@ func (s *Fileinfo) Update(size int64, cb_seg func(FileInfo, OSS, bool) (string, 
 	done = s.now == s.total
 	url, _ = cb_seg(s, s.oss, done)
 	if done {
+		s.oss.Put()
 		s.oss = nil
 		start, ok = cb(s)
 		if ok {

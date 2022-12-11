@@ -18,6 +18,7 @@ type Uploader interface {
 	Clear()
 	Close()
 	NotifyClose()
+	Put()
 }
 
 func calFileMd5(f string) string {

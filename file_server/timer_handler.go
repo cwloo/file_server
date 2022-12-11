@@ -30,6 +30,7 @@ func checkExpiredFile() {
 		return false
 	}, func(info FileInfo) {
 		// os.Remove(dir_upload + info.DstName())
+		info.Put()
 	})
 }
 
@@ -49,6 +50,7 @@ func checkPendingUploader() {
 			return time.Since(uploader.Get()) >= time.Duration(PendingTimeout)*time.Second
 		}, func(uploader Uploader) {
 			uploader.Clear()
+			uploader.Put()
 		})
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"mime/multipart"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
@@ -12,7 +13,14 @@ import (
 	"github.com/cwloo/uploader/file_server/config"
 )
 
-var uploadFromFile = false
+var (
+	uploadFromFile = false
+	aliyums        = sync.Pool{
+		New: func() any {
+			return &Aliyun{}
+		},
+	}
+)
 
 type Aliyun struct {
 	bucket  *oss.Bucket
@@ -26,19 +34,20 @@ func NewAliyun(info FileInfo) OSS {
 	bucket, err := NewBucket()
 	if err != nil {
 		logs.LogError(err.Error())
-		return &Aliyun{}
+		return aliyums.Get().(*Aliyun)
 	}
 	yunPath := strings.Join([]string{config.Config.Aliyun_BasePath, "/uploads/", info.Date(), "/", info.YunName()}, "")
 	imur, err := bucket.InitiateMultipartUpload(yunPath)
 	if err != nil {
 		logs.LogError(err.Error())
-		return &Aliyun{}
+		return aliyums.Get().(*Aliyun)
 	}
-	s := &Aliyun{
-		bucket:  bucket,
-		yunPath: yunPath,
-		imur:    &imur,
-		parts:   []oss.UploadPart{}}
+
+	s := aliyums.Get().(*Aliyun)
+	s.bucket = bucket
+	s.imur = &imur
+	s.parts = []oss.UploadPart{}
+	s.yunPath = yunPath
 	return s
 }
 
@@ -128,20 +137,26 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader, don
 		if err != nil {
 			logs.LogError(err.Error())
 			TgErrMsg(err.Error())
-			s.cleanup()
+			s.reset()
 			return "", "", err
 		}
-		s.cleanup()
+		s.reset()
 	}
 	logs.LogWarn("finished oss elapsed:%vs", time.Since(start))
 	return config.Config.Aliyun_BucketUrl + "/" + s.yunPath, s.yunPath, nil
 }
 
-func (s *Aliyun) cleanup() {
+func (s *Aliyun) reset() {
 	s.bucket = nil
 	s.imur = nil
 	s.parts = nil
 	s.yunPath = ""
+	s.num = 0
+}
+
+func (s *Aliyun) Put() {
+	s.reset()
+	aliyums.Put(s)
 }
 
 func NewBucket() (*oss.Bucket, error) {

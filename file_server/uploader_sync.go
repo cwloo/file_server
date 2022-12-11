@@ -13,6 +13,14 @@ import (
 	"github.com/cwloo/gonet/logs"
 )
 
+var (
+	syncUploaders = sync.Pool{
+		New: func() any {
+			return &SyncUploader{}
+		},
+	}
+)
+
 // <summary>
 // SyncUploader 同步方式上传
 // <summary>
@@ -25,14 +33,22 @@ type SyncUploader struct {
 }
 
 func NewSyncUploader(uuid string) Uploader {
-	s := &SyncUploader{
-		uuid: uuid,
-		tm:   time.Now(),
-		file: map[string]bool{},
-		l:    &sync.RWMutex{},
-		l_tm: &sync.RWMutex{},
-	}
+	s := syncUploaders.Get().(*SyncUploader)
+	s.uuid = uuid
+	s.tm = time.Now()
+	s.file = map[string]bool{}
+	s.l = &sync.RWMutex{}
+	s.l_tm = &sync.RWMutex{}
 	return s
+}
+
+func (s *SyncUploader) reset() {
+	s.file = nil
+}
+
+func (s *SyncUploader) Put() {
+	s.reset()
+	syncUploaders.Put(s)
 }
 
 func (s *SyncUploader) update() {
@@ -50,7 +66,7 @@ func (s *SyncUploader) Get() time.Time {
 
 func (s *SyncUploader) Close() {
 	s.Clear()
-	uploaders.Remove(s.uuid)
+	uploaders.Remove(s.uuid).Put()
 }
 
 func (s *SyncUploader) NotifyClose() {
@@ -73,6 +89,7 @@ func (s *SyncUploader) Clear() {
 			}, func(info FileInfo) {
 				msgs = append(msgs, fmt.Sprintf("%v\n%v[%v]\n%v [Err]", info.Uuid(), info.SrcName(), md5, info.DstName()))
 				os.Remove(dir_upload + info.DstName())
+				info.Put()
 			})
 		} else {
 			////// 任务退出，移除校验失败的文件
@@ -88,6 +105,7 @@ func (s *SyncUploader) Clear() {
 			}, func(info FileInfo) {
 				msgs = append(msgs, fmt.Sprintf("%v\n%v[%v]\n%v chkmd5 [Err]", info.Uuid(), info.SrcName(), md5, info.DstName()))
 				os.Remove(dir_upload + info.DstName())
+				info.Put()
 			})
 		}
 	}
@@ -133,7 +151,7 @@ func (s *SyncUploader) Upload(req *Req) {
 	exit := s.allDone()
 	if exit {
 		logs.LogTrace("--------------------- ****** 无待上传文件，结束任务 uuid:%v ...", s.uuid)
-		uploaders.Remove(s.uuid)
+		uploaders.Remove(s.uuid).Put()
 	}
 }
 
@@ -284,7 +302,7 @@ func (s *SyncUploader) uploading(req *Req) {
 			s.setDone(info.Md5())
 			logs.LogDebug("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, k, header.Filename, req.md5, info.DstName(), info.Now(), req.total, header.Size)
 			if ok {
-				// fileInfos.Remove(info.Md5())
+				// fileInfos.Remove(info.Md5()).Put()
 				result = append(result,
 					Result{
 						Uuid:    req.uuid,
@@ -299,7 +317,7 @@ func (s *SyncUploader) uploading(req *Req) {
 				logs.LogWarn("uuid:%v %v[%v] %v chkmd5 [ok] %v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), url, time.Since(start).Milliseconds())
 				TgSuccMsg(fmt.Sprintf("%v\n%v[%v]\n%v chkmd5 [ok]\n%v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), url, time.Since(start).Milliseconds()))
 			} else {
-				fileInfos.Remove(info.Md5())
+				fileInfos.Remove(info.Md5()).Put()
 				os.Remove(f)
 				result = append(result,
 					Result{
@@ -520,7 +538,7 @@ func (s *SyncUploader) multi_uploading(req *Req) {
 			s.setDone(info.Md5())
 			logs.LogDebug("uuid:%v %v=%v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, k, header.Filename, md5, info.DstName(), info.Now(), total, header.Size)
 			if ok {
-				// fileInfos.Remove(info.Md5())
+				// fileInfos.Remove(info.Md5()).Put()
 				result = append(result,
 					Result{
 						Uuid:    req.uuid,
@@ -535,7 +553,7 @@ func (s *SyncUploader) multi_uploading(req *Req) {
 				logs.LogWarn("uuid:%v %v[%v] %v chkmd5 [ok] %v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), url, time.Since(start).Milliseconds())
 				TgSuccMsg(fmt.Sprintf("%v\n%v[%v]\n%v chkmd5 [ok]\n%v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), url, time.Since(start).Milliseconds()))
 			} else {
-				fileInfos.Remove(info.Md5())
+				fileInfos.Remove(info.Md5()).Put()
 				os.Remove(f)
 				result = append(result,
 					Result{
