@@ -1,7 +1,9 @@
 package main
 
 import (
+	"io"
 	"mime/multipart"
+	"os"
 	"strings"
 	"time"
 
@@ -10,72 +12,79 @@ import (
 	"github.com/cwloo/uploader/file_server/config"
 )
 
+var uploadFromFile = false
+
 type Aliyun struct {
-	bucket      *oss.Bucket
-	yunFilePath string
-	imur        oss.InitiateMultipartUploadResult
-	parts       []oss.UploadPart
-	num         int
+	bucket  *oss.Bucket
+	yunPath string
+	imur    *oss.InitiateMultipartUploadResult
+	parts   []oss.UploadPart
+	num     int
 }
 
 func NewAliyun(info FileInfo) OSS {
 	bucket, err := NewBucket()
 	if err != nil {
-		logs.LogFatal(err.Error())
+		logs.LogError(err.Error())
+		return &Aliyun{}
 	}
-	yunFilePath := strings.Join([]string{config.Config.Aliyun_BasePath, "/uploads/", info.Date(), "/", info.YunName()}, "")
-	imur, err := bucket.InitiateMultipartUpload(yunFilePath)
+	yunPath := strings.Join([]string{config.Config.Aliyun_BasePath, "/uploads/", info.Date(), "/", info.YunName()}, "")
+	imur, err := bucket.InitiateMultipartUpload(yunPath)
 	if err != nil {
-		logs.LogFatal(err.Error())
+		logs.LogError(err.Error())
+		return &Aliyun{}
 	}
 	s := &Aliyun{
-		bucket:      bucket,
-		yunFilePath: yunFilePath,
-		imur:        imur,
-		parts:       []oss.UploadPart{}}
+		bucket:  bucket,
+		yunPath: yunPath,
+		imur:    &imur,
+		parts:   []oss.UploadPart{}}
 	return s
 }
 
+func (s *Aliyun) valid() bool {
+	return s.imur != nil
+}
+
 func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader, done bool) (string, string, error) {
+	switch s.valid() {
+	case true:
+		switch uploadFromFile {
+		case true:
+			switch WriteDisk {
+			case true:
+				return s.uploadFromFile(info, header, done)
+			default:
+				return s.uploadFromHeader(info, header, done)
+			}
+		default:
+			return s.uploadFromHeader(info, header, done)
+		}
+	default:
+		return "", "", nil
+	}
+}
+
+func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader, done bool) (string, string, error) {
 	part, err := header.Open()
 	if err != nil {
 		logs.LogError(err.Error())
 		return "", "", err
 	}
-	// f := dir_upload_tmp + info.DstName()
-	// fd, err := os.OpenFile(f, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
-	// if err != nil {
-	// 	_ = part.Close()
-	// 	logs.LogError(err.Error())
-	// 	return "", "", err
-	// }
-	// _, err = io.Copy(fd, part)
-	// if err != nil {
-	// 	_ = part.Close()
-	// 	_ = fd.Close()
-	// 	os.Remove(f)
-	// 	logs.LogError(err.Error())
-	// 	return "", "", err
-	// }
 	s.num++
 	start := time.Now()
 	logs.LogWarn("start oss %v", start)
-	// err = s.bucket.UploadFile(s.yunFilePath, f, header.Size, oss.Routines(5))
-	part_oss, err := s.bucket.UploadPart(s.imur, part, header.Size, s.num, oss.Routines(5))
+	part_oss, err := s.bucket.UploadPart(*s.imur, part, header.Size, s.num, oss.Routines(5))
 	if err != nil {
 		_ = part.Close()
-		// _ = fd.Close()
-		// os.Remove(f)
 		logs.LogError(err.Error())
 		TgErrMsg(err.Error())
 		return "", "", err
 	}
 	_ = part.Close()
-	// _ = fd.Close()
-	// os.Remove(f)
 	s.parts = append(s.parts, part_oss)
 	if done {
-		_, err := s.bucket.CompleteMultipartUpload(s.imur, s.parts)
+		_, err := s.bucket.CompleteMultipartUpload(*s.imur, s.parts)
 		if err != nil {
 			logs.LogError(err.Error())
 			TgErrMsg(err.Error())
@@ -83,7 +92,56 @@ func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader, done bo
 		}
 	}
 	logs.LogWarn("finished oss elapsed:%vs", time.Since(start))
-	return config.Config.Aliyun_BucketUrl + "/" + s.yunFilePath, s.yunFilePath, nil
+	return config.Config.Aliyun_BucketUrl + "/" + s.yunPath, s.yunPath, nil
+}
+
+func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader, done bool) (string, string, error) {
+	f := dir_upload + info.DstName()
+	fd, err := os.OpenFile(f, os.O_RDONLY, 0)
+	if err != nil {
+		logs.LogError(err.Error())
+		return "", "", err
+	}
+	// _, err = fd.Seek(info.Now()-header.Size, io.SeekStart)
+	_, err = fd.Seek(header.Size, io.SeekEnd)
+	if err != nil {
+		_ = fd.Close()
+		logs.LogError(err.Error())
+		TgErrMsg(err.Error())
+		return "", "", err
+	}
+	s.num++
+	start := time.Now()
+	logs.LogWarn("start oss %v", start)
+	// part_oss, err := s.bucket.UploadPartFromFile(*s.imur, f, info.Now()-header.Size, header.Size, s.num, oss.Routines(5))
+	part_oss, err := s.bucket.UploadPart(*s.imur, fd, header.Size, s.num, oss.Routines(5))
+	if err != nil {
+		_ = fd.Close()
+		logs.LogError(err.Error())
+		TgErrMsg(err.Error())
+		return "", "", err
+	}
+	_ = fd.Close()
+	s.parts = append(s.parts, part_oss)
+	if done {
+		_, err := s.bucket.CompleteMultipartUpload(*s.imur, s.parts)
+		if err != nil {
+			logs.LogError(err.Error())
+			TgErrMsg(err.Error())
+			s.cleanup()
+			return "", "", err
+		}
+		s.cleanup()
+	}
+	logs.LogWarn("finished oss elapsed:%vs", time.Since(start))
+	return config.Config.Aliyun_BucketUrl + "/" + s.yunPath, s.yunPath, nil
+}
+
+func (s *Aliyun) cleanup() {
+	s.bucket = nil
+	s.imur = nil
+	s.parts = nil
+	s.yunPath = ""
 }
 
 func NewBucket() (*oss.Bucket, error) {
