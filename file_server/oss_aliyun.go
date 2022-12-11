@@ -22,6 +22,9 @@ var (
 	}
 )
 
+// <summary>
+// Aliyun
+// <summary>
 type Aliyun struct {
 	bucket  *oss.Bucket
 	imur    *oss.InitiateMultipartUploadResult
