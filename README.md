@@ -10,5 +10,5 @@
 * 6.支持并发模型
 
 * file_server         测试服务端
-* file_client         测试客户端(子进程)
+* file_client         测试客户端(子进程，必须 ./loader 父进程启动)
 * file_client\loader 测试客户端(父进程)
