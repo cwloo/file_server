@@ -10,6 +10,9 @@ import (
 	"github.com/cwloo/gonet/logs"
 )
 
+type SegmentCallback func(FileInfo, OSS, bool) (string, error)
+type CheckCallback func(FileInfo) (time.Time, bool)
+
 var (
 	fileinfos = sync.Pool{
 		New: func() any {
@@ -31,7 +34,7 @@ type FileInfo interface {
 	YunName() string
 	Date() string
 	Assert()
-	Update(size int64, cb_seg func(FileInfo, OSS, bool) (string, error), cb func(FileInfo) (time.Time, bool)) (done, ok bool, url string, start time.Time)
+	Update(int64, SegmentCallback, CheckCallback) (done, ok bool, url string, start time.Time)
 	Done() bool
 	Ok() (bool, string)
 	Url() string
@@ -144,7 +147,7 @@ func (s *Fileinfo) Assert() {
 	}
 }
 
-func (s *Fileinfo) Update(size int64, cb_seg func(FileInfo, OSS, bool) (string, error), cb func(FileInfo) (time.Time, bool)) (done, ok bool, url string, start time.Time) {
+func (s *Fileinfo) Update(size int64, onSeg SegmentCallback, onCheck CheckCallback) (done, ok bool, url string, start time.Time) {
 	if size <= 0 {
 		logs.LogFatal("error")
 	}
@@ -157,11 +160,11 @@ func (s *Fileinfo) Update(size int64, cb_seg func(FileInfo, OSS, bool) (string, 
 		logs.LogFatal("error")
 	}
 	done = s.now == s.total
-	url, _ = cb_seg(s, s.oss, done)
+	url, _ = onSeg(s, s.oss, done)
 	if done {
 		s.oss.Put()
 		s.oss = nil
-		start, ok = cb(s)
+		start, ok = onCheck(s)
 		if ok {
 			now := time.Now()
 			s.time = now
