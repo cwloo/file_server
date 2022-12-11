@@ -62,7 +62,7 @@ func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader, done bo
 	case true:
 		switch uploadFromFile {
 		case true:
-			switch WriteDisk {
+			switch WriteFile {
 			case true:
 				return s.uploadFromFile(info, header, done)
 			default:

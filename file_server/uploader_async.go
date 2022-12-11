@@ -255,7 +255,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 		}
 		////// 检查上传文件
 		f := dir_upload + info.DstName()
-		switch WriteDisk {
+		switch WriteFile {
 		case true:
 			_, err = os.Stat(f)
 			if err != nil && os.IsNotExist(err) {
@@ -327,7 +327,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 			return
 		}, func(info FileInfo) (time.Time, bool) {
 			start := time.Now()
-			switch WriteDisk {
+			switch WriteFile {
 			case true:
 				switch CheckMd5 {
 				case true:
@@ -494,7 +494,7 @@ func (s *AsyncUploader) multi_uploading(req *Req) {
 		}
 		////// 检查上传文件
 		f := dir_upload + info.DstName()
-		switch WriteDisk {
+		switch WriteFile {
 		case true:
 			_, err = os.Stat(f)
 			if err != nil && os.IsNotExist(err) {
@@ -566,7 +566,7 @@ func (s *AsyncUploader) multi_uploading(req *Req) {
 			return
 		}, func(info FileInfo) (time.Time, bool) {
 			start := time.Now()
-			switch WriteDisk {
+			switch WriteFile {
 			case true:
 				switch CheckMd5 {
 				case true:
