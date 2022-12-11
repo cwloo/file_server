@@ -10,9 +10,6 @@ import (
 	"github.com/cwloo/gonet/logs"
 )
 
-type SegmentCallback func(FileInfo, OSS, bool) (string, error)
-type CheckCallback func(FileInfo) (time.Time, bool)
-
 var (
 	fileinfos = sync.Pool{
 		New: func() any {
@@ -20,6 +17,9 @@ var (
 		},
 	}
 )
+
+type SegmentCallback func(FileInfo, OSS, bool) (string, error)
+type CheckCallback func(FileInfo) (time.Time, bool)
 
 // <summary>
 // FileInfo
