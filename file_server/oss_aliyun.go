@@ -80,28 +80,31 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader, d
 	yunPath := ""
 	part, err := header.Open()
 	if err != nil {
-		logs.LogError(err.Error())
+		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "Open:", err.Error()}, "")
+		logs.LogError(errMsg)
+		TgErrMsg(errMsg)
 		return "", "", err
 	}
 	s.num++
 	start := time.Now()
-	logs.LogWarn("start oss %v", start)
 	part_oss, err := s.bucket.UploadPart(*s.imur, part, header.Size, s.num, oss.Routines(5))
 	if err != nil {
 		_ = part.Close()
-		logs.LogError(err.Error())
-		TgErrMsg(err.Error())
+		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "UploadPart:", err.Error()}, "")
+		logs.LogError(errMsg)
+		TgErrMsg(errMsg)
 		return "", "", err
 	}
 	_ = part.Close()
 	s.parts = append(s.parts, part_oss)
-	logs.LogWarn("elapsed:%v", time.Since(start))
+	logs.LogWarn("%v %v[%v] %v elapsed:%v", info.Uuid(), info.SrcName(), info.Md5(), info.YunName(), time.Since(start))
 	switch done {
 	case true:
 		_, err := s.bucket.CompleteMultipartUpload(*s.imur, s.parts)
 		if err != nil {
-			logs.LogError(err.Error())
-			TgErrMsg(err.Error())
+			errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "CompleteMultipartUpload:", err.Error()}, "")
+			logs.LogError(errMsg)
+			TgErrMsg(errMsg)
 			s.reset()
 			return "", "", err
 		}
@@ -118,15 +121,18 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader, don
 	f := dir_upload + info.DstName()
 	fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 	if err != nil {
-		logs.LogError(err.Error())
+		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "OpenFile:", err.Error()}, "")
+		logs.LogError(errMsg)
+		TgErrMsg(errMsg)
 		return "", "", err
 	}
 	// _, err = fd.Seek(info.Now()-header.Size, io.SeekStart)
 	_, err = fd.Seek(header.Size, io.SeekEnd)
 	if err != nil {
 		_ = fd.Close()
-		logs.LogError(err.Error())
-		TgErrMsg(err.Error())
+		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "Seek:", err.Error()}, "")
+		logs.LogError(errMsg)
+		TgErrMsg(errMsg)
 		return "", "", err
 	}
 	s.num++
@@ -135,19 +141,21 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader, don
 	part_oss, err := s.bucket.UploadPart(*s.imur, fd, header.Size, s.num, oss.Routines(5))
 	if err != nil {
 		_ = fd.Close()
-		logs.LogError(err.Error())
-		TgErrMsg(err.Error())
+		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "UploadPart:", err.Error()}, "")
+		logs.LogError(errMsg)
+		TgErrMsg(errMsg)
 		return "", "", err
 	}
 	_ = fd.Close()
 	s.parts = append(s.parts, part_oss)
-	logs.LogWarn("elapsed:%v", time.Since(start))
+	logs.LogWarn("%v %v[%v] %v elapsed:%v", info.Uuid(), info.SrcName(), info.Md5(), info.YunName(), time.Since(start))
 	switch done {
 	case true:
 		_, err := s.bucket.CompleteMultipartUpload(*s.imur, s.parts)
 		if err != nil {
-			logs.LogError(err.Error())
-			TgErrMsg(err.Error())
+			errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "CompleteMultipartUpload:", err.Error()}, "")
+			logs.LogError(errMsg)
+			TgErrMsg(errMsg)
 			s.reset()
 			return "", "", err
 		}
