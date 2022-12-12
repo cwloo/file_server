@@ -217,8 +217,8 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 				if total != strconv.FormatInt(info.Total(), 10) {
 					logs.LogFatal("%v %v(%v) info.total:%v total:%v", info.Uuid(), info.SrcName(), info.Md5(), info.Total(), total)
 				}
-				if info.Done() {
-					if ok, url := info.Ok(); ok {
+				if info.Done(true) {
+					if ok, url := info.Ok(true); ok {
 						info.UpdateHitTime(time.Now())
 						// fileInfos.Remove(info.Md5()).Put()
 						result = append(result,
@@ -254,8 +254,8 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 			} else {
 				/// 已在其它上传任务中
 
-				if info.Done() {
-					if ok, url := info.Ok(); ok {
+				if info.Done(true) {
+					if ok, url := info.Ok(true); ok {
 						info.UpdateHitTime(time.Now())
 						// fileInfos.Remove(info.Md5).Put()
 						result = append(result,
@@ -532,8 +532,8 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 				if total != strconv.FormatInt(info.Total(), 10) {
 					logs.LogFatal("%v %v(%v) info.total:%v total:%v", info.Uuid(), info.SrcName(), info.Md5(), info.Total(), total)
 				}
-				if info.Done() {
-					if ok, url := info.Ok(); ok {
+				if info.Done(true) {
+					if ok, url := info.Ok(true); ok {
 						info.UpdateHitTime(time.Now())
 						// fileInfos.Remove(info.Md5()).Put()
 						result = append(result,
@@ -569,8 +569,8 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 			} else {
 				/// 已在其它上传任务中
 
-				if info.Done() {
-					if ok, url := info.Ok(); ok {
+				if info.Done(true) {
+					if ok, url := info.Ok(true); ok {
 						info.UpdateHitTime(time.Now())
 						// fileInfos.Remove(info.Md5).Put()
 						result = append(result,

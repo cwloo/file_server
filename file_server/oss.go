@@ -10,7 +10,7 @@ import (
 // OSS 云存储
 // <summary>
 type OSS interface {
-	UploadFile(info FileInfo, header *multipart.FileHeader, done bool) (string, string, error)
+	UploadFile(info FileInfo, header *multipart.FileHeader) (string, string, error)
 	DeleteFile(key string) error
 	Put()
 }

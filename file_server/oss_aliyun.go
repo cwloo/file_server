@@ -57,26 +57,26 @@ func (s *Aliyun) valid() bool {
 	return s.imur != nil
 }
 
-func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader, done bool) (string, string, error) {
+func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader) (string, string, error) {
 	switch s.valid() {
 	case true:
 		switch uploadFromFile {
 		case true:
 			switch WriteFile {
 			case true:
-				return s.uploadFromFile(info, header, done)
+				return s.uploadFromFile(info, header)
 			default:
-				return s.uploadFromHeader(info, header, done)
+				return s.uploadFromHeader(info, header)
 			}
 		default:
-			return s.uploadFromHeader(info, header, done)
+			return s.uploadFromHeader(info, header)
 		}
 	default:
 		return "", "", nil
 	}
 }
 
-func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader, done bool) (string, string, error) {
+func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader) (string, string, error) {
 	yunPath := ""
 	part, err := header.Open()
 	if err != nil {
@@ -98,7 +98,7 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader, d
 	_ = part.Close()
 	s.parts = append(s.parts, part_oss)
 	logs.LogWarn("%v %v[%v] %v elapsed:%v", info.Uuid(), info.SrcName(), info.Md5(), info.YunName(), time.Since(start))
-	switch done {
+	switch info.Done(false) {
 	case true:
 		_, err := s.bucket.CompleteMultipartUpload(*s.imur, s.parts)
 		if err != nil {
@@ -116,7 +116,7 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader, d
 	return strings.Join([]string{config.Config.Aliyun_BucketUrl, "/", yunPath}, ""), yunPath, nil
 }
 
-func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader, done bool) (string, string, error) {
+func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader) (string, string, error) {
 	yunPath := ""
 	f := dir_upload + info.DstName()
 	fd, err := os.OpenFile(f, os.O_RDONLY, 0)
@@ -149,7 +149,7 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader, don
 	_ = fd.Close()
 	s.parts = append(s.parts, part_oss)
 	logs.LogWarn("%v %v[%v] %v elapsed:%v", info.Uuid(), info.SrcName(), info.Md5(), info.YunName(), time.Since(start))
-	switch done {
+	switch info.Done(false) {
 	case true:
 		_, err := s.bucket.CompleteMultipartUpload(*s.imur, s.parts)
 		if err != nil {

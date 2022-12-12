@@ -72,6 +72,22 @@ func (s *SyncUploader) Close() {
 func (s *SyncUploader) NotifyClose() {
 }
 
+func (s *SyncUploader) Remove(md5 string) {
+	if s.remove(md5) && s.allDone() {
+		uploaders.Remove(s.uuid).Put()
+	}
+}
+
+func (s *SyncUploader) remove(md5 string) (ok bool) {
+	s.l.Lock()
+	_, ok = s.file[md5]
+	if ok {
+		delete(s.file, md5)
+	}
+	s.l.Unlock()
+	return
+}
+
 func (s *SyncUploader) Clear() {
 	msgs := []string{}
 	s.l.RLock()
@@ -82,7 +98,7 @@ func (s *SyncUploader) Clear() {
 				if info.Uuid() != s.uuid {
 					logs.LogFatal("error")
 				}
-				if info.Done() {
+				if info.Done(false) {
 					logs.LogFatal("error")
 				}
 				return true
@@ -97,10 +113,10 @@ func (s *SyncUploader) Clear() {
 				if info.Uuid() != s.uuid {
 					logs.LogFatal("error")
 				}
-				if !info.Done() {
+				if !info.Done(false) {
 					logs.LogFatal("error")
 				}
-				ok, _ := info.Ok()
+				ok, _ := info.Ok(false)
 				return !ok
 			}, func(info FileInfo) {
 				msgs = append(msgs, fmt.Sprintf("%v\n%v[%v]\n%v chkmd5 [Err]", info.Uuid(), info.SrcName(), md5, info.DstName()))
@@ -172,7 +188,7 @@ func (s *SyncUploader) uploading(req *Req) {
 			return
 		}
 		////// 还未接收完
-		if info.Done() {
+		if info.Done(true) {
 			logs.LogFatal("%v %v(%v) finished", info.Uuid(), info.SrcName(), info.Md5())
 		}
 		////// 校验uuid
@@ -276,8 +292,8 @@ func (s *SyncUploader) uploading(req *Req) {
 			}
 		default:
 		}
-		done, ok, url, start := info.Update(header.Size, func(info FileInfo, oss OSS, done bool) (url string, err error) {
-			url, _, err = oss.UploadFile(info, header, done)
+		done, ok, url, start := info.Update(header.Size, func(info FileInfo, oss OSS) (url string, err error) {
+			url, _, err = oss.UploadFile(info, header)
 			if err != nil {
 				logs.LogError(err.Error())
 			}
@@ -408,7 +424,7 @@ func (s *SyncUploader) multi_uploading(req *Req) {
 			return
 		}
 		////// 还未接收完
-		if info.Done() {
+		if info.Done(true) {
 			logs.LogFatal("%v %v(%v) finished", info.Uuid(), info.SrcName(), info.Md5())
 		}
 		////// 校验uuid
@@ -512,8 +528,8 @@ func (s *SyncUploader) multi_uploading(req *Req) {
 			}
 		default:
 		}
-		done, ok, url, start := info.Update(header.Size, func(info FileInfo, oss OSS, done bool) (url string, err error) {
-			url, _, err = oss.UploadFile(info, header, done)
+		done, ok, url, start := info.Update(header.Size, func(info FileInfo, oss OSS) (url string, err error) {
+			url, _, err = oss.UploadFile(info, header)
 			if err != nil {
 				logs.LogError(err.Error())
 			}

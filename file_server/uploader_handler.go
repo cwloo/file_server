@@ -15,6 +15,7 @@ import (
 type Uploader interface {
 	Get() time.Time
 	Upload(req *Req)
+	Remove(md5 string)
 	Clear()
 	Close()
 	NotifyClose()

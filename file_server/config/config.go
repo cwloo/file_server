@@ -21,6 +21,7 @@ type IniConfig struct {
 	HttpAddr               string
 	UploadPath             string
 	GetPath                string
+	DelPath                string
 	CheckMd5               int
 	WriteFile              int
 	MultiFile              int
@@ -70,6 +71,7 @@ func readIni(filename string) (c *IniConfig) {
 	c.HttpAddr = ini.GetString("httpserver", "addr")
 	c.UploadPath = ini.GetString("path", "upload")
 	c.GetPath = ini.GetString("path", "get")
+	c.DelPath = ini.GetString("path", "del")
 	c.CheckMd5 = ini.GetInt("upload", "checkMd5")
 	c.WriteFile = ini.GetInt("upload", "writeFile")
 	c.MultiFile = ini.GetInt("upload", "multiFile")

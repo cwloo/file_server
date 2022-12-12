@@ -18,7 +18,7 @@ var (
 	}
 )
 
-type SegmentCallback func(FileInfo, OSS, bool) (string, error)
+type SegmentCallback func(FileInfo, OSS) (string, error)
 type CheckCallback func(FileInfo) (time.Time, bool)
 
 // <summary>
@@ -35,11 +35,11 @@ type FileInfo interface {
 	Date() string
 	Assert()
 	Update(int64, SegmentCallback, CheckCallback) (done, ok bool, url string, start time.Time)
-	Done() bool
-	Ok() (bool, string)
-	Url() string
-	Time() time.Time
-	HitTime() time.Time
+	Done(lock bool) bool
+	Ok(lock bool) (bool, string)
+	Url(lock bool) string
+	Time(lock bool) time.Time
+	HitTime(lock bool) time.Time
 	UpdateHitTime(time time.Time)
 	Put()
 }
@@ -167,8 +167,8 @@ func (s *Fileinfo) Update(size int64, onSeg SegmentCallback, onCheck CheckCallba
 	if s.now > s.total {
 		logs.LogFatal("error")
 	}
+	url, _ = onSeg(s, s.oss)
 	done = s.now == s.total
-	url, _ = onSeg(s, s.oss, done)
 	if done {
 		s.oss.Put()
 		s.oss = nil
@@ -184,15 +184,31 @@ func (s *Fileinfo) Update(size int64, onSeg SegmentCallback, onCheck CheckCallba
 	return
 }
 
-func (s *Fileinfo) Done() bool {
-	s.l.RLock()
-	done := s.now == s.total
-	s.l.RUnlock()
-	return done
+func (s *Fileinfo) Done(lock bool) bool {
+	switch lock {
+	case true:
+		s.l.RLock()
+		done := s.now == s.total
+		s.l.RUnlock()
+		return done
+	default:
+		return s.now == s.total
+	}
 }
 
-func (s *Fileinfo) Ok() (bool, string) {
-	s.l.RLock()
+func (s *Fileinfo) Ok(lock bool) (bool, string) {
+	switch lock {
+	case true:
+		s.l.RLock()
+		ok, url := s.ok_()
+		s.l.RUnlock()
+		return ok, url
+	default:
+		return s.ok_()
+	}
+}
+
+func (s *Fileinfo) ok_() (bool, string) {
 	ok := s.time.Unix() > 0
 	url := s.url
 	if ok {
@@ -200,29 +216,43 @@ func (s *Fileinfo) Ok() (bool, string) {
 			logs.LogFatal("error")
 		}
 	}
-	s.l.RUnlock()
 	return ok, url
 }
 
-func (s *Fileinfo) Url() string {
-	s.l.RLock()
-	url := s.url
-	s.l.RUnlock()
-	return url
+func (s *Fileinfo) Url(lock bool) string {
+	switch lock {
+	case true:
+		s.l.RLock()
+		url := s.url
+		s.l.RUnlock()
+		return url
+	default:
+		return s.url
+	}
 }
 
-func (s *Fileinfo) Time() time.Time {
-	s.l.RLock()
-	t := s.time
-	s.l.RUnlock()
-	return t
+func (s *Fileinfo) Time(lock bool) time.Time {
+	switch lock {
+	case true:
+		s.l.RLock()
+		t := s.time
+		s.l.RUnlock()
+		return t
+	default:
+		return s.time
+	}
 }
 
-func (s *Fileinfo) HitTime() time.Time {
-	s.l.RLock()
-	t := s.hitTime
-	s.l.RUnlock()
-	return t
+func (s *Fileinfo) HitTime(lock bool) time.Time {
+	switch lock {
+	case true:
+		s.l.RLock()
+		t := s.hitTime
+		s.l.RUnlock()
+		return t
+	default:
+		return s.hitTime
+	}
 }
 
 func (s *Fileinfo) UpdateHitTime(time time.Time) {

@@ -38,6 +38,10 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	logs.LogDebug("%v", string(j))
 }
 
+func Del(w http.ResponseWriter, r *http.Request) {
+	handlerDelCache(w, r)
+}
+
 func main() {
 	config.InitConfig()
 	Init()
@@ -61,6 +65,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc(config.Config.UploadPath, Upload)
 	mux.HandleFunc(config.Config.GetPath, Get)
+	mux.HandleFunc(config.Config.DelPath, Del)
 
 	server := &http.Server{
 		Addr:              config.Config.HttpAddr,

@@ -102,6 +102,22 @@ func (s *AsyncUploader) NotifyClose() {
 	s.pipe.NotifyClose()
 }
 
+func (s *AsyncUploader) Remove(md5 string) {
+	if s.remove(md5) && s.allDone() {
+		s.pipe.NotifyClose()
+	}
+}
+
+func (s *AsyncUploader) remove(md5 string) (ok bool) {
+	s.l.Lock()
+	_, ok = s.file[md5]
+	if ok {
+		delete(s.file, md5)
+	}
+	s.l.Unlock()
+	return
+}
+
 func (s *AsyncUploader) Clear() {
 	msgs := []string{}
 	s.l.RLock()
@@ -112,7 +128,7 @@ func (s *AsyncUploader) Clear() {
 				if info.Uuid() != s.uuid {
 					logs.LogFatal("error")
 				}
-				if info.Done() {
+				if info.Done(false) {
 					logs.LogFatal("error")
 				}
 				return true
@@ -127,10 +143,10 @@ func (s *AsyncUploader) Clear() {
 				if info.Uuid() != s.uuid {
 					logs.LogFatal("error")
 				}
-				if !info.Done() {
+				if !info.Done(false) {
 					logs.LogFatal("error")
 				}
-				ok, _ := info.Ok()
+				ok, _ := info.Ok(false)
 				return !ok
 			}, func(info FileInfo) {
 				msgs = append(msgs, fmt.Sprintf("%v\n%v[%v]\n%v chkmd5 [Err]", info.Uuid(), info.SrcName(), md5, info.DstName()))
@@ -214,7 +230,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 			return
 		}
 		////// 还未接收完
-		if info.Done() {
+		if info.Done(true) {
 			logs.LogFatal("%v %v(%v) finished", info.Uuid(), info.SrcName(), info.Md5())
 		}
 		////// 校验uuid
@@ -319,8 +335,8 @@ func (s *AsyncUploader) uploading(req *Req) {
 			}
 		default:
 		}
-		done, ok, url, start := info.Update(header.Size, func(info FileInfo, oss OSS, done bool) (url string, err error) {
-			url, _, err = oss.UploadFile(info, header, done)
+		done, ok, url, start := info.Update(header.Size, func(info FileInfo, oss OSS) (url string, err error) {
+			url, _, err = oss.UploadFile(info, header)
 			if err != nil {
 				logs.LogError(err.Error())
 			}
@@ -453,7 +469,7 @@ func (s *AsyncUploader) multi_uploading(req *Req) {
 			return
 		}
 		////// 还未接收完
-		if info.Done() {
+		if info.Done(true) {
 			logs.LogFatal("%v %v(%v) finished", info.Uuid(), info.SrcName(), info.Md5())
 		}
 		////// 校验uuid
@@ -558,8 +574,8 @@ func (s *AsyncUploader) multi_uploading(req *Req) {
 			}
 		default:
 		}
-		done, ok, url, start := info.Update(header.Size, func(info FileInfo, oss OSS, done bool) (url string, err error) {
-			url, _, err = oss.UploadFile(info, header, done)
+		done, ok, url, start := info.Update(header.Size, func(info FileInfo, oss OSS) (url string, err error) {
+			url, _, err = oss.UploadFile(info, header)
 			if err != nil {
 				logs.LogError(err.Error())
 			}
