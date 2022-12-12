@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/aws/aws-sdk-go v1.44.157
-	github.com/cwloo/gonet v0.1.20
+	github.com/cwloo/gonet v0.1.21
 	github.com/flipped-aurora/gin-vue-admin/server v0.0.0-20221208111331-0f61da55d2d9
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/huaweicloud/huaweicloud-sdk-go-obs v3.22.11+incompatible
