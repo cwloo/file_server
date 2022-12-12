@@ -95,7 +95,7 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader, d
 	}
 	_ = part.Close()
 	s.parts = append(s.parts, part_oss)
-	logs.LogWarn("elapsed:%vs", time.Since(start))
+	logs.LogWarn("elapsed:%v", time.Since(start))
 	switch done {
 	case true:
 		_, err := s.bucket.CompleteMultipartUpload(*s.imur, s.parts)
@@ -141,7 +141,7 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader, don
 	}
 	_ = fd.Close()
 	s.parts = append(s.parts, part_oss)
-	logs.LogWarn("elapsed:%vs", time.Since(start))
+	logs.LogWarn("elapsed:%v", time.Since(start))
 	switch done {
 	case true:
 		_, err := s.bucket.CompleteMultipartUpload(*s.imur, s.parts)
