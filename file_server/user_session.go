@@ -67,7 +67,7 @@ func (s *SessionToHandler) GetAdd(uuid string, async bool) (handler Uploader, ok
 	s.l.Unlock()
 	return
 OK:
-	logs.LogError("uuid:%v size=%v", uuid, n)
+	logs.LogError("%v size=%v", uuid, n)
 	return
 }
 
@@ -84,7 +84,7 @@ func (s *SessionToHandler) Remove(uuid string) (handler Uploader) {
 	s.l.Unlock()
 	return
 OK:
-	logs.LogError("uuid:%v size=%v", uuid, n)
+	logs.LogError("%v size=%v", uuid, n)
 	return
 }
 
@@ -104,7 +104,7 @@ func (s *SessionToHandler) RemoveWithCond(uuid string, cond func(Uploader) bool,
 	s.l.Unlock()
 	return
 OK:
-	logs.LogError("uuid:%v size=%v", uuid, n)
+	logs.LogError("%v size=%v", uuid, n)
 	return
 }
 

@@ -93,7 +93,7 @@ func upload() {
 					req.Header.Set("Connection", "keep-alive")
 					req.Header.Set("Keep-Alive", strings.Join([]string{"timeout=", strconv.Itoa(120)}, ""))
 					req.Header.Set("Content-Type", writer.FormDataContentType())
-					logs.LogInfo("request =>> %v %v[%v] %v uuid:%v", method, url, 1, result.File, uuid)
+					logs.LogInfo("request =>> %v %v[%v] %v %v", method, url, 1, result.File, uuid)
 					/// request
 					res, err := client.Do(req)
 					if err != nil {
@@ -126,7 +126,7 @@ func upload() {
 							fallthrough
 						case ErrParsePartData.ErrCode:
 							// 需要继续重试
-							logs.LogError("*** uuid:%v %v", resp.Uuid, resp.ErrMsg)
+							logs.LogError("*** %v %v", resp.Uuid, resp.ErrMsg)
 							continue
 						}
 						// 读取每个文件上传状态数据
@@ -147,9 +147,9 @@ func upload() {
 							case ErrParamsAllTotalLimit.ErrCode:
 								fallthrough
 							case ErrRepeat.ErrCode:
-								logs.LogError("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+								logs.LogError("*** %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 							case ErrSegOk.ErrCode:
-								logs.LogError("*** uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
+								logs.LogError("*** %v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 								if result.Now <= 0 {
 									break
 								}
@@ -182,7 +182,7 @@ func upload() {
 								}
 								results[result.Md5] = result
 								offset[result.Md5] = result.Now
-								logs.LogError("*** uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
+								logs.LogError("*** %v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 							case ErrFileMd5.ErrCode:
 								// 上传失败了
 								fallthrough
@@ -192,7 +192,7 @@ func upload() {
 								removeMd5File(&MD5, result.Md5)
 								// 上传完成，删除临时文件
 								os.Remove(tmp_dir + result.Md5 + ".tmp")
-								logs.LogTrace("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Url)
+								logs.LogTrace("*** %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Url)
 							}
 						}
 					}
@@ -252,7 +252,7 @@ func upload() {
 			req.Header.Set("Connection", "keep-alive")
 			req.Header.Set("Keep-Alive", strings.Join([]string{"timeout=", strconv.Itoa(120)}, ""))
 			req.Header.Set("Content-Type", writer.FormDataContentType())
-			logs.LogInfo("request =>> %v %v[%v] %v uuid:%v", method, url, len(Filelist), Filelist, uuid)
+			logs.LogInfo("request =>> %v %v[%v] %v %v", method, url, len(Filelist), Filelist, uuid)
 			/// request
 			res, err := client.Do(req)
 			if err != nil {
@@ -285,7 +285,7 @@ func upload() {
 					fallthrough
 				case ErrParsePartData.ErrCode:
 					// 需要继续重试
-					logs.LogError("--- uuid:%v %v", resp.Uuid, resp.ErrMsg)
+					logs.LogError("--- %v %v", resp.Uuid, resp.ErrMsg)
 					continue
 				}
 				// 读取每个文件上传状态数据
@@ -306,10 +306,10 @@ func upload() {
 					case ErrParamsAllTotalLimit.ErrCode:
 						fallthrough
 					case ErrRepeat.ErrCode:
-						logs.LogError("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+						logs.LogError("--- %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 					// 上传成功(分段续传)，继续读取文件剩余字节继续上传
 					case ErrSegOk.ErrCode:
-						logs.LogError("--- uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
+						logs.LogError("--- %v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 						if result.Now <= 0 {
 							break
 						}
@@ -338,7 +338,7 @@ func upload() {
 					case ErrCheckReUpload.ErrCode:
 						// 校正需要重传
 						offset[result.Md5] = result.Now
-						logs.LogError("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+						logs.LogError("--- %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 					case ErrFileMd5.ErrCode:
 						// 上传失败了
 						fallthrough
@@ -347,7 +347,7 @@ func upload() {
 						removeMd5File(&MD5, result.Md5)
 						// 上传完成，删除临时文件
 						os.Remove(tmp_dir + result.Md5 + ".tmp")
-						logs.LogTrace("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Url)
+						logs.LogTrace("--- %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Url)
 					}
 				}
 			}
@@ -434,7 +434,7 @@ func multiUpload() {
 					req.Header.Set("Connection", "keep-alive")
 					req.Header.Set("Keep-Alive", strings.Join([]string{"timeout=", strconv.Itoa(120)}, ""))
 					req.Header.Set("Content-Type", writer.FormDataContentType())
-					logs.LogInfo("request =>> %v %v[%v] %v uuid:%v", method, url, 1, result.File, uuid)
+					logs.LogInfo("request =>> %v %v[%v] %v %v", method, url, 1, result.File, uuid)
 					/// request
 					res, err := client.Do(req)
 					if err != nil {
@@ -465,7 +465,7 @@ func multiUpload() {
 							fallthrough
 						case ErrParsePartData.ErrCode:
 							// 需要继续重试
-							logs.LogError("*** uuid:%v %v", resp.Uuid, resp.ErrMsg)
+							logs.LogError("*** %v %v", resp.Uuid, resp.ErrMsg)
 							continue
 						}
 						// 读取每个文件上传状态数据
@@ -486,9 +486,9 @@ func multiUpload() {
 							case ErrParamsAllTotalLimit.ErrCode:
 								fallthrough
 							case ErrRepeat.ErrCode:
-								logs.LogError("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+								logs.LogError("*** %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 							case ErrSegOk.ErrCode:
-								logs.LogError("*** uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
+								logs.LogError("*** %v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 								if result.Now <= 0 {
 									break
 								}
@@ -521,7 +521,7 @@ func multiUpload() {
 								}
 								results[result.Md5] = result
 								offset[result.Md5] = result.Now
-								logs.LogError("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+								logs.LogError("*** %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 							case ErrFileMd5.ErrCode:
 								// 上传失败了
 								fallthrough
@@ -531,7 +531,7 @@ func multiUpload() {
 								removeMd5File(&MD5, result.Md5)
 								// 上传完成，删除临时文件
 								os.Remove(tmp_dir + result.Md5 + ".tmp")
-								logs.LogTrace("*** uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Url)
+								logs.LogTrace("*** %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Url)
 							}
 						}
 					}
@@ -589,7 +589,7 @@ func multiUpload() {
 			req.Header.Set("Connection", "keep-alive")
 			req.Header.Set("Keep-Alive", strings.Join([]string{"timeout=", strconv.Itoa(120)}, ""))
 			req.Header.Set("Content-Type", writer.FormDataContentType())
-			logs.LogInfo("request =>> %v %v[%v] %v uuid:%v", method, url, len(Filelist), Filelist, uuid)
+			logs.LogInfo("request =>> %v %v[%v] %v %v", method, url, len(Filelist), Filelist, uuid)
 			/// request
 			res, err := client.Do(req)
 			if err != nil {
@@ -620,7 +620,7 @@ func multiUpload() {
 					fallthrough
 				case ErrParsePartData.ErrCode:
 					// 需要继续重试
-					logs.LogError("--- uuid:%v %v", resp.Uuid, resp.ErrMsg)
+					logs.LogError("--- %v %v", resp.Uuid, resp.ErrMsg)
 					continue
 				}
 				// 读取每个文件上传状态数据
@@ -641,10 +641,10 @@ func multiUpload() {
 					case ErrParamsAllTotalLimit.ErrCode:
 						fallthrough
 					case ErrRepeat.ErrCode:
-						logs.LogError("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+						logs.LogError("--- %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 					// 上传成功(分段续传)，继续读取文件剩余字节继续上传
 					case ErrSegOk.ErrCode:
-						logs.LogError("--- uuid:%v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
+						logs.LogError("--- %v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 						if result.Now <= 0 {
 							break
 						}
@@ -673,7 +673,7 @@ func multiUpload() {
 					case ErrCheckReUpload.ErrCode:
 						// 校正需要重传
 						offset[result.Md5] = result.Now
-						logs.LogError("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
+						logs.LogError("--- %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 					case ErrFileMd5.ErrCode:
 						// 上传失败了
 						fallthrough
@@ -682,7 +682,7 @@ func multiUpload() {
 						removeMd5File(&MD5, result.Md5)
 						// 上传完成，删除临时文件
 						os.Remove(tmp_dir + result.Md5 + ".tmp")
-						logs.LogTrace("--- uuid:%v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Url)
+						logs.LogTrace("--- %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Url)
 					}
 				}
 			}
