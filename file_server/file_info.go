@@ -84,7 +84,15 @@ func NewFileInfo(uuid, md5, Filename string, total int64) FileInfo {
 	return s
 }
 
+func (s *Fileinfo) reset() {
+	if s.oss != nil {
+		s.oss.Put()
+		s.oss = nil
+	}
+}
+
 func (s *Fileinfo) Put() {
+	s.reset()
 	fileinfos.Put(s)
 }
 
