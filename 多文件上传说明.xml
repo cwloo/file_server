@@ -20,6 +20,19 @@
     <input type="submit" value="提交" />
 </form>
 
+
+<!-- 前端处理逻辑 -->
+
+<!-- 1. ErrFileMd5.ErrCode表示上传失败。-->
+
+<!-- 2. ErrOk.ErrCode表示上传成功。-->
+
+<!-- 3. ErrSegOk.ErrCode表示上传分段成功，拿到now值继续传。-->
+
+<!-- 4. ErrCheckReUpload.ErrCode表示校正需要重传，拿到now值继续传。-->
+
+<!-- 5. 其他错误没有返回now值，offset值还是之前的值不变，继续从offset位置读文件继续传。因为有些未知错误，服务端不知道是哪个文件，所以无法返回now值。-->
+
 --4cdb2ae6a249aca16578da6484d6012836d0a2d1198e15ec3653aa9488bf
 Content-Disposition: form-data; name=\"uuid\"
 9uas4ljy-ttb3-ttb3-vx93-vx93lbnod0za
