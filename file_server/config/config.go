@@ -44,6 +44,7 @@ type IniConfig struct {
 
 	TgBot_ChatId int64
 	TgBot_Token  string
+	UseTgBot     int
 }
 
 func readIni(filename string) (c *IniConfig) {
@@ -78,6 +79,7 @@ func readIni(filename string) (c *IniConfig) {
 	c.WriteFile = ini.GetInt("upload", "writeFile")
 	c.MultiFile = ini.GetInt("upload", "multiFile")
 	c.UseAsync = ini.GetInt("upload", "useAsync")
+	c.UseTgBot = ini.GetInt("upload", "useTgBot")
 	str := ini.GetString("upload", "maxMemory")
 	slice := strings.Split(str, "*")
 	val := int64(1)
@@ -136,7 +138,7 @@ func readIni(filename string) (c *IniConfig) {
 }
 
 func InitConfig() {
-	Config = readIni("conf.ini")
+	Config = readIni("config/conf.ini")
 	if Config == nil {
 		logs.LogFatal("error")
 	}

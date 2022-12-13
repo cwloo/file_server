@@ -29,6 +29,9 @@ func TgErrMsg(msgs ...string) {
 }
 
 func tgBotMsg(alert string, msgs ...string) {
+	if TgBot == nil {
+		return
+	}
 	for _, msg := range msgs {
 		smsg := tgbotapi.NewMessage(config.Config.TgBot_ChatId, strings.Join([]string{alert, msg}, ""))
 		TgBot.Send(smsg)

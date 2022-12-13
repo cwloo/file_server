@@ -158,5 +158,8 @@ func Init() {
 	MaxTotalSize = config.Config.MaxTotalSize
 	PendingTimeout = config.Config.PendingTimeout
 	FileExpiredTimeout = config.Config.FileExpiredTimeout
-	TgBot = NewTgBot(config.Config.TgBot_Token)
+	if config.Config.UseTgBot > 0 {
+		// 中国大陆这里可能因为被墙了卡住
+		TgBot = NewTgBot(config.Config.TgBot_Token)
+	}
 }
