@@ -7,6 +7,7 @@ import (
 
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
+	"github.com/cwloo/uploader/file_server/global"
 )
 
 // <summary>
@@ -14,7 +15,7 @@ import (
 // <summary>
 type Uploader interface {
 	Get() time.Time
-	Upload(req *Req)
+	Upload(req *global.Req)
 	Remove(md5 string)
 	Clear()
 	Close()

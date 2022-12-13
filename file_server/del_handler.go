@@ -7,8 +7,11 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/cwloo/gonet/logs"
+	"github.com/cwloo/uploader/file_server/config"
+	"github.com/cwloo/uploader/file_server/global"
 )
 
 func delCache(delType int, md5 string) {
@@ -18,7 +21,7 @@ func delCache(delType int, md5 string) {
 		fileInfos.RemoveWithCond(md5, func(info FileInfo) bool {
 			return !info.Done(false)
 		}, func(info FileInfo) {
-			os.Remove(dir_upload + info.DstName())
+			os.Remove(config.Config.UploadlDir + info.DstName())
 			uploaders.Get(info.Uuid()).Remove(md5)
 			info.Put()
 		})
@@ -30,31 +33,31 @@ func delCache(delType int, md5 string) {
 			}
 			return false
 		}, func(info FileInfo) {
-			os.Remove(dir_upload + info.DstName())
+			os.Remove(config.Config.UploadlDir + info.DstName())
 			info.Put()
 		})
 	}
 }
 
-func handlerJsonReq(body []byte) (*DelResp, bool) {
+func handlerJsonReq(body []byte) (*global.DelResp, bool) {
 	if len(body) == 0 {
-		return &DelResp{ErrCode: 3, ErrMsg: "no body"}, false
+		return &global.DelResp{ErrCode: 3, ErrMsg: "no body"}, false
 	}
 	logs.LogWarn("%v", string(body))
-	req := DelReq{}
+	req := global.DelReq{}
 	err := json.Unmarshal(body, &req)
 	if err != nil {
 		logs.LogError(err.Error())
-		return &DelResp{ErrCode: 4, ErrMsg: "parse body error"}, false
+		return &global.DelResp{ErrCode: 4, ErrMsg: "parse body error"}, false
 	}
 	if req.Type != 1 && req.Type != 2 && req.Md5 == "" && len(req.Md5) != 32 {
-		return &DelResp{Type: req.Type, Md5: req.Md5, ErrCode: 1, ErrMsg: "parse param error"}, false
+		return &global.DelResp{Type: req.Type, Md5: req.Md5, ErrCode: 1, ErrMsg: "parse param error"}, false
 	}
 	delCache(req.Type, req.Md5)
-	return &DelResp{Type: req.Type, Md5: req.Md5, ErrCode: 0, ErrMsg: "ok"}, true
+	return &global.DelResp{Type: req.Type, Md5: req.Md5, ErrCode: 0, ErrMsg: "ok"}, true
 }
 
-func handlerQuery(query url.Values) (*DelResp, bool) {
+func handlerQuery(query url.Values) (*global.DelResp, bool) {
 	var delType int
 	var md5 string
 	if query.Has("type") && len(query["type"]) > 0 {
@@ -64,22 +67,22 @@ func handlerQuery(query url.Values) (*DelResp, bool) {
 		md5 = query["md5"][0]
 	}
 	if delType != 1 && delType != 2 && md5 == "" && len(md5) != 32 {
-		return &DelResp{Type: delType, Md5: md5, ErrCode: 1, ErrMsg: "parse param error"}, false
+		return &global.DelResp{Type: delType, Md5: md5, ErrCode: 1, ErrMsg: "parse param error"}, false
 	}
 	delCache(delType, md5)
-	return &DelResp{Type: delType, Md5: md5, ErrCode: 0, ErrMsg: "ok"}, true
+	return &global.DelResp{Type: delType, Md5: md5, ErrCode: 0, ErrMsg: "ok"}, true
 }
 
 func handlerDelCache(w http.ResponseWriter, r *http.Request) {
 	logs.LogInfo("%v %v %#v", r.Method, r.URL.String(), r.Header)
-	switch r.Method {
+	switch strings.ToUpper(r.Method) {
 	case "POST":
 		switch r.Header.Get("Content-Type") {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
 				logs.LogError(err.Error())
-				resp := &DelResp{ErrCode: 2, ErrMsg: "read body error"}
+				resp := &global.DelResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return
 			}
@@ -95,7 +98,23 @@ func handlerDelCache(w http.ResponseWriter, r *http.Request) {
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
 				logs.LogError(err.Error())
-				resp := &DelResp{ErrCode: 2, ErrMsg: "read body error"}
+				resp := &global.DelResp{ErrCode: 2, ErrMsg: "read body error"}
+				writeResponse(w, r, resp)
+				return
+			}
+			resp, _ := handlerJsonReq(body)
+			writeResponse(w, r, resp)
+		default:
+			resp, _ := handlerQuery(r.URL.Query())
+			writeResponse(w, r, resp)
+		}
+	case "OPTIONS":
+		switch r.Header.Get("Content-Type") {
+		case "application/json":
+			body, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				logs.LogError(err.Error())
+				resp := &global.DelResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return
 			}

@@ -3,6 +3,8 @@ package main
 import (
 	"mime/multipart"
 	"strconv"
+
+	"github.com/cwloo/uploader/file_server/config"
 )
 
 func checkUUID(uuid string) bool {
@@ -20,7 +22,7 @@ func checkSingle(total string) bool {
 		return false
 	}
 	size, _ := strconv.ParseInt(total, 10, 0)
-	if size <= 0 || size >= MaxSingleSize {
+	if size <= 0 || size >= config.Config.MaxSingleSize {
 		return false
 	}
 	return true
@@ -39,7 +41,7 @@ func checkOffset(offset, total string) bool {
 }
 
 func checkTotal(total int64) bool {
-	return total < MaxTotalSize
+	return total < config.Config.MaxTotalSize
 }
 
 func checkMultiPartSize(header *multipart.FileHeader) bool {
@@ -47,5 +49,5 @@ func checkMultiPartSize(header *multipart.FileHeader) bool {
 }
 
 func checkMultiPartSizeLimit(header *multipart.FileHeader) bool {
-	return header.Size < MaxSegmentSize
+	return header.Size < config.Config.MaxSegmentSize
 }

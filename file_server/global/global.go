@@ -1,4 +1,4 @@
-package main
+package global
 
 import (
 	"net/http"
@@ -6,22 +6,19 @@ import (
 	"path/filepath"
 
 	"github.com/cwloo/gonet/core/base/cc"
-	"github.com/cwloo/uploader/file_server/config"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 var (
-	TgBot              *tgbotapi.BotAPI                      //tg机器人通知
-	CheckMd5                            = true               //上传完毕是否校验文件完整性
-	WriteFile                           = false              //上传文件是否缓存服务器本地
-	MultiFile                           = false              //一次可以上传多个文件
-	UseAsyncUploader                    = true               //使用异步上传方式
-	MaxMemory          int64            = 1024 * 1024 * 1024 //multipart缓存限制
-	MaxSegmentSize     int64            = 1024 * 1024 * 20   //单个文件分片上传限制
-	MaxSingleSize      int64            = 1024 * 1024 * 1024 //单个文件上传大小限制
-	MaxTotalSize       int64            = 1024 * 1024 * 1024 //单次上传文件总大小限制
-	PendingTimeout                      = 30                 //定期清理未决的上传任务，即前端上传能暂停的最长时间
-	FileExpiredTimeout                  = 120                //定期清理长期未访问已上传文件记录
+// CheckMd5                 = true               //上传完毕是否校验文件完整性
+// WriteFile                = false              //上传文件是否缓存服务器本地
+// MultiFile                = false              //一次可以上传多个文件
+// UseAsyncUploader         = true               //使用异步上传方式
+// MaxMemory          int64 = 1024 * 1024 * 1024 //multipart缓存限制
+// MaxSegmentSize     int64 = 1024 * 1024 * 20   //单个文件分片上传限制
+// MaxSingleSize      int64 = 1024 * 1024 * 1024 //单个文件上传大小限制
+// MaxTotalSize       int64 = 1024 * 1024 * 1024 //单次上传文件总大小限制
+// PendingTimeout           = 30                 //定期清理未决的上传任务，即前端上传能暂停的最长时间
+// FileExpiredTimeout       = 120                //定期清理长期未访问已上传文件记录
 )
 
 var (
@@ -41,34 +38,32 @@ var (
 	ErrParamsSegSizeZero   = ErrorMsg{13, "upload multipart form-data size zero"} //上传form-data数据字节大小为0             --上传失败
 	ErrMultiFileNotSupport = ErrorMsg{14, "upload multifiles not supported"}      //MultiFile为false时，一次只能上传一个文件
 	path, _                = os.Executable()                                      //
-	dir, exe               = filepath.Split(path)                                 //
-	dir_upload             = dir + "upload/"                                      //上传服务端本地目录，末尾要加上'/'
-	i32                    = cc.NewI32()
-	fileInfos              = NewFileInfos()
-	uploaders              = NewSessionToHandler()
+	Dir, Exe               = filepath.Split(path)                                 //
+	Dir_upload             = Dir + "upload/"                                      //上传服务端本地目录，末尾要加上'/'
+	I32                    = cc.NewI32()
 )
 
 // <summary>
 // ErrorMsg
 // <summary>
 type ErrorMsg struct {
-	ErrCode int    `json:"code,omitempty"`
-	ErrMsg  string `json:"errmsg,omitempty"`
+	ErrCode int    `json:"code" form:"code"`
+	ErrMsg  string `json:"errmsg" form:"errmsg"`
 }
 
 // <summary>
 // Req
 // <summary>
 type Req struct {
-	uuid   string
-	md5    string
-	offset string
-	total  string
-	keys   []string
-	w      http.ResponseWriter
-	r      *http.Request
-	resp   *Resp
-	result []Result
+	Uuid   string
+	Md5    string
+	Offset string
+	Total  string
+	Keys   []string
+	W      http.ResponseWriter
+	R      *http.Request
+	Resp   *Resp
+	Result []Result
 }
 
 // <summary>
@@ -87,8 +82,8 @@ type DelReq struct {
 type DelResp struct {
 	Type    int    `json:"type,omitempty"`
 	Md5     string `json:"md5,omitempty"`
-	ErrCode int    `json:"code,omitempty"`
-	ErrMsg  string `json:"errmsg,omitempty"`
+	ErrCode int    `json:"code" form:"code"`
+	ErrMsg  string `json:"errmsg" form:"errmsg"`
 }
 
 // <summary>
@@ -107,8 +102,31 @@ type FileInfoResp struct {
 	Md5     string `json:"md5,omitempty"`
 	Now     int64  `json:"now,omitempty"`
 	Total   int64  `json:"total,omitempty"`
-	ErrCode int    `json:"code,omitempty"`
-	ErrMsg  string `json:"errmsg,omitempty"`
+	ErrCode int    `json:"code" form:"code"`
+	ErrMsg  string `json:"errmsg" form:"errmsg"`
+}
+
+// <summary>
+// UpdateCfgReq
+// <summary>
+type UpdateCfgReq struct {
+	Interval           string `json:"interval,omitempty"`           //刷新配置间隔时间
+	MaxMemory          string `json:"maxMemory,omitempty"`          //multipart缓存限制
+	MaxSegmentSize     string `json:"maxSegmentSize,omitempty"`     //单个文件分片上传限制
+	MaxSingleSize      string `json:"maxSingleSize,omitempty"`      //单个文件上传大小限制
+	MaxTotalSize       string `json:"maxTotalSize,omitempty"`       //单次上传文件总大小限制
+	PendingTimeout     string `json:"pendingTimeout,omitempty"`     //定期清理未决的上传任务，即前端上传能暂停的最长时间
+	FileExpiredTimeout string `json:"fileExpiredTimeout,omitempty"` //定期清理长期未访问已上传文件记录
+	CheckMd5           string `json:"checkMd5,omitempty"`           //上传完毕是否校验文件完整性
+	WriteFile          string `json:"writeFile,omitempty"`          //上传文件是否缓存服务器本地
+}
+
+// <summary>
+// UpdateCfgResp
+// <summary>
+type UpdateCfgResp struct {
+	ErrCode int    `json:"code" form:"code"`
+	ErrMsg  string `json:"errmsg" form:"errmsg"`
 }
 
 // <summary>
@@ -116,9 +134,9 @@ type FileInfoResp struct {
 // <summary>
 type Resp struct {
 	Uuid    string      `json:"uuid,omitempty"`
-	ErrCode int         `json:"code,omitempty"`
-	ErrMsg  string      `json:"errmsg,omitempty"`
 	Data    interface{} `json:"data,omitempty"`
+	ErrCode int         `json:"code" form:"code"`
+	ErrMsg  string      `json:"errmsg" form:"errmsg"`
 }
 
 // <summary>
@@ -128,38 +146,11 @@ type Result struct {
 	Uuid    string `json:"uuid,omitempty"`
 	File    string `json:"file,omitempty"`
 	Md5     string `json:"md5,omitempty"`
-	Now     int64  `json:"now,omitempty"`
-	Total   int64  `json:"total,omitempty"`
+	Now     int64  `json:"now" form:"now"`
+	Total   int64  `json:"total" form:"total"`
 	Expired int64  `json:"expired,omitempty"`
-	ErrCode int    `json:"code,omitempty"`
-	ErrMsg  string `json:"errmsg,omitempty"`
+	ErrCode int    `json:"code" form:"code"`
+	ErrMsg  string `json:"errmsg" form:"errmsg"`
 	Message string `json:"message,omitempty"`
 	Url     string `json:"url,omitempty"`
-}
-
-func Init() {
-	if config.Config.UploadlDir != "" {
-		dir_upload = config.Config.UploadlDir
-	}
-	_, err := os.Stat(dir_upload)
-	if err != nil && os.IsNotExist(err) {
-		os.MkdirAll(dir_upload, os.ModePerm)
-	}
-	if config.Config.Log_dir == "" {
-		config.Config.Log_dir = dir + "logs"
-	}
-	CheckMd5 = config.Config.CheckMd5 > 0
-	WriteFile = config.Config.WriteFile > 0
-	MultiFile = config.Config.MultiFile > 0
-	UseAsyncUploader = config.Config.UseAsync > 0
-	MaxMemory = config.Config.MaxMemory
-	MaxSegmentSize = config.Config.MaxSegmentSize
-	MaxSingleSize = config.Config.MaxSingleSize
-	MaxTotalSize = config.Config.MaxTotalSize
-	PendingTimeout = config.Config.PendingTimeout
-	FileExpiredTimeout = config.Config.FileExpiredTimeout
-	if config.Config.UseTgBot > 0 {
-		// 中国大陆这里可能因为被墙了卡住
-		TgBot = NewTgBot(config.Config.TgBot_Token)
-	}
 }

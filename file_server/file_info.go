@@ -10,6 +10,8 @@ import (
 	"github.com/cwloo/gonet/logs"
 )
 
+var fileInfos = NewFileInfos()
+
 var (
 	fileinfos = sync.Pool{
 		New: func() any {

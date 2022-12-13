@@ -1,41 +1,32 @@
 package main
 
 import (
-	"encoding/json"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/cwloo/gonet/core/base/task"
 	"github.com/cwloo/gonet/core/cb"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/uploader/file_server/config"
+	"github.com/cwloo/uploader/file_server/global"
 )
 
 func Upload(w http.ResponseWriter, r *http.Request) {
-	switch MultiFile {
-	case true:
-		handlerMultiUpload(w, r)
+	switch config.Config.MultiFile {
 	default:
+		handlerMultiUpload(w, r)
+	case 0:
 		handlerUpload(w, r)
 	}
 }
 
 func Get(w http.ResponseWriter, r *http.Request) {
-	resp := &Resp{
-		ErrCode: 0,
-		ErrMsg:  "OK",
-	}
-	j, _ := json.Marshal(resp)
-	setResponseHeader(w, r)
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Content-Length", strconv.Itoa(len(j)))
-	_, err := w.Write(j)
-	if err != nil {
-		logs.LogError(err.Error())
-		return
-	}
-	logs.LogDebug("%v", string(j))
+	// resp := &Resp{
+	// 	ErrCode: 0,
+	// 	ErrMsg:  "OK",
+	// }
+	// writeResponse(w, r, resp)
+	handlerFileinfo(w, r)
 }
 
 func Del(w http.ResponseWriter, r *http.Request) {
@@ -46,24 +37,31 @@ func GetFileinfo(w http.ResponseWriter, r *http.Request) {
 	handlerFileinfo(w, r)
 }
 
+func UpdateConfig(w http.ResponseWriter, r *http.Request) {
+	handlerUpdateCfg(w, r)
+}
+
 func main() {
 	config.InitConfig()
-	Init()
 	// logs.LogTimezone(logs.MY_CST)
 	// logs.LogMode(logs.M_STDOUT_FILE)
 	// logs.LogStyle(logs.F_DETAIL)
-	// logs.LogInit(dir+"logs", logs.LVL_DEBUG, exe, 100000000)
+	// logs.LogInit(global.Dir+"logs", logs.LVL_DEBUG, global.Exe, 100000000)
 	logs.LogTimezone(logs.TimeZone(config.Config.Log_timezone))
 	logs.LogMode(logs.Mode(config.Config.Log_mode))
 	logs.LogStyle(logs.Style(config.Config.Log_style))
-	logs.LogInit(config.Config.Log_dir, int32(config.Config.Log_level), exe, 100000000)
+	logs.LogInit(config.Config.Log_dir, int32(config.Config.Log_level), global.Exe, 100000000)
 
-	task.After(time.Duration(PendingTimeout)*time.Second, cb.NewFunctor00(func() {
+	task.After(time.Duration(config.Config.PendingTimeout)*time.Second, cb.NewFunctor00(func() {
 		handlerPendingUploader()
 	}))
 
-	task.After(time.Duration(FileExpiredTimeout)*time.Second, cb.NewFunctor00(func() {
+	task.After(time.Duration(config.Config.FileExpiredTimeout)*time.Second, cb.NewFunctor00(func() {
 		handlerExpiredFile()
+	}))
+
+	task.After(time.Duration(config.Config.Interval)*time.Second, cb.NewFunctor00(func() {
+		handlerReadConfig()
 	}))
 
 	mux := http.NewServeMux()
@@ -71,14 +69,15 @@ func main() {
 	mux.HandleFunc(config.Config.GetPath, Get)
 	mux.HandleFunc(config.Config.DelPath, Del)
 	mux.HandleFunc(config.Config.FileinfoPath, GetFileinfo)
+	mux.HandleFunc(config.Config.UpdateCfgPath, UpdateConfig)
 
 	server := &http.Server{
 		Addr:              config.Config.HttpAddr,
 		Handler:           mux,
-		ReadTimeout:       time.Duration(PendingTimeout) * time.Second,
-		ReadHeaderTimeout: time.Duration(PendingTimeout) * time.Second,
-		WriteTimeout:      time.Duration(PendingTimeout) * time.Second,
-		IdleTimeout:       time.Duration(PendingTimeout) * time.Second,
+		ReadTimeout:       time.Duration(config.Config.PendingTimeout) * time.Second,
+		ReadHeaderTimeout: time.Duration(config.Config.PendingTimeout) * time.Second,
+		WriteTimeout:      time.Duration(config.Config.PendingTimeout) * time.Second,
+		IdleTimeout:       time.Duration(config.Config.PendingTimeout) * time.Second,
 	}
 
 	logs.LogInfo(server.Addr)

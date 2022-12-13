@@ -6,6 +6,8 @@ import (
 	"github.com/cwloo/gonet/logs"
 )
 
+var uploaders = NewSessionToHandler()
+
 // <summary>
 // SessionToHandler [uuid]=handler
 // <summary>

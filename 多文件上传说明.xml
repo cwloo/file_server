@@ -48,6 +48,12 @@ form-data; name=\"c5459c3b484665d272116b2a53d2c922\"; filename=\"nox_setup_v7.0.
 
 <!-- 5. 其他错误没有返回now值，offset值还是之前的值不变，继续从offset位置读文件继续传。因为有些未知错误，服务端不知道是哪个文件，所以无法返回now值。-->
 
+只有收到ErrSegOk.ErrCode和ErrCheckReUpload.ErrCode，才会更新offset值。
+
+其他情况都不要更新offset值。按照当前offset位置读取文件即可，继续上传。
+
+当offset < total 需要一直for循环操作，当offset>=total退出。
+
 <!-- 上传错误码 -->
 <!-- ErrOk                  = ErrorMsg{0, "Ok"}                                    //上传完成，并且成功
 <!-- ErrSegOk               = ErrorMsg{1, "upload file segment succ"}              //上传成功(分段续传)                         --需要继续分段上传剩余数据
@@ -64,10 +70,33 @@ form-data; name=\"c5459c3b484665d272116b2a53d2c922\"; filename=\"nox_setup_v7.0.
 <!-- ErrParseFormFile       = ErrorMsg{12, "parse multipart form-file err"}        //解析multipart form-file文件错误            --上传失败
 <!-- ErrParamsSegSizeZero   = ErrorMsg{13, "upload multipart form-data size zero"} //上传form-data数据字节大小为0               --上传失败
 
+<!-- 更新服务器配置 -->
+
+<!-- 服务器刷新配置间隔时间 -->
+http://192.168.0.113:8089/uploadapi/updateconfig?interval=5
+
+<!-- 单个文件分片上传限制 -->
+http://192.168.0.113:8089/uploadapi/updateconfig?maxSegmentSize= 1024 * 1024 * 1024
+
+<!-- 单个文件上传大小限制 -->
+http://192.168.0.113:8089/uploadapi/updateconfig?maxSingleSize= 1024 * 1024 * 1024
+
+<!-- 定期清理未决的上传任务，即前端上传能暂停的最长时间 -->
+http://192.168.0.113:8089/uploadapi/updateconfig?pendingTimeout= 1 * 15 * 60
+
+<!-- 定期清理长期未访问已上传文件记录 -->
+http://192.168.0.113:8089/uploadapi/updateconfig?fileExpiredTimeout= 1 * 30 * 60
+
+<!-- 上传完毕是否校验文件完整性 -->
+http://192.168.0.113:8089/uploadapi/updateconfig?checkMd5=0
+
+<!-- 上传文件是否缓存服务器本地 -->
+http://192.168.0.113:8089/uploadapi/updateconfig?writeFile=0
+
 <!-- 取消上传 -->
 <!-- 1-取消文件上传(移除未决的文件) 2-移除已上传的文件 -->
 
-https://qianapi.mmqian.top/uploadapi/delfile?type=1&md5=562a18c8d1554faa0aa61c3cb594993e
+https://192.168.0.113:8089/uploadapi/delfile?type=1&md5=562a18c8d1554faa0aa61c3cb594993e
 
 type DelReq struct {
 	Type  int    `json:"type,omitempty"` <!-- 1-取消文件上传 2-移除已上传的文件 -->
@@ -84,7 +113,7 @@ type DelResp struct {
 
 <!-- 查询文件信息，ErrRepeat.ErrCode 时，针对用户上传某个文件，然后一直暂停，其他用户上传不了该文件的情况，调用该接口继续上传 -->
 
-https://qianapi.mmqian.top/uploadapi/fileinfo?md5=562a18c8d1554faa0aa61c3cb594993e
+https://192.168.0.113:8089/uploadapi/getfileinfo?md5=562a18c8d1554faa0aa61c3cb594993e
 
 type FileInfoReq struct {
 	Md5 string `json:"md5,omitempty"`

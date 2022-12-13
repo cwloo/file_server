@@ -2,14 +2,22 @@ package config
 
 import (
 	"flag"
+	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
+	"github.com/cwloo/uploader/file_server/global"
+	"github.com/cwloo/uploader/file_server/tg_bot"
 )
 
-var Config *IniConfig
+var (
+	Lock              = &sync.RWMutex{}
+	ini    *utils.Ini = &utils.Ini{}
+	Config *IniConfig
+)
 
 type IniConfig struct {
 	Flag                   int
@@ -23,6 +31,7 @@ type IniConfig struct {
 	GetPath                string
 	DelPath                string
 	FileinfoPath           string
+	UpdateCfgPath          string
 	CheckMd5               int
 	WriteFile              int
 	MultiFile              int
@@ -45,10 +54,10 @@ type IniConfig struct {
 	TgBot_ChatId int64
 	TgBot_Token  string
 	UseTgBot     int
+	Interval     int
 }
 
 func readIni(filename string) (c *IniConfig) {
-	ini := utils.Ini{}
 	if err := ini.Load(filename); err != nil {
 		logs.LogFatal(err.Error())
 	}
@@ -75,6 +84,7 @@ func readIni(filename string) (c *IniConfig) {
 	c.GetPath = ini.GetString("path", "get")
 	c.DelPath = ini.GetString("path", "del")
 	c.FileinfoPath = ini.GetString("path", "fileinfo")
+	c.UpdateCfgPath = ini.GetString("path", "updateconfig")
 	c.CheckMd5 = ini.GetInt("upload", "checkMd5")
 	c.WriteFile = ini.GetInt("upload", "writeFile")
 	c.MultiFile = ini.GetInt("upload", "multiFile")
@@ -134,11 +144,37 @@ func readIni(filename string) (c *IniConfig) {
 		val1 *= c
 	}
 	c.FileExpiredTimeout = val1
+	str = ini.GetString("flag", "interval")
+	slice = strings.Split(str, "*")
+	val1 = 1
+	for _, v := range slice {
+		v = strings.ReplaceAll(v, " ", "")
+		c, _ := strconv.Atoi(v)
+		val1 *= c
+	}
+	c.Interval = val1
 	return
 }
 
+func Init() {
+	if Config.UploadlDir == "" {
+		Config.UploadlDir = global.Dir_upload
+	}
+	_, err := os.Stat(Config.UploadlDir)
+	if err != nil && os.IsNotExist(err) {
+		os.MkdirAll(Config.UploadlDir, os.ModePerm)
+	}
+	if Config.Log_dir == "" {
+		Config.Log_dir = global.Dir + "logs"
+	}
+	if Config.UseTgBot > 0 {
+		// 中国大陆这里可能因为被墙了卡住
+		tg_bot.NewTgBot(Config.TgBot_Token, Config.TgBot_ChatId)
+	}
+}
+
 func InitConfig() {
-	Config = readIni("config/conf.ini")
+	Config = readIni("conf.ini")
 	if Config == nil {
 		logs.LogFatal("error")
 	}
@@ -147,4 +183,47 @@ func InitConfig() {
 		flag.Parse()
 	default:
 	}
+	Init()
+}
+
+func ReadConfig() {
+	Lock.Lock()
+	Config = readIni("conf.ini")
+	if Config == nil {
+		logs.LogFatal("error")
+	}
+	Lock.Unlock()
+}
+
+func UpdateConfig(req *global.UpdateCfgReq) {
+	Lock.Lock()
+	if req.Interval != "" {
+		ini.SetString("flag", "interval", req.Interval)
+	}
+	if req.MaxMemory != "" {
+		ini.SetString("upload", "maxMemory", req.MaxMemory)
+	}
+	if req.MaxSegmentSize != "" {
+		ini.SetString("upload", "maxSegmentSize", req.MaxSegmentSize)
+	}
+	if req.MaxSingleSize != "" {
+		ini.SetString("upload", "maxSingleSize", req.MaxSingleSize)
+	}
+	if req.MaxTotalSize != "" {
+		ini.SetString("upload", "maxTotalSize", req.MaxTotalSize)
+	}
+	if req.PendingTimeout != "" {
+		ini.SetString("upload", "pendingTimeout", req.PendingTimeout)
+	}
+	if req.FileExpiredTimeout != "" {
+		ini.SetString("upload", "fileExpiredTimeout", req.FileExpiredTimeout)
+	}
+	if req.CheckMd5 != "" {
+		ini.SetString("upload", "checkMd5", req.CheckMd5)
+	}
+	if req.WriteFile != "" {
+		ini.SetString("upload", "writeFile", req.WriteFile)
+	}
+	ini.SaveTo("conf.ini")
+	Lock.Unlock()
 }

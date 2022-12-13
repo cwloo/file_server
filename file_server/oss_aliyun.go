@@ -11,6 +11,7 @@ import (
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/uploader/file_server/config"
+	"github.com/cwloo/uploader/file_server/tg_bot"
 )
 
 var (
@@ -38,7 +39,7 @@ func NewAliyun(info FileInfo) OSS {
 	if err != nil {
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "NewBucket:", err.Error()}, "")
 		logs.LogError(errMsg)
-		TgErrMsg(errMsg)
+		tg_bot.TgErrMsg(errMsg)
 		return aliyums.Get().(*Aliyun)
 	}
 	yunPath := strings.Join([]string{config.Config.Aliyun_BasePath, "/uploads/", info.Date(), "/", info.YunName()}, "")
@@ -46,7 +47,7 @@ func NewAliyun(info FileInfo) OSS {
 	if err != nil {
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "InitiateMultipartUpload:", err.Error()}, "")
 		logs.LogError(errMsg)
-		TgErrMsg(errMsg)
+		tg_bot.TgErrMsg(errMsg)
 		return aliyums.Get().(*Aliyun)
 	}
 	s := aliyums.Get().(*Aliyun)
@@ -66,10 +67,10 @@ func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader) (string
 	case true:
 		switch uploadFromFile {
 		case true:
-			switch WriteFile {
-			case true:
-				return s.uploadFromFile(info, header)
+			switch config.Config.WriteFile {
 			default:
+				return s.uploadFromFile(info, header)
+			case 0:
 				return s.uploadFromHeader(info, header)
 			}
 		default:
@@ -86,7 +87,7 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader) (
 	if err != nil {
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "Open:", err.Error()}, "")
 		logs.LogError(errMsg)
-		TgErrMsg(errMsg)
+		tg_bot.TgErrMsg(errMsg)
 		return "", "", err
 	}
 	s.num++
@@ -96,7 +97,7 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader) (
 		_ = part.Close()
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "UploadPart:", err.Error()}, "")
 		logs.LogError(errMsg)
-		TgErrMsg(errMsg)
+		tg_bot.TgErrMsg(errMsg)
 		return "", "", err
 	}
 	_ = part.Close()
@@ -108,7 +109,7 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader) (
 		if err != nil {
 			errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "CompleteMultipartUpload:", err.Error()}, "")
 			logs.LogError(errMsg)
-			TgErrMsg(errMsg)
+			tg_bot.TgErrMsg(errMsg)
 			s.reset()
 			return "", "", err
 		}
@@ -122,12 +123,12 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader) (
 
 func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader) (string, string, error) {
 	yunPath := ""
-	f := dir_upload + info.DstName()
+	f := config.Config.UploadlDir + info.DstName()
 	fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 	if err != nil {
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "OpenFile:", err.Error()}, "")
 		logs.LogError(errMsg)
-		TgErrMsg(errMsg)
+		tg_bot.TgErrMsg(errMsg)
 		return "", "", err
 	}
 	// _, err = fd.Seek(info.Now()-header.Size, io.SeekStart)
@@ -136,7 +137,7 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader) (st
 		_ = fd.Close()
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "Seek:", err.Error()}, "")
 		logs.LogError(errMsg)
-		TgErrMsg(errMsg)
+		tg_bot.TgErrMsg(errMsg)
 		return "", "", err
 	}
 	s.num++
@@ -147,7 +148,7 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader) (st
 		_ = fd.Close()
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "UploadPart:", err.Error()}, "")
 		logs.LogError(errMsg)
-		TgErrMsg(errMsg)
+		tg_bot.TgErrMsg(errMsg)
 		return "", "", err
 	}
 	_ = fd.Close()
@@ -159,7 +160,7 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader) (st
 		if err != nil {
 			errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "CompleteMultipartUpload:", err.Error()}, "")
 			logs.LogError(errMsg)
-			TgErrMsg(errMsg)
+			tg_bot.TgErrMsg(errMsg)
 			s.reset()
 			return "", "", err
 		}
