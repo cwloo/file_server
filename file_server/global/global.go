@@ -9,16 +9,16 @@ import (
 )
 
 var (
-// CheckMd5                 = true               //上传完毕是否校验文件完整性
-// WriteFile                = false              //上传文件是否缓存服务器本地
-// MultiFile                = false              //一次可以上传多个文件
-// UseAsyncUploader         = true               //使用异步上传方式
-// MaxMemory          int64 = 1024 * 1024 * 1024 //multipart缓存限制
-// MaxSegmentSize     int64 = 1024 * 1024 * 20   //单个文件分片上传限制
-// MaxSingleSize      int64 = 1024 * 1024 * 1024 //单个文件上传大小限制
-// MaxTotalSize       int64 = 1024 * 1024 * 1024 //单次上传文件总大小限制
-// PendingTimeout           = 30                 //定期清理未决的上传任务，即前端上传能暂停的最长时间
-// FileExpiredTimeout       = 120                //定期清理长期未访问已上传文件记录
+	CheckMd5                 = true               //上传完毕是否校验文件完整性
+	WriteFile                = false              //上传文件是否缓存服务器本地
+	MultiFile                = false              //一次可以上传多个文件
+	UseAsyncUploader         = true               //使用异步上传方式
+	MaxMemory          int64 = 1024 * 1024 * 1024 //multipart缓存限制
+	MaxSegmentSize     int64 = 1024 * 1024 * 20   //单个文件分片上传限制
+	MaxSingleSize      int64 = 1024 * 1024 * 1024 //单个文件上传大小限制
+	MaxTotalSize       int64 = 1024 * 1024 * 1024 //单次上传文件总大小限制
+	PendingTimeout           = 30                 //定期清理未决的上传任务，即前端上传能暂停的最长时间
+	FileExpiredTimeout       = 120                //定期清理长期未访问已上传文件记录
 )
 
 var (
