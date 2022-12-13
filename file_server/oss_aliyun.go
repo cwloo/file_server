@@ -36,13 +36,17 @@ type Aliyun struct {
 func NewAliyun(info FileInfo) OSS {
 	bucket, err := NewBucket()
 	if err != nil {
-		logs.LogError(err.Error())
+		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "NewBucket:", err.Error()}, "")
+		logs.LogError(errMsg)
+		TgErrMsg(errMsg)
 		return aliyums.Get().(*Aliyun)
 	}
 	yunPath := strings.Join([]string{config.Config.Aliyun_BasePath, "/uploads/", info.Date(), "/", info.YunName()}, "")
 	imur, err := bucket.InitiateMultipartUpload(yunPath)
 	if err != nil {
-		logs.LogError(err.Error())
+		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "InitiateMultipartUpload:", err.Error()}, "")
+		logs.LogError(errMsg)
+		TgErrMsg(errMsg)
 		return aliyums.Get().(*Aliyun)
 	}
 	s := aliyums.Get().(*Aliyun)
