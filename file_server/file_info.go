@@ -27,14 +27,14 @@ type CheckCallback func(FileInfo) (time.Time, bool)
 type FileInfo interface {
 	Uuid() string
 	Md5() string
-	Now() int64
-	Total() int64
 	SrcName() string
 	DstName() string
 	YunName() string
 	Date() string
 	Assert()
 	Update(int64, SegmentCallback, CheckCallback) (done, ok bool, url string, start time.Time)
+	Now(lock bool) int64
+	Total(lock bool) int64
 	Done(lock bool) bool
 	Ok(lock bool) (bool, string)
 	Url(lock bool) string
@@ -104,12 +104,28 @@ func (s *Fileinfo) Md5() string {
 	return s.md5
 }
 
-func (s *Fileinfo) Now() int64 {
-	return s.now
+func (s *Fileinfo) Now(lock bool) int64 {
+	switch lock {
+	case true:
+		s.l.RLock()
+		now := s.now
+		s.l.RUnlock()
+		return now
+	default:
+		return s.now
+	}
 }
 
-func (s *Fileinfo) Total() int64 {
-	return s.total
+func (s *Fileinfo) Total(lock bool) int64 {
+	switch lock {
+	case true:
+		s.l.RLock()
+		total := s.total
+		s.l.RUnlock()
+		return total
+	default:
+		return s.total
+	}
 }
 
 func (s *Fileinfo) SrcName() string {

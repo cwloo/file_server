@@ -75,8 +75,10 @@ type Req struct {
 // DelReq
 // <summary>
 type DelReq struct {
-	Type int    `json:"type,omitempty"` // 1-移除未决的文件 2-移除已上传的文件
-	Md5  string `json:"md5,omitempty"`
+	Type  int    `json:"type,omitempty"` // 1-取消文件上传(移除未决的文件) 2-移除已上传的文件
+	Md5   string `json:"md5,omitempty"`
+	Uuid  string `json:"uuid,omitempty"`
+	Check bool   `json:"check,omitempty"` // 是否校验uuid
 }
 
 // <summary>
@@ -85,6 +87,26 @@ type DelReq struct {
 type DelResp struct {
 	Type    int    `json:"type,omitempty"`
 	Md5     string `json:"md5,omitempty"`
+	ErrCode int    `json:"code,omitempty"`
+	ErrMsg  string `json:"errmsg,omitempty"`
+}
+
+// <summary>
+// FileInfoReq
+// <summary>
+type FileInfoReq struct {
+	Md5 string `json:"md5,omitempty"`
+}
+
+// <summary>
+// FileInfoResp
+// <summary>
+type FileInfoResp struct {
+	Uuid    string `json:"uuid,omitempty"`
+	File    string `json:"file,omitempty"`
+	Md5     string `json:"md5,omitempty"`
+	Now     int64  `json:"now,omitempty"`
+	Total   int64  `json:"total,omitempty"`
 	ErrCode int    `json:"code,omitempty"`
 	ErrMsg  string `json:"errmsg,omitempty"`
 }

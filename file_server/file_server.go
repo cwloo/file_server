@@ -42,6 +42,10 @@ func Del(w http.ResponseWriter, r *http.Request) {
 	handlerDelCache(w, r)
 }
 
+func GetFileinfo(w http.ResponseWriter, r *http.Request) {
+	handlerFileinfo(w, r)
+}
+
 func main() {
 	config.InitConfig()
 	Init()
@@ -66,6 +70,7 @@ func main() {
 	mux.HandleFunc(config.Config.UploadPath, Upload)
 	mux.HandleFunc(config.Config.GetPath, Get)
 	mux.HandleFunc(config.Config.DelPath, Del)
+	mux.HandleFunc(config.Config.FileinfoPath, GetFileinfo)
 
 	server := &http.Server{
 		Addr:              config.Config.HttpAddr,

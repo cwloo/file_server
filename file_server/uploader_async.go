@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -242,26 +241,26 @@ func (s *AsyncUploader) uploading(req *Req) {
 			logs.LogFatal("%v %v(%v) md5:%v", info.Uuid(), info.SrcName(), info.Md5(), req.md5)
 		}
 		////// 校验数据大小
-		if req.total != strconv.FormatInt(info.Total(), 10) {
+		if req.total != strconv.FormatInt(info.Total(true), 10) {
 			logs.LogFatal("%v %v(%v) info.total:%v total:%v", info.Uuid, info.SrcName, info.Md5, info.Total, req.total)
 		}
 		////// 校验文件offset
-		if req.offset != strconv.FormatInt(info.Now(), 10) {
+		if req.offset != strconv.FormatInt(info.Now(true), 10) {
 			result = append(result,
 				Result{
 					Uuid:    info.Uuid(),
 					File:    info.SrcName(),
 					Md5:     info.Md5(),
-					Now:     info.Now(),
-					Total:   info.Total(),
+					Now:     info.Now(true),
+					Total:   info.Total(true),
 					Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
 					ErrCode: ErrCheckReUpload.ErrCode,
 					ErrMsg:  ErrCheckReUpload.ErrMsg,
-					Message: strings.Join([]string{info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10), "/", req.total}, ""),
+					Message: strings.Join([]string{info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10), "/", req.total}, ""),
 				})
-			// logs.LogError("%v %v(%v) %v/%v offset:%v", info.Uuid(), info.SrcName(), info.Md5(), info.Now(), info.Total(), req.offset)
+			// logs.LogError("%v %v(%v) %v/%v offset:%v", info.Uuid(), info.SrcName(), info.Md5(), info.Now(true), info.Total(true), req.offset)
 			offset_n, _ := strconv.ParseInt(req.offset, 10, 0)
-			logs.LogDebug("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), header.Filename, req.md5, info.Now(), req.total, offset_n, header.Size)
+			logs.LogDebug("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), header.Filename, req.md5, info.Now(true), req.total, offset_n, header.Size)
 			continue
 		}
 		////// 检查上传目录
@@ -277,7 +276,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 			if err != nil && os.IsNotExist(err) {
 			} else {
 				/// 第一次写如果文件存在则删除
-				if info.Now() == int64(0) {
+				if info.Now(true) == int64(0) {
 					os.Remove(f)
 					logs.LogFatal("error")
 				}
@@ -289,16 +288,16 @@ func (s *AsyncUploader) uploading(req *Req) {
 						Uuid:    info.Uuid(),
 						File:    info.SrcName(),
 						Md5:     info.Md5(),
-						Now:     info.Now(),
-						Total:   info.Total(),
+						Now:     info.Now(true),
+						Total:   info.Total(true),
 						Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
 						ErrCode: ErrCheckReUpload.ErrCode,
 						ErrMsg:  ErrCheckReUpload.ErrMsg,
-						Message: strings.Join([]string{info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10), "/", req.total}, ""),
+						Message: strings.Join([]string{info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10), "/", req.total}, ""),
 					})
 				logs.LogError(err.Error())
 				offset_n, _ := strconv.ParseInt(req.offset, 10, 0)
-				logs.LogDebug("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), header.Filename, req.md5, info.Now(), req.total, offset_n, header.Size)
+				logs.LogDebug("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), header.Filename, req.md5, info.Now(true), req.total, offset_n, header.Size)
 				continue
 			}
 			fd.Seek(0, io.SeekEnd)
@@ -309,12 +308,12 @@ func (s *AsyncUploader) uploading(req *Req) {
 						Uuid:    info.Uuid(),
 						File:    info.SrcName(),
 						Md5:     info.Md5(),
-						Now:     info.Now(),
-						Total:   info.Total(),
+						Now:     info.Now(true),
+						Total:   info.Total(true),
 						Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
 						ErrCode: ErrCheckReUpload.ErrCode,
 						ErrMsg:  ErrCheckReUpload.ErrMsg,
-						Message: strings.Join([]string{info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10), "/", req.total}, ""),
+						Message: strings.Join([]string{info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10), "/", req.total}, ""),
 					})
 				logs.LogError(err.Error())
 				err = fd.Close()
@@ -322,7 +321,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 					logs.LogError(err.Error())
 				}
 				offset_n, _ := strconv.ParseInt(req.offset, 10, 0)
-				logs.LogDebug("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), header.Filename, req.md5, info.Now(), req.total, offset_n, header.Size)
+				logs.LogDebug("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), header.Filename, req.md5, info.Now(true), req.total, offset_n, header.Size)
 				continue
 			}
 			err = fd.Close()
@@ -359,7 +358,7 @@ func (s *AsyncUploader) uploading(req *Req) {
 		})
 		if done {
 			s.setDone(info.Md5())
-			logs.LogDebug("%v %v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, header.Filename, req.md5, info.DstName(), info.Now(), req.total, header.Size)
+			logs.LogDebug("%v %v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, header.Filename, req.md5, info.DstName(), info.Now(true), req.total, header.Size)
 			if ok {
 				// fileInfos.Remove(info.Md5()).Put()
 				result = append(result,
@@ -367,12 +366,12 @@ func (s *AsyncUploader) uploading(req *Req) {
 						Uuid:    req.uuid,
 						File:    header.Filename,
 						Md5:     info.Md5(),
-						Now:     info.Now(),
-						Total:   info.Total(),
+						Now:     info.Now(true),
+						Total:   info.Total(true),
 						ErrCode: ErrOk.ErrCode,
 						ErrMsg:  ErrOk.ErrMsg,
 						Url:     url,
-						Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + req.total + " 上传成功!"}, "")})
+						Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10) + "/" + req.total + " 上传成功!"}, "")})
 				logs.LogWarn("%v %v[%v] %v chkmd5 [ok] %v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), url, time.Since(start).Milliseconds())
 				TgSuccMsg(fmt.Sprintf("%v\n%v[%v]\n%v chkmd5 [ok]\n%v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), url, time.Since(start).Milliseconds()))
 			} else {
@@ -383,11 +382,11 @@ func (s *AsyncUploader) uploading(req *Req) {
 						Uuid:    req.uuid,
 						File:    header.Filename,
 						Md5:     info.Md5(),
-						Now:     info.Now(),
-						Total:   info.Total(),
+						Now:     info.Now(true),
+						Total:   info.Total(true),
 						ErrCode: ErrFileMd5.ErrCode,
 						ErrMsg:  ErrFileMd5.ErrMsg,
-						Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + req.total + " 上传完毕 MD5校验失败!"}, "")})
+						Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10) + "/" + req.total + " 上传完毕 MD5校验失败!"}, "")})
 				logs.LogError("%v %v[%v] %v chkmd5 [Err] elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), time.Since(start).Milliseconds())
 				TgErrMsg(fmt.Sprintf("%v\n%v[%v]\n%v chkmd5 [Err] elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), time.Since(start).Milliseconds()))
 			}
@@ -397,16 +396,16 @@ func (s *AsyncUploader) uploading(req *Req) {
 					Uuid:    req.uuid,
 					File:    header.Filename,
 					Md5:     info.Md5(),
-					Now:     info.Now(),
-					Total:   info.Total(),
+					Now:     info.Now(true),
+					Total:   info.Total(true),
 					Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
 					ErrCode: ErrSegOk.ErrCode,
 					ErrMsg:  ErrSegOk.ErrMsg,
-					Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + req.total}, "")})
-			if info.Now() == header.Size {
-				logs.LogTrace("%v %v[%v] %v ==>>> %v/%v +%v first_segment", req.uuid, header.Filename, req.md5, info.DstName(), info.Now(), req.total, header.Size)
+					Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10) + "/" + req.total}, "")})
+			if info.Now(true) == header.Size {
+				logs.LogTrace("%v %v[%v] %v ==>>> %v/%v +%v first_segment", req.uuid, header.Filename, req.md5, info.DstName(), info.Now(true), req.total, header.Size)
 			} else {
-				logs.LogWarn("%v %v[%v] %v ==>>> %v/%v +%v continue_segment", req.uuid, header.Filename, req.md5, info.DstName(), info.Now(), req.total, header.Size)
+				logs.LogWarn("%v %v[%v] %v ==>>> %v/%v +%v continue_segment", req.uuid, header.Filename, req.md5, info.DstName(), info.Now(true), req.total, header.Size)
 			}
 		}
 	}
@@ -422,28 +421,13 @@ func (s *AsyncUploader) uploading(req *Req) {
 		}
 	}
 	if resp != nil {
-		j, _ := json.Marshal(resp)
-		setResponseHeader(req.w, req.r)
-		req.w.Header().Set("Content-Type", "application/json")
-		req.w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 		/// http.ResponseWriter 生命周期原因，不支持异步，所以加了 notify
-		_, err := req.w.Write(j)
-		if err != nil {
-			logs.LogError(err.Error())
-		}
+		writeResponse(req.w, req.r, resp)
 		s.notify()
 		// logs.LogError("%v %v", req.uuid, string(j))
 	} else {
-		resp = &Resp{}
-		j, _ := json.Marshal(resp)
-		setResponseHeader(req.w, req.r)
-		req.w.Header().Set("Content-Type", "application/json")
-		req.w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 		/// http.ResponseWriter 生命周期原因，不支持异步，所以加了 notify
-		_, err := req.w.Write(j)
-		if err != nil {
-			logs.LogError(err.Error())
-		}
+		writeResponse(req.w, req.r, &Resp{})
 		s.notify()
 		logs.LogFatal("%v", req.uuid)
 	}
@@ -481,26 +465,26 @@ func (s *AsyncUploader) multi_uploading(req *Req) {
 			logs.LogFatal("%v %v(%v) md5:%v", info.Uuid(), info.SrcName(), info.Md5(), md5)
 		}
 		////// 校验数据大小
-		if total != strconv.FormatInt(info.Total(), 10) {
+		if total != strconv.FormatInt(info.Total(true), 10) {
 			logs.LogFatal("%v %v(%v) info.total:%v total:%v", info.Uuid, info.SrcName, info.Md5, info.Total, total)
 		}
 		////// 校验文件offset
-		if offset != strconv.FormatInt(info.Now(), 10) {
+		if offset != strconv.FormatInt(info.Now(true), 10) {
 			result = append(result,
 				Result{
 					Uuid:    info.Uuid(),
 					File:    info.SrcName(),
 					Md5:     info.Md5(),
-					Now:     info.Now(),
-					Total:   info.Total(),
+					Now:     info.Now(true),
+					Total:   info.Total(true),
 					Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
 					ErrCode: ErrCheckReUpload.ErrCode,
 					ErrMsg:  ErrCheckReUpload.ErrMsg,
-					Message: strings.Join([]string{info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10), "/", total}, ""),
+					Message: strings.Join([]string{info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10), "/", total}, ""),
 				})
-			// logs.LogError("%v %v(%v) %v/%v offset:%v", info.Uuid(), info.SrcName(), info.Md5(), info.Now(), info.Total(), offset)
+			// logs.LogError("%v %v(%v) %v/%v offset:%v", info.Uuid(), info.SrcName(), info.Md5(), info.Now(true), info.Total(true), offset)
 			offset_n, _ := strconv.ParseInt(offset, 10, 0)
-			logs.LogDebug("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), header.Filename, md5, info.Now(), total, offset_n, header.Size)
+			logs.LogDebug("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), header.Filename, md5, info.Now(true), total, offset_n, header.Size)
 			continue
 		}
 		////// 检查上传目录
@@ -516,7 +500,7 @@ func (s *AsyncUploader) multi_uploading(req *Req) {
 			if err != nil && os.IsNotExist(err) {
 			} else {
 				/// 第一次写如果文件存在则删除
-				if info.Now() == int64(0) {
+				if info.Now(true) == int64(0) {
 					os.Remove(f)
 					logs.LogFatal("error")
 				}
@@ -528,16 +512,16 @@ func (s *AsyncUploader) multi_uploading(req *Req) {
 						Uuid:    info.Uuid(),
 						File:    info.SrcName(),
 						Md5:     info.Md5(),
-						Now:     info.Now(),
-						Total:   info.Total(),
+						Now:     info.Now(true),
+						Total:   info.Total(true),
 						Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
 						ErrCode: ErrCheckReUpload.ErrCode,
 						ErrMsg:  ErrCheckReUpload.ErrMsg,
-						Message: strings.Join([]string{info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10), "/", total}, ""),
+						Message: strings.Join([]string{info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10), "/", total}, ""),
 					})
 				logs.LogError(err.Error())
 				offset_n, _ := strconv.ParseInt(offset, 10, 0)
-				logs.LogDebug("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), header.Filename, md5, info.Now(), total, offset_n, header.Size)
+				logs.LogDebug("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), header.Filename, md5, info.Now(true), total, offset_n, header.Size)
 				continue
 			}
 			fd.Seek(0, io.SeekEnd)
@@ -548,12 +532,12 @@ func (s *AsyncUploader) multi_uploading(req *Req) {
 						Uuid:    info.Uuid(),
 						File:    info.SrcName(),
 						Md5:     info.Md5(),
-						Now:     info.Now(),
-						Total:   info.Total(),
+						Now:     info.Now(true),
+						Total:   info.Total(true),
 						Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
 						ErrCode: ErrCheckReUpload.ErrCode,
 						ErrMsg:  ErrCheckReUpload.ErrMsg,
-						Message: strings.Join([]string{info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10), "/", total}, ""),
+						Message: strings.Join([]string{info.Uuid(), " check reuploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10), "/", total}, ""),
 					})
 				logs.LogError(err.Error())
 				err = fd.Close()
@@ -561,7 +545,7 @@ func (s *AsyncUploader) multi_uploading(req *Req) {
 					logs.LogError(err.Error())
 				}
 				offset_n, _ := strconv.ParseInt(offset, 10, 0)
-				logs.LogDebug("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), header.Filename, md5, info.Now(), total, offset_n, header.Size)
+				logs.LogDebug("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), header.Filename, md5, info.Now(true), total, offset_n, header.Size)
 				continue
 			}
 			err = fd.Close()
@@ -598,7 +582,7 @@ func (s *AsyncUploader) multi_uploading(req *Req) {
 		})
 		if done {
 			s.setDone(info.Md5())
-			logs.LogDebug("%v %v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, header.Filename, md5, info.DstName(), info.Now(), total, header.Size)
+			logs.LogDebug("%v %v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, header.Filename, md5, info.DstName(), info.Now(true), total, header.Size)
 			if ok {
 				// fileInfos.Remove(info.Md5()).Put()
 				result = append(result,
@@ -606,12 +590,12 @@ func (s *AsyncUploader) multi_uploading(req *Req) {
 						Uuid:    req.uuid,
 						File:    header.Filename,
 						Md5:     info.Md5(),
-						Now:     info.Now(),
-						Total:   info.Total(),
+						Now:     info.Now(true),
+						Total:   info.Total(true),
 						ErrCode: ErrOk.ErrCode,
 						ErrMsg:  ErrOk.ErrMsg,
 						Url:     url,
-						Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + total + " 上传成功!"}, "")})
+						Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10) + "/" + total + " 上传成功!"}, "")})
 				logs.LogWarn("%v %v[%v] %v chkmd5 [ok] %v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), url, time.Since(start).Milliseconds())
 				TgSuccMsg(fmt.Sprintf("%v\n%v[%v]\n%v chkmd5 [ok]\n%v elapsed:%vms", req.uuid, header.Filename, req.md5, info.DstName(), url, time.Since(start).Milliseconds()))
 			} else {
@@ -622,11 +606,11 @@ func (s *AsyncUploader) multi_uploading(req *Req) {
 						Uuid:    req.uuid,
 						File:    header.Filename,
 						Md5:     info.Md5(),
-						Now:     info.Now(),
-						Total:   info.Total(),
+						Now:     info.Now(true),
+						Total:   info.Total(true),
 						ErrCode: ErrFileMd5.ErrCode,
 						ErrMsg:  ErrFileMd5.ErrMsg,
-						Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + total + " 上传完毕 MD5校验失败!"}, "")})
+						Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10) + "/" + total + " 上传完毕 MD5校验失败!"}, "")})
 				logs.LogError("%v %v[%v] %v chkmd5 [Err] elapsed:%vms", req.uuid, header.Filename, md5, info.DstName(), time.Since(start).Milliseconds())
 				TgErrMsg(fmt.Sprintf("%v\n%v[%v]\n%v chkmd5 [Err] elapsed:%vms", req.uuid, header.Filename, md5, info.DstName(), time.Since(start).Milliseconds()))
 			}
@@ -636,16 +620,16 @@ func (s *AsyncUploader) multi_uploading(req *Req) {
 					Uuid:    req.uuid,
 					File:    header.Filename,
 					Md5:     info.Md5(),
-					Now:     info.Now(),
-					Total:   info.Total(),
+					Now:     info.Now(true),
+					Total:   info.Total(true),
 					Expired: s.Get().Add(time.Duration(PendingTimeout) * time.Second).Unix(),
 					ErrCode: ErrSegOk.ErrCode,
 					ErrMsg:  ErrSegOk.ErrMsg,
-					Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(), 10) + "/" + total}, "")})
-			if info.Now() == header.Size {
-				logs.LogTrace("%v %v[%v] %v ==>>> %v/%v +%v first_segment", req.uuid, header.Filename, md5, info.DstName(), info.Now(), total, header.Size)
+					Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10) + "/" + total}, "")})
+			if info.Now(true) == header.Size {
+				logs.LogTrace("%v %v[%v] %v ==>>> %v/%v +%v first_segment", req.uuid, header.Filename, md5, info.DstName(), info.Now(true), total, header.Size)
 			} else {
-				logs.LogWarn("%v %v[%v] %v ==>>> %v/%v +%v continue_segment", req.uuid, header.Filename, md5, info.DstName(), info.Now(), total, header.Size)
+				logs.LogWarn("%v %v[%v] %v ==>>> %v/%v +%v continue_segment", req.uuid, header.Filename, md5, info.DstName(), info.Now(true), total, header.Size)
 			}
 		}
 	}
@@ -661,28 +645,13 @@ func (s *AsyncUploader) multi_uploading(req *Req) {
 		}
 	}
 	if resp != nil {
-		j, _ := json.Marshal(resp)
-		setResponseHeader(req.w, req.r)
-		req.w.Header().Set("Content-Type", "application/json")
-		req.w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 		/// http.ResponseWriter 生命周期原因，不支持异步，所以加了 notify
-		_, err := req.w.Write(j)
-		if err != nil {
-			logs.LogError(err.Error())
-		}
+		writeResponse(req.w, req.r, resp)
 		s.notify()
 		// logs.LogError("%v %v", req.uuid, string(j))
 	} else {
-		resp = &Resp{}
-		j, _ := json.Marshal(resp)
-		setResponseHeader(req.w, req.r)
-		req.w.Header().Set("Content-Type", "application/json")
-		req.w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 		/// http.ResponseWriter 生命周期原因，不支持异步，所以加了 notify
-		_, err := req.w.Write(j)
-		if err != nil {
-			logs.LogError(err.Error())
-		}
+		writeResponse(req.w, req.r, &Resp{})
 		s.notify()
 		logs.LogFatal("%v", req.uuid)
 	}

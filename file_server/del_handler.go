@@ -14,7 +14,7 @@ import (
 func delCache(delType int, md5 string) {
 	switch delType {
 	case 1:
-		// 1-移除未决的文件
+		// 1-取消文件上传(移除未决的文件)
 		fileInfos.RemoveWithCond(md5, func(info FileInfo) bool {
 			return !info.Done(false)
 		}, func(info FileInfo) {
@@ -72,44 +72,38 @@ func handlerQuery(query url.Values) (*DelResp, bool) {
 
 func handlerDelCache(w http.ResponseWriter, r *http.Request) {
 	logs.LogInfo("%v %v %#v", r.Method, r.URL.String(), r.Header)
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		logs.LogError(err.Error())
-		resp := &DelResp{ErrCode: 2, ErrMsg: "read body error"}
-		reponse(w, r, resp)
-		return
-	}
 	switch r.Method {
 	case "POST":
 		switch r.Header.Get("Content-Type") {
 		case "application/json":
+			body, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				logs.LogError(err.Error())
+				resp := &DelResp{ErrCode: 2, ErrMsg: "read body error"}
+				writeResponse(w, r, resp)
+				return
+			}
 			resp, _ := handlerJsonReq(body)
-			reponse(w, r, resp)
+			writeResponse(w, r, resp)
 		default:
 			resp, _ := handlerQuery(r.URL.Query())
-			reponse(w, r, resp)
+			writeResponse(w, r, resp)
 		}
 	case "GET":
 		switch r.Header.Get("Content-Type") {
 		case "application/json":
+			body, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				logs.LogError(err.Error())
+				resp := &DelResp{ErrCode: 2, ErrMsg: "read body error"}
+				writeResponse(w, r, resp)
+				return
+			}
 			resp, _ := handlerJsonReq(body)
-			reponse(w, r, resp)
+			writeResponse(w, r, resp)
 		default:
 			resp, _ := handlerQuery(r.URL.Query())
-			reponse(w, r, resp)
+			writeResponse(w, r, resp)
 		}
 	}
-}
-
-func reponse(w http.ResponseWriter, r *http.Request, resp *DelResp) {
-	j, _ := json.Marshal(resp)
-	setResponseHeader(w, r)
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Content-Length", strconv.Itoa(len(j)))
-	_, err := w.Write(j)
-	if err != nil {
-		logs.LogError(err.Error())
-		return
-	}
-	logs.LogDebug("%v", string(j))
 }
