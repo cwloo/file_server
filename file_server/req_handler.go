@@ -13,9 +13,9 @@ import (
 
 func setResponseHeader(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token, Authorization, Token,X-Token,X-User-Id,C-Token,cz-sdk-key,cz-sdk-sign")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token,Authorization,Token,X-Token,X-User-Id,C-Token,cz-sdk-key,cz-sdk-sign")
 	w.Header().Set("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE,PUT")
-	w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers,Access-Control-Request-Headers,Access-Control-Request-Method, Content-Type, New-Token, New-Expires-At,New-C-Token, New-C-Expires-At")
+	w.Header().Set("Access-Control-Expose-Headers", "Content-Length,Access-Control-Allow-Origin,Access-Control-Allow-Headers,Access-Control-Request-Headers,Access-Control-Request-Method,Content-Type,New-Token,New-Expires-At,New-C-Token,New-C-Expires-At")
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	w.Header().Set("Host", r.Header.Get("Host"))
