@@ -25,8 +25,7 @@ var (
 // <summary>
 type SyncUploader struct {
 	uuid string
-	file map[string]bool
-	l    *sync.RWMutex
+	data Data
 	tm   time.Time
 	l_tm *sync.RWMutex
 }
@@ -34,15 +33,14 @@ type SyncUploader struct {
 func NewSyncUploader(uuid string) Uploader {
 	s := syncUploaders.Get().(*SyncUploader)
 	s.uuid = uuid
+	s.data = NewUploaderData()
 	s.tm = time.Now()
-	s.file = map[string]bool{}
-	s.l = &sync.RWMutex{}
 	s.l_tm = &sync.RWMutex{}
 	return s
 }
 
 func (s *SyncUploader) reset() {
-	s.file = nil
+	s.data.Put()
 }
 
 func (s *SyncUploader) Put() {
@@ -51,15 +49,15 @@ func (s *SyncUploader) Put() {
 }
 
 func (s *SyncUploader) update() {
-	s.l.Lock()
+	s.l_tm.Lock()
 	s.tm = time.Now()
-	s.l.Unlock()
+	s.l_tm.Unlock()
 }
 
 func (s *SyncUploader) Get() time.Time {
-	s.l.RLock()
+	s.l_tm.RLock()
 	tm := s.tm
-	s.l.RUnlock()
+	s.l_tm.RUnlock()
 	return tm
 }
 
@@ -72,25 +70,14 @@ func (s *SyncUploader) NotifyClose() {
 }
 
 func (s *SyncUploader) Remove(md5 string) {
-	if s.remove(md5) && s.allDone() {
+	if s.data.Remove(md5) && s.data.AllDone() {
 		uploaders.Remove(s.uuid).Put()
 	}
 }
 
-func (s *SyncUploader) remove(md5 string) (ok bool) {
-	s.l.Lock()
-	_, ok = s.file[md5]
-	if ok {
-		delete(s.file, md5)
-	}
-	s.l.Unlock()
-	return
-}
-
 func (s *SyncUploader) Clear() {
 	msgs := []string{}
-	s.l.RLock()
-	for md5, ok := range s.file {
+	s.data.Range(func(md5 string, ok bool) {
 		if !ok {
 			////// 任务退出，移除未决的文件
 			fileInfos.RemoveWithCond(md5, func(info FileInfo) bool {
@@ -123,37 +110,8 @@ func (s *SyncUploader) Clear() {
 				info.Put()
 			})
 		}
-	}
-	s.l.RUnlock()
+	})
 	TgWarnMsg(msgs...)
-}
-
-func (s *SyncUploader) tryAdd(md5 string) {
-	s.l.Lock()
-	if _, ok := s.file[md5]; !ok {
-		s.file[md5] = false
-	}
-	s.l.Unlock()
-}
-
-func (s *SyncUploader) setDone(md5 string) {
-	s.l.Lock()
-	if _, ok := s.file[md5]; ok {
-		s.file[md5] = true
-	}
-	s.l.Unlock()
-}
-
-func (s *SyncUploader) allDone() bool {
-	s.l.RLock()
-	for _, v := range s.file {
-		if !v {
-			s.l.RUnlock()
-			return false
-		}
-	}
-	s.l.RUnlock()
-	return true
 }
 
 func (s *SyncUploader) Upload(req *Req) {
@@ -163,7 +121,7 @@ func (s *SyncUploader) Upload(req *Req) {
 	default:
 		s.uploading(req)
 	}
-	exit := s.allDone()
+	exit := s.data.AllDone()
 	if exit {
 		logs.LogTrace("--------------------- ****** 无待上传文件，结束任务 %v ...", s.uuid)
 		uploaders.Remove(s.uuid).Put()
@@ -175,7 +133,7 @@ func (s *SyncUploader) uploading(req *Req) {
 	resp := req.resp
 	result := req.result
 	for _, k := range req.keys {
-		s.tryAdd(req.md5)
+		s.data.TryAdd(req.md5)
 		part, header, err := req.r.FormFile(k)
 		if err != nil {
 			logs.LogError(err.Error())
@@ -314,7 +272,7 @@ func (s *SyncUploader) uploading(req *Req) {
 			}
 		})
 		if done {
-			s.setDone(info.Md5())
+			s.data.SetDone(info.Md5())
 			logs.LogDebug("%v %v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, header.Filename, req.md5, info.DstName(), info.Now(true), req.total, header.Size)
 			if ok {
 				// fileInfos.Remove(info.Md5()).Put()
@@ -396,7 +354,7 @@ func (s *SyncUploader) multi_uploading(req *Req) {
 		offset := req.r.FormValue(k + ".offset")
 		total := req.r.FormValue(k + ".total")
 		md5 := strings.ToLower(k)
-		s.tryAdd(md5)
+		s.data.TryAdd(md5)
 		part, header, err := req.r.FormFile(k)
 		if err != nil {
 			logs.LogError(err.Error())
@@ -535,7 +493,7 @@ func (s *SyncUploader) multi_uploading(req *Req) {
 			}
 		})
 		if done {
-			s.setDone(info.Md5())
+			s.data.SetDone(info.Md5())
 			logs.LogDebug("%v %v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, header.Filename, md5, info.DstName(), info.Now(true), total, header.Size)
 			if ok {
 				// fileInfos.Remove(info.Md5()).Put()
