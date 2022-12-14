@@ -220,8 +220,8 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 					logs.LogFatal("%v %v(%v) md5:%v", info.Uuid, info.SrcName, info.Md5, md5)
 				}
 				////// 校验数据大小
-				if total != strconv.FormatInt(info.Total(true), 10) {
-					logs.LogFatal("%v %v(%v) info.total:%v total:%v", info.Uuid(), info.SrcName(), info.Md5(), info.Total(true), total)
+				if total != strconv.FormatInt(info.Total(false), 10) {
+					logs.LogFatal("%v %v(%v) info.total:%v total:%v", info.Uuid(), info.SrcName(), info.Md5(), info.Total(false), total)
 				}
 				if info.Done(true) {
 					if ok, url := info.Ok(true); ok {
@@ -233,7 +233,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 								File:    header.Filename,
 								Md5:     info.Md5(),
 								Now:     info.Now(true),
-								Total:   info.Total(true),
+								Total:   info.Total(false),
 								ErrCode: global.ErrOk.ErrCode,
 								ErrMsg:  global.ErrOk.ErrMsg,
 								Url:     url,
@@ -248,7 +248,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 								File:    header.Filename,
 								Md5:     info.Md5(),
 								Now:     info.Now(true),
-								Total:   info.Total(true),
+								Total:   info.Total(false),
 								ErrCode: global.ErrFileMd5.ErrCode,
 								ErrMsg:  global.ErrFileMd5.ErrMsg,
 								Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10) + "/" + total + " 上传完毕 MD5校验失败!"}, "")})
@@ -270,7 +270,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 								File:    header.Filename,
 								Md5:     info.Md5(),
 								Now:     info.Now(true),
-								Total:   info.Total(true),
+								Total:   info.Total(false),
 								ErrCode: global.ErrOk.ErrCode,
 								ErrMsg:  global.ErrOk.ErrMsg,
 								Url:     url,
@@ -285,7 +285,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 								File:    header.Filename,
 								Md5:     info.Md5(),
 								Now:     info.Now(true),
-								Total:   info.Total(true),
+								Total:   info.Total(false),
 								ErrCode: global.ErrFileMd5.ErrCode,
 								ErrMsg:  global.ErrFileMd5.ErrMsg,
 								Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10) + "/" + total + " 别人上传完毕 MD5校验失败!"}, "")})
@@ -506,8 +506,8 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 					logs.LogFatal("%v %v(%v) md5:%v", info.Uuid, info.SrcName, info.Md5, md5)
 				}
 				////// 校验数据大小
-				if total != strconv.FormatInt(info.Total(true), 10) {
-					logs.LogFatal("%v %v(%v) info.total:%v total:%v", info.Uuid(), info.SrcName(), info.Md5(), info.Total(true), total)
+				if total != strconv.FormatInt(info.Total(false), 10) {
+					logs.LogFatal("%v %v(%v) info.total:%v total:%v", info.Uuid(), info.SrcName(), info.Md5(), info.Total(false), total)
 				}
 				if info.Done(true) {
 					if ok, url := info.Ok(true); ok {
@@ -519,7 +519,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 								File:    header.Filename,
 								Md5:     info.Md5(),
 								Now:     info.Now(true),
-								Total:   info.Total(true),
+								Total:   info.Total(false),
 								ErrCode: global.ErrOk.ErrCode,
 								ErrMsg:  global.ErrOk.ErrMsg,
 								Url:     url,
@@ -534,7 +534,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 								File:    header.Filename,
 								Md5:     info.Md5(),
 								Now:     info.Now(true),
-								Total:   info.Total(true),
+								Total:   info.Total(false),
 								ErrCode: global.ErrFileMd5.ErrCode,
 								ErrMsg:  global.ErrFileMd5.ErrMsg,
 								Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10) + "/" + total + " 上传完毕 MD5校验失败!"}, "")})
@@ -556,7 +556,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 								File:    header.Filename,
 								Md5:     info.Md5(),
 								Now:     info.Now(true),
-								Total:   info.Total(true),
+								Total:   info.Total(false),
 								ErrCode: global.ErrOk.ErrCode,
 								ErrMsg:  global.ErrOk.ErrMsg,
 								Url:     url,
@@ -571,7 +571,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 								File:    header.Filename,
 								Md5:     info.Md5(),
 								Now:     info.Now(true),
-								Total:   info.Total(true),
+								Total:   info.Total(false),
 								ErrCode: global.ErrFileMd5.ErrCode,
 								ErrMsg:  global.ErrFileMd5.ErrMsg,
 								Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10) + "/" + total + " 别人上传完毕 MD5校验失败!"}, "")})
