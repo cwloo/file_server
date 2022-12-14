@@ -16,3 +16,6 @@
 * $ SET GOOS=linux
 * $ SET GOARCH=amd64
 * $ GOOS=linux GOARCH=amd64 go build
+
+
+![image](https://github.com/cwloo/gonet/blob/master/tool/res/uploader.png)
