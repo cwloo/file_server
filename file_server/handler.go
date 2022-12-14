@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/cwloo/gonet/logs"
@@ -85,7 +85,7 @@ func RemovePendingFile(uuid, md5 string) (msg string, ok bool) {
 		}
 		return true
 	}, func(info FileInfo) {
-		msg = fmt.Sprintf("%v\n%v[%v]\n%v [Err]", info.Uuid(), info.SrcName(), md5, info.DstName())
+		msg = strings.Join([]string{"RemovePendingFile\n", info.Uuid(), "\n", info.SrcName(), "[", md5, "]\n", info.DstName(), "\n", info.YunName()}, "")
 		os.Remove(config.Config.UploadlDir + info.DstName())
 		info.Put()
 	})
@@ -104,7 +104,7 @@ func RemoveCheckErrFile(uuid, md5 string) (msg string, ok bool) {
 		ok, _ := info.Ok(false)
 		return !ok
 	}, func(info FileInfo) {
-		msg = fmt.Sprintf("%v\n%v[%v]\n%v chkmd5 [Err]", info.Uuid(), info.SrcName(), md5, info.DstName())
+		msg = strings.Join([]string{"RemoveCheckErrFile\n", info.Uuid(), "\n", info.SrcName(), "[", md5, "]\n", info.DstName(), "\n", info.YunName()}, "")
 		os.Remove(config.Config.UploadlDir + info.DstName())
 		info.Put()
 	})
