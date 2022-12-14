@@ -5,41 +5,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 
 	"github.com/cwloo/gonet/logs"
-	"github.com/cwloo/uploader/file_server/config"
 	"github.com/cwloo/uploader/file_server/global"
 )
 
-func delCache(delType int, md5 string) {
-	switch delType {
-	case 1:
-		// 1-取消文件上传(移除未决的文件)
-		fileInfos.RemoveWithCond(md5, func(info FileInfo) bool {
-			return !info.Done(false)
-		}, func(info FileInfo) {
-			os.Remove(config.Config.UploadlDir + info.DstName())
-			uploaders.Get(info.Uuid()).Remove(md5)
-			info.Put()
-		})
-	case 2:
-		// 2-移除已上传的文件
-		fileInfos.RemoveWithCond(md5, func(info FileInfo) bool {
-			if ok, _ := info.Ok(false); ok {
-				return true
-			}
-			return false
-		}, func(info FileInfo) {
-			os.Remove(config.Config.UploadlDir + info.DstName())
-			info.Put()
-		})
-	}
-}
-
-func handlerJsonReq(body []byte) (*global.DelResp, bool) {
+func handlerCacheFileJsonReq(body []byte) (*global.DelResp, bool) {
 	if len(body) == 0 {
 		return &global.DelResp{ErrCode: 3, ErrMsg: "no body"}, false
 	}
@@ -53,11 +26,11 @@ func handlerJsonReq(body []byte) (*global.DelResp, bool) {
 	if req.Type != 1 && req.Type != 2 && req.Md5 == "" && len(req.Md5) != 32 {
 		return &global.DelResp{Type: req.Type, Md5: req.Md5, ErrCode: 1, ErrMsg: "parse param error"}, false
 	}
-	delCache(req.Type, req.Md5)
+	DelCacheFile(req.Type, req.Md5)
 	return &global.DelResp{Type: req.Type, Md5: req.Md5, ErrCode: 0, ErrMsg: "ok"}, true
 }
 
-func handlerQuery(query url.Values) (*global.DelResp, bool) {
+func handlerCacheFileQuery(query url.Values) (*global.DelResp, bool) {
 	var delType int
 	var md5 string
 	if query.Has("type") && len(query["type"]) > 0 {
@@ -69,11 +42,11 @@ func handlerQuery(query url.Values) (*global.DelResp, bool) {
 	if delType != 1 && delType != 2 && md5 == "" && len(md5) != 32 {
 		return &global.DelResp{Type: delType, Md5: md5, ErrCode: 1, ErrMsg: "parse param error"}, false
 	}
-	delCache(delType, md5)
+	DelCacheFile(delType, md5)
 	return &global.DelResp{Type: delType, Md5: md5, ErrCode: 0, ErrMsg: "ok"}, true
 }
 
-func handlerDelCache(w http.ResponseWriter, r *http.Request) {
+func handlerDelCacheFile(w http.ResponseWriter, r *http.Request) {
 	logs.LogInfo("%v %v %#v", r.Method, r.URL.String(), r.Header)
 	switch strings.ToUpper(r.Method) {
 	case "POST":
@@ -86,10 +59,10 @@ func handlerDelCache(w http.ResponseWriter, r *http.Request) {
 				writeResponse(w, r, resp)
 				return
 			}
-			resp, _ := handlerJsonReq(body)
+			resp, _ := handlerCacheFileJsonReq(body)
 			writeResponse(w, r, resp)
 		default:
-			resp, _ := handlerQuery(r.URL.Query())
+			resp, _ := handlerCacheFileQuery(r.URL.Query())
 			writeResponse(w, r, resp)
 		}
 	case "GET":
@@ -102,10 +75,10 @@ func handlerDelCache(w http.ResponseWriter, r *http.Request) {
 				writeResponse(w, r, resp)
 				return
 			}
-			resp, _ := handlerJsonReq(body)
+			resp, _ := handlerCacheFileJsonReq(body)
 			writeResponse(w, r, resp)
 		default:
-			resp, _ := handlerQuery(r.URL.Query())
+			resp, _ := handlerCacheFileQuery(r.URL.Query())
 			writeResponse(w, r, resp)
 		}
 	case "OPTIONS":
@@ -118,10 +91,10 @@ func handlerDelCache(w http.ResponseWriter, r *http.Request) {
 				writeResponse(w, r, resp)
 				return
 			}
-			resp, _ := handlerJsonReq(body)
+			resp, _ := handlerCacheFileJsonReq(body)
 			writeResponse(w, r, resp)
 		default:
-			resp, _ := handlerQuery(r.URL.Query())
+			resp, _ := handlerCacheFileQuery(r.URL.Query())
 			writeResponse(w, r, resp)
 		}
 	}

@@ -11,22 +11,7 @@ import (
 	"github.com/cwloo/uploader/file_server/global"
 )
 
-func queryFileinfoCache(md5 string) (*global.FileInfoResp, bool) {
-	info := fileInfos.Get(md5)
-	if info == nil {
-		return &global.FileInfoResp{Md5: md5, ErrCode: 5, ErrMsg: "not found"}, false
-	}
-	return &global.FileInfoResp{
-		Uuid:    info.Uuid(),
-		File:    info.SrcName(),
-		Md5:     md5,
-		Now:     info.Now(false),
-		Total:   info.Total(false),
-		ErrCode: 0,
-		ErrMsg:  "ok"}, true
-}
-
-func handlerFileinfoJsonReq(body []byte) (*global.FileInfoResp, bool) {
+func handlerFileJsonReq(body []byte) (*global.FileInfoResp, bool) {
 	if len(body) == 0 {
 		return &global.FileInfoResp{ErrCode: 3, ErrMsg: "no body"}, false
 	}
@@ -40,10 +25,10 @@ func handlerFileinfoJsonReq(body []byte) (*global.FileInfoResp, bool) {
 	if req.Md5 == "" && len(req.Md5) != 32 {
 		return &global.FileInfoResp{Md5: req.Md5, ErrCode: 1, ErrMsg: "parse param error"}, false
 	}
-	return queryFileinfoCache(req.Md5)
+	return QueryFileinfoCache(req.Md5)
 }
 
-func handlerFileinfoQuery(query url.Values) (*global.FileInfoResp, bool) {
+func handlerFileQuery(query url.Values) (*global.FileInfoResp, bool) {
 	var md5 string
 	if query.Has("md5") && len(query["md5"]) > 0 {
 		md5 = query["md5"][0]
@@ -51,7 +36,7 @@ func handlerFileinfoQuery(query url.Values) (*global.FileInfoResp, bool) {
 	if md5 == "" && len(md5) != 32 {
 		return &global.FileInfoResp{Md5: md5, ErrCode: 1, ErrMsg: "parse param error"}, false
 	}
-	return queryFileinfoCache(md5)
+	return QueryFileinfoCache(md5)
 }
 
 func handlerFileinfo(w http.ResponseWriter, r *http.Request) {
@@ -67,10 +52,10 @@ func handlerFileinfo(w http.ResponseWriter, r *http.Request) {
 				writeResponse(w, r, resp)
 				return
 			}
-			resp, _ := handlerFileinfoJsonReq(body)
+			resp, _ := handlerFileJsonReq(body)
 			writeResponse(w, r, resp)
 		default:
-			resp, _ := handlerFileinfoQuery(r.URL.Query())
+			resp, _ := handlerFileQuery(r.URL.Query())
 			writeResponse(w, r, resp)
 		}
 	case "GET":
@@ -83,10 +68,10 @@ func handlerFileinfo(w http.ResponseWriter, r *http.Request) {
 				writeResponse(w, r, resp)
 				return
 			}
-			resp, _ := handlerFileinfoJsonReq(body)
+			resp, _ := handlerFileJsonReq(body)
 			writeResponse(w, r, resp)
 		default:
-			resp, _ := handlerFileinfoQuery(r.URL.Query())
+			resp, _ := handlerFileQuery(r.URL.Query())
 			writeResponse(w, r, resp)
 		}
 	case "OPTIONS":
@@ -99,10 +84,10 @@ func handlerFileinfo(w http.ResponseWriter, r *http.Request) {
 				writeResponse(w, r, resp)
 				return
 			}
-			resp, _ := handlerFileinfoJsonReq(body)
+			resp, _ := handlerFileJsonReq(body)
 			writeResponse(w, r, resp)
 		default:
-			resp, _ := handlerFileinfoQuery(r.URL.Query())
+			resp, _ := handlerFileQuery(r.URL.Query())
 			writeResponse(w, r, resp)
 		}
 	}

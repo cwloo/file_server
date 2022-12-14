@@ -8,16 +8,8 @@ import (
 	"strings"
 
 	"github.com/cwloo/gonet/logs"
-	"github.com/cwloo/uploader/file_server/config"
 	"github.com/cwloo/uploader/file_server/global"
 )
-
-func updateCfg(req *global.UpdateCfgReq) (*global.UpdateCfgResp, bool) {
-	config.UpdateConfig(req)
-	return &global.UpdateCfgResp{
-		ErrCode: 0,
-		ErrMsg:  "ok"}, true
-}
 
 func handlerUpdateCfgJsonReq(body []byte) (*global.UpdateCfgResp, bool) {
 	if len(body) == 0 {
@@ -31,7 +23,7 @@ func handlerUpdateCfgJsonReq(body []byte) (*global.UpdateCfgResp, bool) {
 		return &global.UpdateCfgResp{ErrCode: 4, ErrMsg: "parse body error"}, false
 	}
 	logs.LogDebug("%#v", req)
-	return updateCfg(&req)
+	return UpdateCfg(&req)
 }
 
 func handlerUpdateCfgQuery(query url.Values) (*global.UpdateCfgResp, bool) {
@@ -64,7 +56,7 @@ func handlerUpdateCfgQuery(query url.Values) (*global.UpdateCfgResp, bool) {
 		req.WriteFile = query["writeFile"][0]
 	}
 	logs.LogDebug("%#v", req)
-	return updateCfg(req)
+	return UpdateCfg(req)
 }
 
 func handlerUpdateCfg(w http.ResponseWriter, r *http.Request) {

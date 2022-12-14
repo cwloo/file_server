@@ -30,7 +30,7 @@ func Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func Del(w http.ResponseWriter, r *http.Request) {
-	handlerDelCache(w, r)
+	handlerDelCacheFile(w, r)
 }
 
 func GetFileinfo(w http.ResponseWriter, r *http.Request) {

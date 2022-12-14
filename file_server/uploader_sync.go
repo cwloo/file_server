@@ -83,35 +83,14 @@ func (s *SyncUploader) Clear() {
 	s.data.Range(func(md5 string, ok bool) {
 		if !ok {
 			////// 任务退出，移除未决的文件
-			fileInfos.RemoveWithCond(md5, func(info FileInfo) bool {
-				if info.Uuid() != s.uuid {
-					logs.LogFatal("error")
-				}
-				if info.Done(false) {
-					logs.LogFatal("error")
-				}
-				return true
-			}, func(info FileInfo) {
-				msgs = append(msgs, fmt.Sprintf("%v\n%v[%v]\n%v [Err]", info.Uuid(), info.SrcName(), md5, info.DstName()))
-				os.Remove(config.Config.UploadlDir + info.DstName())
-				info.Put()
-			})
+			if msg, ok := RemovePendingFile(s.uuid, md5); ok {
+				msgs = append(msgs, msg)
+			}
 		} else {
 			////// 任务退出，移除校验失败的文件
-			fileInfos.RemoveWithCond(md5, func(info FileInfo) bool {
-				if info.Uuid() != s.uuid {
-					logs.LogFatal("error")
-				}
-				if !info.Done(false) {
-					logs.LogFatal("error")
-				}
-				ok, _ := info.Ok(false)
-				return !ok
-			}, func(info FileInfo) {
-				msgs = append(msgs, fmt.Sprintf("%v\n%v[%v]\n%v chkmd5 [Err]", info.Uuid(), info.SrcName(), md5, info.DstName()))
-				os.Remove(config.Config.UploadlDir + info.DstName())
-				info.Put()
-			})
+			if msg, ok := RemoveCheckErrFile(s.uuid, md5); ok {
+				msgs = append(msgs, msg)
+			}
 		}
 	})
 	tg_bot.TgWarnMsg(msgs...)
@@ -264,7 +243,7 @@ func (s *SyncUploader) uploading(req *global.Req) {
 			case true:
 				switch config.Config.CheckMd5 > 0 {
 				case true:
-					md5 := calFileMd5(f)
+					md5 := CalcFileMd5(f)
 					ok := md5 == info.Md5()
 					return start, ok
 				default:
@@ -485,7 +464,7 @@ func (s *SyncUploader) multi_uploading(req *global.Req) {
 			case true:
 				switch config.Config.CheckMd5 > 0 {
 				case true:
-					md5 := calFileMd5(f)
+					md5 := CalcFileMd5(f)
 					ok := md5 == info.Md5()
 					return start, ok
 				default:
