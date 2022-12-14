@@ -3,17 +3,17 @@ package main
 import "sync"
 
 var (
-	uploaderDatas = sync.Pool{
+	uploaderStates = sync.Pool{
 		New: func() any {
-			return &uploaderData{}
+			return &uploaderState{}
 		},
 	}
 )
 
 // <summary>
-// Data
+// State
 // <summary>
-type Data interface {
+type State interface {
 	TryAdd(md5 string)
 	SetDone(md5 string)
 	AllDone() bool
@@ -23,21 +23,21 @@ type Data interface {
 }
 
 // <summary>
-// uploaderData
+// uploaderState
 // <summary>
-type uploaderData struct {
+type uploaderState struct {
 	m map[string]bool
 	l *sync.RWMutex
 }
 
-func NewUploaderData() Data {
-	s := uploaderDatas.Get().(*uploaderData)
+func NewUploaderState() State {
+	s := uploaderStates.Get().(*uploaderState)
 	s.m = map[string]bool{}
 	s.l = &sync.RWMutex{}
 	return s
 }
 
-func (s *uploaderData) TryAdd(md5 string) {
+func (s *uploaderState) TryAdd(md5 string) {
 	s.l.Lock()
 	if _, ok := s.m[md5]; !ok {
 		s.m[md5] = false
@@ -45,7 +45,7 @@ func (s *uploaderData) TryAdd(md5 string) {
 	s.l.Unlock()
 }
 
-func (s *uploaderData) SetDone(md5 string) {
+func (s *uploaderState) SetDone(md5 string) {
 	s.l.Lock()
 	if _, ok := s.m[md5]; ok {
 		s.m[md5] = true
@@ -53,7 +53,7 @@ func (s *uploaderData) SetDone(md5 string) {
 	s.l.Unlock()
 }
 
-func (s *uploaderData) AllDone() bool {
+func (s *uploaderState) AllDone() bool {
 	s.l.RLock()
 	for _, v := range s.m {
 		if !v {
@@ -65,16 +65,16 @@ func (s *uploaderData) AllDone() bool {
 	return true
 }
 
-func (s *uploaderData) reset() {
+func (s *uploaderState) reset() {
 	s.m = nil
 }
 
-func (s *uploaderData) Put() {
+func (s *uploaderState) Put() {
 	s.reset()
-	uploaderDatas.Put(s)
+	uploaderStates.Put(s)
 }
 
-func (s *uploaderData) Remove(md5 string) (ok bool) {
+func (s *uploaderState) Remove(md5 string) (ok bool) {
 	s.l.Lock()
 	_, ok = s.m[md5]
 	if ok {
@@ -84,7 +84,7 @@ func (s *uploaderData) Remove(md5 string) (ok bool) {
 	return
 }
 
-func (s *uploaderData) Range(cb func(string, bool)) {
+func (s *uploaderState) Range(cb func(string, bool)) {
 	s.l.RLock()
 	for md5, ok := range s.m {
 		cb(md5, ok)

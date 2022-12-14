@@ -27,23 +27,23 @@ var (
 // SyncUploader 同步方式上传
 // <summary>
 type SyncUploader struct {
-	uuid string
-	data Data
-	tm   time.Time
-	l_tm *sync.RWMutex
+	uuid  string
+	state State
+	tm    time.Time
+	l_tm  *sync.RWMutex
 }
 
 func NewSyncUploader(uuid string) Uploader {
 	s := syncUploaders.Get().(*SyncUploader)
 	s.uuid = uuid
-	s.data = NewUploaderData()
+	s.state = NewUploaderState()
 	s.tm = time.Now()
 	s.l_tm = &sync.RWMutex{}
 	return s
 }
 
 func (s *SyncUploader) reset() {
-	s.data.Put()
+	s.state.Put()
 }
 
 func (s *SyncUploader) Put() {
@@ -73,14 +73,14 @@ func (s *SyncUploader) NotifyClose() {
 }
 
 func (s *SyncUploader) Remove(md5 string) {
-	if s.data.Remove(md5) && s.data.AllDone() {
+	if s.state.Remove(md5) && s.state.AllDone() {
 		uploaders.Remove(s.uuid).Put()
 	}
 }
 
 func (s *SyncUploader) Clear() {
 	msgs := []string{}
-	s.data.Range(func(md5 string, ok bool) {
+	s.state.Range(func(md5 string, ok bool) {
 		if !ok {
 			////// 任务退出，移除未决的文件
 			if msg, ok := RemovePendingFile(s.uuid, md5); ok {
@@ -103,7 +103,7 @@ func (s *SyncUploader) Upload(req *global.Req) {
 	default:
 		s.uploading(req)
 	}
-	exit := s.data.AllDone()
+	exit := s.state.AllDone()
 	if exit {
 		logs.LogTrace("--------------------- ****** 无待上传文件，结束任务 %v ...", s.uuid)
 		uploaders.Remove(s.uuid).Put()
@@ -115,7 +115,7 @@ func (s *SyncUploader) uploading(req *global.Req) {
 	resp := req.Resp
 	result := req.Result
 	for _, k := range req.Keys {
-		s.data.TryAdd(req.Md5)
+		s.state.TryAdd(req.Md5)
 		part, header, err := req.R.FormFile(k)
 		if err != nil {
 			logs.LogError(err.Error())
@@ -254,7 +254,7 @@ func (s *SyncUploader) uploading(req *global.Req) {
 			}
 		})
 		if done {
-			s.data.SetDone(info.Md5())
+			s.state.SetDone(info.Md5())
 			logs.LogDebug("%v %v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, header.Filename, req.Md5, info.DstName(), info.Now(true), req.Total, header.Size)
 			if ok {
 				// fileInfos.Remove(info.Md5()).Put()
@@ -336,7 +336,7 @@ func (s *SyncUploader) multi_uploading(req *global.Req) {
 		offset := req.R.FormValue(k + ".offset")
 		total := req.R.FormValue(k + ".total")
 		md5 := strings.ToLower(k)
-		s.data.TryAdd(md5)
+		s.state.TryAdd(md5)
 		part, header, err := req.R.FormFile(k)
 		if err != nil {
 			logs.LogError(err.Error())
@@ -475,7 +475,7 @@ func (s *SyncUploader) multi_uploading(req *global.Req) {
 			}
 		})
 		if done {
-			s.data.SetDone(info.Md5())
+			s.state.SetDone(info.Md5())
 			logs.LogDebug("%v %v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, header.Filename, md5, info.DstName(), info.Now(true), total, header.Size)
 			if ok {
 				// fileInfos.Remove(info.Md5()).Put()

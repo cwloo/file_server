@@ -32,7 +32,7 @@ var (
 type AsyncUploader struct {
 	uuid     string
 	pipe     pipe.Pipe
-	data     Data
+	state    State
 	tm       time.Time
 	l_tm     *sync.RWMutex
 	signaled bool
@@ -44,7 +44,7 @@ func NewAsyncUploader(uuid string) Uploader {
 	s := asyncUploaders.Get().(*AsyncUploader)
 	s.signaled = false
 	s.uuid = uuid
-	s.data = NewUploaderData()
+	s.state = NewUploaderState()
 	s.tm = time.Now()
 	s.l_tm = &sync.RWMutex{}
 	s.l_signal = &sync.Mutex{}
@@ -57,7 +57,7 @@ func NewAsyncUploader(uuid string) Uploader {
 
 func (s *AsyncUploader) reset() {
 	s.pipe = nil
-	s.data.Put()
+	s.state.Put()
 }
 
 func (s *AsyncUploader) Put() {
@@ -104,14 +104,14 @@ func (s *AsyncUploader) NotifyClose() {
 }
 
 func (s *AsyncUploader) Remove(md5 string) {
-	if s.data.Remove(md5) && s.data.AllDone() {
+	if s.state.Remove(md5) && s.state.AllDone() {
 		s.pipe.NotifyClose()
 	}
 }
 
 func (s *AsyncUploader) Clear() {
 	msgs := []string{}
-	s.data.Range(func(md5 string, ok bool) {
+	s.state.Range(func(md5 string, ok bool) {
 		if !ok {
 			////// 任务退出，移除未决的文件
 			if msg, ok := RemovePendingFile(s.uuid, md5); ok {
@@ -140,7 +140,7 @@ func (s *AsyncUploader) handler(msg any, args ...any) (exit bool) {
 	default:
 		s.uploading(req)
 	}
-	exit = s.data.AllDone()
+	exit = s.state.AllDone()
 	if exit {
 		logs.LogTrace("--------------------- ****** 无待上传文件，结束任务 %v ...", s.uuid)
 	}
@@ -158,7 +158,7 @@ func (s *AsyncUploader) uploading(req *global.Req) {
 	resp := req.Resp
 	result := req.Result
 	for _, k := range req.Keys {
-		s.data.TryAdd(req.Md5)
+		s.state.TryAdd(req.Md5)
 		part, header, err := req.R.FormFile(k)
 		if err != nil {
 			logs.LogError(err.Error())
@@ -298,7 +298,7 @@ func (s *AsyncUploader) uploading(req *global.Req) {
 			}
 		})
 		if done {
-			s.data.SetDone(info.Md5())
+			s.state.SetDone(info.Md5())
 			logs.LogDebug("%v %v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, header.Filename, req.Md5, info.DstName(), info.Now(false), req.Total, header.Size)
 			if ok {
 				// fileInfos.Remove(info.Md5()).Put()
@@ -382,7 +382,7 @@ func (s *AsyncUploader) multi_uploading(req *global.Req) {
 		offset := req.R.FormValue(k + ".offset")
 		total := req.R.FormValue(k + ".total")
 		md5 := strings.ToLower(k)
-		s.data.TryAdd(md5)
+		s.state.TryAdd(md5)
 		part, header, err := req.R.FormFile(k)
 		if err != nil {
 			logs.LogError(err.Error())
@@ -522,7 +522,7 @@ func (s *AsyncUploader) multi_uploading(req *global.Req) {
 			}
 		})
 		if done {
-			s.data.SetDone(info.Md5())
+			s.state.SetDone(info.Md5())
 			logs.LogDebug("%v %v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, header.Filename, md5, info.DstName(), info.Now(false), total, header.Size)
 			if ok {
 				// fileInfos.Remove(info.Md5()).Put()
