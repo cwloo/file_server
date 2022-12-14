@@ -50,6 +50,7 @@ type IniConfig struct {
 	Aliyun_Endpoint        string
 	Aliyun_AccessKeyId     string
 	Aliyun_AccessKeySecret string
+	Aliyun_Routines        int
 
 	TgBot_ChatId int64
 	TgBot_Token  string
@@ -72,6 +73,7 @@ func readIni(filename string) (c *IniConfig) {
 	c.Aliyun_Endpoint = ini.GetString("aliyun", "endpoint")
 	c.Aliyun_AccessKeyId = ini.GetString("aliyun", "accessKeyId")
 	c.Aliyun_AccessKeySecret = ini.GetString("aliyun", "accessKeySecret")
+	c.Aliyun_Routines = ini.GetInt("aliyun", "routines")
 
 	c.Flag = ini.GetInt("flag", "flag")
 	c.Log_dir = ini.GetString("log", "dir")

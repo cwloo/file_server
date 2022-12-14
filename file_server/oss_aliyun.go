@@ -67,10 +67,10 @@ func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader) (string
 	case true:
 		switch uploadFromFile {
 		case true:
-			switch config.Config.WriteFile {
-			default:
+			switch config.Config.WriteFile > 0 {
+			case true:
 				return s.uploadFromFile(info, header)
-			case 0:
+			default:
 				return s.uploadFromHeader(info, header)
 			}
 		default:
@@ -92,7 +92,7 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader) (
 	}
 	s.num++
 	start := time.Now()
-	part_oss, err := s.bucket.UploadPart(*s.imur, part, header.Size, s.num, oss.Routines(5))
+	part_oss, err := s.bucket.UploadPart(*s.imur, part, header.Size, s.num, oss.Routines(config.Config.Aliyun_Routines))
 	if err != nil {
 		_ = part.Close()
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "UploadPart:", err.Error()}, "")
@@ -131,7 +131,7 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader) (st
 		tg_bot.TgErrMsg(errMsg)
 		return "", "", err
 	}
-	// _, err = fd.Seek(info.Now()-header.Size, io.SeekStart)
+	// _, err = fd.Seek(info.Now(false)-header.Size, io.SeekStart)
 	_, err = fd.Seek(header.Size, io.SeekEnd)
 	if err != nil {
 		_ = fd.Close()
@@ -142,8 +142,8 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader) (st
 	}
 	s.num++
 	start := time.Now()
-	// part_oss, err := s.bucket.UploadPartFromFile(*s.imur, f, info.Now()-header.Size, header.Size, s.num, oss.Routines(5))
-	part_oss, err := s.bucket.UploadPart(*s.imur, fd, header.Size, s.num, oss.Routines(5))
+	// part_oss, err := s.bucket.UploadPartFromFile(*s.imur, f, info.Now(false)-header.Size, header.Size, s.num, oss.Routines(config.Config.Aliyun_Routines))
+	part_oss, err := s.bucket.UploadPart(*s.imur, fd, header.Size, s.num, oss.Routines(config.Config.Aliyun_Routines))
 	if err != nil {
 		_ = fd.Close()
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "UploadPart:", err.Error()}, "")
