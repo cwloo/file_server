@@ -11,36 +11,6 @@ import (
 	"github.com/cwloo/uploader/file_server/global"
 )
 
-func Upload(w http.ResponseWriter, r *http.Request) {
-	switch config.Config.MultiFile {
-	default:
-		handlerMultiUpload(w, r)
-	case 0:
-		handlerUpload(w, r)
-	}
-}
-
-func Get(w http.ResponseWriter, r *http.Request) {
-	// resp := &Resp{
-	// 	ErrCode: 0,
-	// 	ErrMsg:  "OK",
-	// }
-	// writeResponse(w, r, resp)
-	handlerFileinfo(w, r)
-}
-
-func Del(w http.ResponseWriter, r *http.Request) {
-	handlerDelCacheFile(w, r)
-}
-
-func GetFileinfo(w http.ResponseWriter, r *http.Request) {
-	handlerFileinfo(w, r)
-}
-
-func UpdateConfig(w http.ResponseWriter, r *http.Request) {
-	handlerUpdateCfg(w, r)
-}
-
 func main() {
 	config.InitConfig()
 	// logs.LogTimezone(logs.MY_CST)
@@ -65,11 +35,11 @@ func main() {
 	}))
 
 	mux := http.NewServeMux()
-	mux.HandleFunc(config.Config.UploadPath, Upload)
-	mux.HandleFunc(config.Config.GetPath, Get)
-	mux.HandleFunc(config.Config.DelPath, Del)
-	mux.HandleFunc(config.Config.FileinfoPath, GetFileinfo)
-	mux.HandleFunc(config.Config.UpdateCfgPath, UpdateConfig)
+	mux.HandleFunc(config.Config.UploadPath, UploadReq)
+	mux.HandleFunc(config.Config.GetPath, GetReq)
+	mux.HandleFunc(config.Config.DelPath, DelCacheFileReq)
+	mux.HandleFunc(config.Config.FileinfoPath, GetFileinfoReq)
+	mux.HandleFunc(config.Config.UpdateCfgPath, UpdateConfigReq)
 
 	server := &http.Server{
 		Addr:              config.Config.HttpAddr,
