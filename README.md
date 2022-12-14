@@ -18,4 +18,7 @@
 * $ GOOS=linux GOARCH=amd64 go build
 
 
-![image](https://github.com/cwloo/gonet/blob/master/tool/res/uploader.png)
+![image](https://github.com/cwloo/gonet/blob/master/tool/res/uploader_client.png)
+
+
+![image](https://github.com/cwloo/gonet/blob/master/tool/res/uploader_server.png)
