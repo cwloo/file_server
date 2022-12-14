@@ -80,10 +80,38 @@ func NewFileInfo(uuid, md5, Filename string, total int64) FileInfo {
 	s.srcName = Filename
 	s.dstName = dstName
 	s.yunName = yunName
+	s.now = 0
 	s.total = total
 	s.l = &sync.RWMutex{}
-	s.Assert()
+	s.assert()
 	return s
+}
+
+func (s *Fileinfo) assert() {
+	if s.uuid == "" {
+		logs.LogFatal("error")
+	}
+	if s.md5 == "" {
+		logs.LogFatal("error")
+	}
+	if s.srcName == "" {
+		logs.LogFatal("error")
+	}
+	if s.now > int64(0) {
+		logs.LogFatal("error")
+	}
+	if s.total == int64(0) {
+		logs.LogFatal("error")
+	}
+	// if s.url != "" {
+	// 	logs.LogFatal("error")
+	// }
+	// if s.time.Unix() > 0 {
+	// 	logs.LogFatal("error")
+	// }
+	// if s.hitTime.Unix() > 0 {
+	// 	logs.LogFatal("error")
+	// }
 }
 
 func (s *Fileinfo) reset() {
@@ -148,28 +176,28 @@ func (s *Fileinfo) Date() string {
 
 func (s *Fileinfo) Assert() {
 	if s.uuid == "" {
-		logs.LogFatal("")
+		logs.LogFatal("error")
 	}
 	if s.md5 == "" {
-		logs.LogFatal("")
+		logs.LogFatal("error")
 	}
 	if s.srcName == "" {
-		logs.LogFatal("")
+		logs.LogFatal("error")
 	}
 	if s.dstName == "" {
-		logs.LogFatal("")
+		logs.LogFatal("error")
 	}
 	if s.yunName == "" {
-		logs.LogFatal("")
+		logs.LogFatal("error")
 	}
 	// if s.now == int64(0) {
-	// 	logs.LogFatal("")
+	// 	logs.LogFatal("error")
 	// }
 	if s.total == int64(0) {
-		logs.LogFatal("")
+		logs.LogFatal("error")
 	}
 	if s.date == "" {
-		logs.LogFatal("")
+		logs.LogFatal("error")
 	}
 }
 
@@ -207,10 +235,21 @@ func (s *Fileinfo) Done(lock bool) bool {
 	case true:
 		s.l.RLock()
 		done := s.now == s.total
+		if done {
+			if s.now == 0 {
+				logs.LogFatal("error")
+			}
+		}
 		s.l.RUnlock()
 		return done
 	default:
-		return s.now == s.total
+		done := s.now == s.total
+		if done {
+			if s.now == 0 {
+				logs.LogFatal("error")
+			}
+		}
+		return done
 	}
 }
 

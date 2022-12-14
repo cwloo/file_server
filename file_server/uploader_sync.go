@@ -128,7 +128,7 @@ func (s *SyncUploader) uploading(req *global.Req) {
 		}
 		////// 还未接收完
 		if info.Done(true) {
-			logs.LogFatal("%v %v(%v) finished", info.Uuid(), info.SrcName(), info.Md5())
+			logs.LogFatal("%v %v[%v] %v %v/%v finished\nurl[%v]", info.Uuid(), info.SrcName(), info.Md5(), info.DstName(), info.Now(true), info.Total(false), info.Url(false))
 		}
 		////// 校验uuid
 		if req.Uuid != info.Uuid() {
@@ -349,7 +349,7 @@ func (s *SyncUploader) multi_uploading(req *global.Req) {
 		}
 		////// 还未接收完
 		if info.Done(true) {
-			logs.LogFatal("%v %v(%v) finished", info.Uuid(), info.SrcName(), info.Md5())
+			logs.LogFatal("%v %v[%v] %v %v/%v finished\nurl[%v]", info.Uuid(), info.SrcName(), info.Md5(), info.DstName(), info.Now(true), info.Total(false), info.Url(false))
 		}
 		////// 校验uuid
 		if req.Uuid != info.Uuid() {

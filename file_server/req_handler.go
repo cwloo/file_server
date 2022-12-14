@@ -72,7 +72,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 		case "uuid":
 			uuid = r.FormValue(k)
 		case "md5":
-			md5 = r.FormValue(k)
+			md5 = strings.ToLower(r.FormValue(k))
 		case "offset":
 			offset = r.FormValue(k)
 		case "total":
@@ -209,7 +209,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			/// 没有上传，等待上传
 			keys = append(keys, k)
-			logs.LogWarn("--- *** 没有上传，等待上传 %v %v[%v] %v seg_size[%v]", uuid, header.Filename, md5, total, header.Size)
+			logs.LogWarn("--- *** 没有上传，等待上传 %v %v[%v] %v/%v seg_size[%v]", uuid, header.Filename, md5, info.Now(false), total, header.Size)
 		} else {
 			info.Assert()
 			if info.Uuid() == uuid {
@@ -495,7 +495,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 		if !ok {
 			/// 没有上传，等待上传
 			keys = append(keys, k)
-			logs.LogWarn("--- *** 没有上传，等待上传 %v %v[%v] %v seg_size[%v]", uuid, header.Filename, md5, total, header.Size)
+			logs.LogWarn("--- *** 没有上传，等待上传 %v %v[%v] %v/%v seg_size[%v]", uuid, header.Filename, md5, info.Now(false), total, header.Size)
 		} else {
 			info.Assert()
 			if info.Uuid() == uuid {
