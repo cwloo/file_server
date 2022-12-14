@@ -7,10 +7,10 @@ import (
 )
 
 func UploadReq(w http.ResponseWriter, r *http.Request) {
-	switch config.Config.MultiFile {
-	default:
+	switch config.Config.MultiFile > 0 {
+	case true:
 		handlerMultiUpload(w, r)
-	case 0:
+	default:
 		handlerUpload(w, r)
 	}
 }

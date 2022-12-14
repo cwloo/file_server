@@ -134,10 +134,10 @@ func (s *AsyncUploader) onQuit(slot run.Slot) {
 
 func (s *AsyncUploader) handler(msg any, args ...any) (exit bool) {
 	req := msg.(*global.Req)
-	switch config.Config.MultiFile {
-	default:
+	switch config.Config.MultiFile > 0 {
+	case true:
 		s.multi_uploading(req)
-	case 0:
+	default:
 		s.uploading(req)
 	}
 	exit = s.data.AllDone()

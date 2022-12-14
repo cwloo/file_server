@@ -97,10 +97,10 @@ func (s *SyncUploader) Clear() {
 }
 
 func (s *SyncUploader) Upload(req *global.Req) {
-	switch config.Config.MultiFile {
-	default:
+	switch config.Config.MultiFile > 0 {
+	case true:
 		s.multi_uploading(req)
-	case 0:
+	default:
 		s.uploading(req)
 	}
 	exit := s.data.AllDone()

@@ -125,15 +125,15 @@ func CheckExpiredFile() {
 }
 
 func CheckPendingUploader() {
-	switch config.Config.UseAsync {
-	default:
+	switch config.Config.UseAsync > 0 {
+	case true:
 		////// 异步
 		uploaders.Range(func(_ string, uploader Uploader) {
 			if time.Since(uploader.Get()) >= time.Duration(config.Config.PendingTimeout)*time.Second {
 				uploader.NotifyClose()
 			}
 		})
-	case 0:
+	default:
 		////// 同步
 		uploaders.RangeRemoveWithCond(func(uploader Uploader) bool {
 			return time.Since(uploader.Get()) >= time.Duration(config.Config.PendingTimeout)*time.Second
