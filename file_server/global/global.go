@@ -133,10 +133,10 @@ type UpdateCfgResp struct {
 // Resp
 // <summary>
 type Resp struct {
-	Uuid    string      `json:"uuid,omitempty"`
-	Data    interface{} `json:"data,omitempty"`
-	ErrCode int         `json:"code" form:"code"`
-	ErrMsg  string      `json:"errmsg" form:"errmsg"`
+	Uuid    string `json:"uuid,omitempty"`
+	Data    any    `json:"data,omitempty"`
+	ErrCode int    `json:"code" form:"code"`
+	ErrMsg  string `json:"errmsg" form:"errmsg"`
 }
 
 // <summary>
