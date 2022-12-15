@@ -123,7 +123,6 @@ func upload() {
 	// 				case ErrParamsUUID.ErrCode:
 	// 					fallthrough
 	// 				case ErrParsePartData.ErrCode:
-	// 					// 需要继续重试
 	// 					logs.LogError("*** %v %v", resp.Uuid, resp.ErrMsg)
 	// 					continue
 	// 				}
@@ -145,6 +144,8 @@ func upload() {
 	// 					case ErrParamsAllTotalLimit.ErrCode:
 	// 						logs.LogError("--- %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 	// 						continue
+
+	// 						// 别人正在上传该文件的话，你要拿到上传文件的uuid和now值继续重试，因为别人有可能暂停上传，这样你就会接着继续上传该文件
 	// 					case ErrRepeat.ErrCode:
 	// 						logs.LogWarn("*** %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 	// 						logs.LogWarn("request =>> %v %v", method, url_fileinfo+"?md5="+result.Md5)
@@ -174,7 +175,8 @@ func upload() {
 	// 						uuids[md5] = resp.Uuid
 	// 						offset[resp.Md5] = resp.Now
 	// 						continue
-	// 					// 上传成功(分段续传)，继续读取文件剩余字节继续上传
+
+	// 						// 上传成功(分段续传)，继续读取文件剩余字节继续上传
 	// 					case ErrSegOk.ErrCode:
 	// 						if result.Now <= 0 {
 	// 							break
@@ -201,10 +203,10 @@ func upload() {
 	// 						if err != nil {
 	// 							logs.LogFatal(err.Error())
 	// 						}
-	// 						// 更新文件读取偏移
 	// 						offset[result.Md5] = result.Now
+
+	// 						// 校正需要重传，有可能别人正在上传该文件，你会一直收到校正重传，所以只需显示进度即可，如果上传用户暂停的话，你会接着上传该文件
 	// 					case ErrCheckReUpload.ErrCode:
-	// 						// 校正需要重传
 	// 						if results == nil {
 	// 							results = map[string]Result{}
 	// 						}
@@ -212,9 +214,12 @@ func upload() {
 	// 						offset[result.Md5] = result.Now
 	// 						progress, _ := strconv.ParseFloat(fmt.Sprintf("%f", float64(result.Now)/float64(result.Total)), 64)
 	// 						logs.LogError("*** %v %v[%v] %v %.2f%%", result.Uuid, result.Md5, result.File, result.ErrMsg, progress*100)
+
+	// 						// 上传完成，校验失败
 	// 					case ErrFileMd5.ErrCode:
-	// 						// 上传失败了
 	// 						fallthrough
+
+	// 						// 上传完成，并且成功
 	// 					case ErrOk.ErrCode:
 	// 						delete(results, result.Md5)
 	// 						offset[result.Md5] = total[result.Md5]
@@ -224,7 +229,6 @@ func upload() {
 	// 						logs.LogTrace("*** %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Url)
 	// 					}
 	// 				}
-
 	// 				res.Body.Close()
 	// 			}
 	// 		}
@@ -301,7 +305,6 @@ func upload() {
 				case ErrParamsUUID.ErrCode:
 					fallthrough
 				case ErrParsePartData.ErrCode:
-					// 需要继续重试
 					logs.LogError("--- %v %v", resp.Uuid, resp.ErrMsg)
 					continue
 				}
@@ -323,6 +326,8 @@ func upload() {
 					case ErrParamsAllTotalLimit.ErrCode:
 						logs.LogError("--- %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 						continue
+
+						// 别人正在上传该文件的话，你要拿到上传文件的uuid和now值继续重试，因为别人有可能暂停上传，这样你就会接着继续上传该文件
 					case ErrRepeat.ErrCode:
 						logs.LogWarn("--- %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 						logs.LogWarn("request =>> %v %v", method, url_fileinfo+"?md5="+result.Md5)
@@ -352,7 +357,8 @@ func upload() {
 						uuids[md5] = resp.Uuid
 						offset[resp.Md5] = resp.Now
 						continue
-					// 上传成功(分段续传)，继续读取文件剩余字节继续上传
+
+						// 上传成功(分段续传)，继续读取文件剩余字节继续上传
 					case ErrSegOk.ErrCode:
 						if result.Now <= 0 {
 							break
@@ -379,16 +385,19 @@ func upload() {
 						if err != nil {
 							logs.LogFatal(err.Error())
 						}
-						// 更新文件读取偏移
 						offset[result.Md5] = result.Now
+
+						// 校正需要重传，有可能别人正在上传该文件，你会一直收到校正重传，所以只需显示进度即可，如果上传用户暂停的话，你会接着上传该文件
 					case ErrCheckReUpload.ErrCode:
-						// 校正需要重传
 						offset[result.Md5] = result.Now
 						progress, _ := strconv.ParseFloat(fmt.Sprintf("%f", float64(result.Now)/float64(result.Total)), 64)
 						logs.LogError("--- %v %v[%v] %v %.2f%%", result.Uuid, result.Md5, result.File, result.ErrMsg, progress*100)
+
+						// 上传完成，校验失败
 					case ErrFileMd5.ErrCode:
-						// 上传失败了
 						fallthrough
+
+						// 上传完成，并且成功
 					case ErrOk.ErrCode:
 						offset[result.Md5] = total[result.Md5]
 						removeMd5File(&MD5, result.Md5)
