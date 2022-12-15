@@ -160,7 +160,7 @@ func readIni(filename string) (c *IniConfig) {
 	return
 }
 
-func Init() {
+func check() {
 	if Config.UploadDir == "" {
 		Config.UploadDir = global.Dir_upload
 	}
@@ -171,10 +171,8 @@ func Init() {
 	if Config.Log_dir == "" {
 		Config.Log_dir = global.Dir + "logs"
 	}
-	if Config.UseTgBot > 0 {
-		// 中国大陆这里可能因为被墙了卡住
-		tg_bot.NewTgBot(Config.TgBot_Token, Config.TgBot_ChatId)
-	}
+	// 中国大陆这里可能因为被墙了卡住
+	tg_bot.NewTgBot(Config.TgBot_Token, Config.TgBot_ChatId, Config.UseTgBot > 0)
 }
 
 func InitConfig() {
@@ -187,7 +185,7 @@ func InitConfig() {
 		flag.Parse()
 	default:
 	}
-	Init()
+	check()
 }
 
 func ReadConfig() {
@@ -196,6 +194,7 @@ func ReadConfig() {
 	if Config == nil {
 		logs.LogFatal("error")
 	}
+	check()
 	lock.RUnlock()
 }
 
