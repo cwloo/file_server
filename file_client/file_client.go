@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -98,8 +99,7 @@ func upload() {
 					res, err := client.Do(req)
 					if err != nil {
 						logs.LogError(err.Error())
-						logs.LogClose()
-						return
+						continue
 					}
 					for {
 						/// response
@@ -149,10 +149,11 @@ func upload() {
 							case ErrRepeat.ErrCode:
 								logs.LogError("*** %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 							case ErrSegOk.ErrCode:
-								logs.LogDebug("*** %v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 								if result.Now <= 0 {
 									break
 								}
+								progress, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", float64(result.Now)/float64(result.Total)), 64)
+								logs.LogDebug("*** %v %v[%v] %v %v%%", result.Uuid, result.Md5, result.File, result.ErrMsg, progress*100)
 								// 上传进度写入临时文件
 								fd, err := os.OpenFile(tmp_dir+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 								if err != nil {
@@ -244,7 +245,6 @@ func upload() {
 			logs.LogFatal(err.Error())
 		}
 		if !finished {
-		retry:
 			req, err := http.NewRequest(method, url, payload)
 			if err != nil {
 				logs.LogFatal(err.Error())
@@ -257,8 +257,7 @@ func upload() {
 			res, err := client.Do(req)
 			if err != nil {
 				logs.LogError(err.Error())
-				// logs.LogClose()
-				goto retry
+				continue
 			}
 			for {
 				/// response
@@ -309,10 +308,11 @@ func upload() {
 						logs.LogError("--- %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 					// 上传成功(分段续传)，继续读取文件剩余字节继续上传
 					case ErrSegOk.ErrCode:
-						logs.LogDebug("--- %v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 						if result.Now <= 0 {
 							break
 						}
+						progress, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", float64(result.Now)/float64(result.Total)), 64)
+						logs.LogDebug("--- %v %v[%v] %v %v%%", result.Uuid, result.Md5, result.File, result.ErrMsg, progress*100)
 						// 上传进度写入临时文件
 						fd, err := os.OpenFile(tmp_dir+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 						if err != nil {
@@ -439,8 +439,7 @@ func multiUpload() {
 					res, err := client.Do(req)
 					if err != nil {
 						logs.LogError(err.Error())
-						logs.LogClose()
-						return
+						continue
 					}
 					for {
 						/// response
@@ -488,10 +487,11 @@ func multiUpload() {
 							case ErrRepeat.ErrCode:
 								logs.LogError("*** %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 							case ErrSegOk.ErrCode:
-								logs.LogDebug("*** %v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 								if result.Now <= 0 {
 									break
 								}
+								progress, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", float64(result.Now)/float64(result.Total)), 64)
+								logs.LogDebug("*** %v %v[%v] %v %v%%", result.Uuid, result.Md5, result.File, result.ErrMsg, progress*100)
 								// 上传进度写入临时文件
 								fd, err := os.OpenFile(tmp_dir+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 								if err != nil {
@@ -581,7 +581,6 @@ func multiUpload() {
 			logs.LogFatal(err.Error())
 		}
 		if !finished {
-		retry:
 			req, err := http.NewRequest(method, url, payload)
 			if err != nil {
 				logs.LogFatal(err.Error())
@@ -594,8 +593,7 @@ func multiUpload() {
 			res, err := client.Do(req)
 			if err != nil {
 				logs.LogError(err.Error())
-				// logs.LogClose()
-				goto retry
+				continue
 			}
 			for {
 				/// response
@@ -644,10 +642,11 @@ func multiUpload() {
 						logs.LogError("--- %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 					// 上传成功(分段续传)，继续读取文件剩余字节继续上传
 					case ErrSegOk.ErrCode:
-						logs.LogDebug("--- %v %v[%v] %v", result.Uuid, result.Md5, result.File, result.ErrMsg)
 						if result.Now <= 0 {
 							break
 						}
+						progress, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", float64(result.Now)/float64(result.Total)), 64)
+						logs.LogDebug("--- %v %v[%v] %v %v%%", result.Uuid, result.Md5, result.File, result.ErrMsg, progress*100)
 						// 上传进度写入临时文件
 						fd, err := os.OpenFile(tmp_dir+result.Md5+".tmp", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0777)
 						if err != nil {

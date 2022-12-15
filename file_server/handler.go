@@ -35,7 +35,11 @@ func UpdateCfg(req *global.UpdateCfgReq) (*global.UpdateCfgResp, bool) {
 		ErrMsg:  "ok"}, true
 }
 
-func QueryFileinfoCache(md5 string) (*global.FileInfoResp, bool) {
+func GetCfg(req *global.GetCfgReq) (*global.GetCfgResp, bool) {
+	return config.GetConfig(req)
+}
+
+func QueryCacheFile(md5 string) (*global.FileInfoResp, bool) {
 	info := fileInfos.Get(md5)
 	if info == nil {
 		return &global.FileInfoResp{Md5: md5, ErrCode: 5, ErrMsg: "not found"}, false
@@ -57,7 +61,7 @@ func DelCacheFile(delType int, md5 string) {
 		fileInfos.RemoveWithCond(md5, func(info FileInfo) bool {
 			return !info.Done(false)
 		}, func(info FileInfo) {
-			os.Remove(config.Config.UploadlDir + info.DstName())
+			os.Remove(config.Config.UploadDir + info.DstName())
 			uploaders.Get(info.Uuid()).Remove(md5)
 			info.Put()
 		})
@@ -69,7 +73,7 @@ func DelCacheFile(delType int, md5 string) {
 			}
 			return false
 		}, func(info FileInfo) {
-			os.Remove(config.Config.UploadlDir + info.DstName())
+			os.Remove(config.Config.UploadDir + info.DstName())
 			info.Put()
 		})
 	}
@@ -86,7 +90,7 @@ func RemovePendingFile(uuid, md5 string) (msg string, ok bool) {
 		return true
 	}, func(info FileInfo) {
 		msg = strings.Join([]string{"RemovePendingFile\n", info.Uuid(), "\n", info.SrcName(), "[", md5, "]\n", info.DstName(), "\n", info.YunName()}, "")
-		os.Remove(config.Config.UploadlDir + info.DstName())
+		os.Remove(config.Config.UploadDir + info.DstName())
 		info.Put()
 	})
 	ok = msg != ""
@@ -105,7 +109,7 @@ func RemoveCheckErrFile(uuid, md5 string) (msg string, ok bool) {
 		return !ok
 	}, func(info FileInfo) {
 		msg = strings.Join([]string{"RemoveCheckErrFile\n", info.Uuid(), "\n", info.SrcName(), "[", md5, "]\n", info.DstName(), "\n", info.YunName()}, "")
-		os.Remove(config.Config.UploadlDir + info.DstName())
+		os.Remove(config.Config.UploadDir + info.DstName())
 		info.Put()
 	})
 	ok = msg != ""

@@ -35,3 +35,7 @@ func GetFileinfoReq(w http.ResponseWriter, r *http.Request) {
 func UpdateConfigReq(w http.ResponseWriter, r *http.Request) {
 	handlerUpdateCfg(w, r)
 }
+
+func GetConfigReq(w http.ResponseWriter, r *http.Request) {
+	handlerGetCfg(w, r)
+}

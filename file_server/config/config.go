@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	Lock              = &sync.RWMutex{}
+	lock              = &sync.RWMutex{}
 	ini    *utils.Ini = &utils.Ini{}
 	Config *IniConfig
 )
@@ -32,6 +32,7 @@ type IniConfig struct {
 	DelPath                string
 	FileinfoPath           string
 	UpdateCfgPath          string
+	GetCfgPath             string
 	CheckMd5               int
 	WriteFile              int
 	MultiFile              int
@@ -42,7 +43,7 @@ type IniConfig struct {
 	MaxTotalSize           int64
 	PendingTimeout         int
 	FileExpiredTimeout     int
-	UploadlDir             string
+	UploadDir              string
 	OssType                string
 	Aliyun_BasePath        string
 	Aliyun_BucketUrl       string
@@ -65,7 +66,7 @@ func readIni(filename string) (c *IniConfig) {
 	c = &IniConfig{}
 	c.TgBot_ChatId = ini.GetInt64("tg_bot", "chatId")
 	c.TgBot_Token = ini.GetString("tg_bot", "token")
-	c.UploadlDir = ini.GetString("upload", "dir")
+	c.UploadDir = ini.GetString("upload", "dir")
 	c.OssType = ini.GetString("upload", "ossType")
 	c.Aliyun_BasePath = ini.GetString("aliyun", "basePath")
 	c.Aliyun_BucketUrl = ini.GetString("aliyun", "bucketUrl")
@@ -87,6 +88,7 @@ func readIni(filename string) (c *IniConfig) {
 	c.DelPath = ini.GetString("path", "del")
 	c.FileinfoPath = ini.GetString("path", "fileinfo")
 	c.UpdateCfgPath = ini.GetString("path", "updateconfig")
+	c.GetCfgPath = ini.GetString("path", "getconfig")
 	c.CheckMd5 = ini.GetInt("upload", "checkMd5")
 	c.WriteFile = ini.GetInt("upload", "writeFile")
 	c.MultiFile = ini.GetInt("upload", "multiFile")
@@ -159,12 +161,12 @@ func readIni(filename string) (c *IniConfig) {
 }
 
 func Init() {
-	if Config.UploadlDir == "" {
-		Config.UploadlDir = global.Dir_upload
+	if Config.UploadDir == "" {
+		Config.UploadDir = global.Dir_upload
 	}
-	_, err := os.Stat(Config.UploadlDir)
+	_, err := os.Stat(Config.UploadDir)
 	if err != nil && os.IsNotExist(err) {
-		os.MkdirAll(Config.UploadlDir, os.ModePerm)
+		os.MkdirAll(Config.UploadDir, os.ModePerm)
 	}
 	if Config.Log_dir == "" {
 		Config.Log_dir = global.Dir + "logs"
@@ -189,16 +191,16 @@ func InitConfig() {
 }
 
 func ReadConfig() {
-	Lock.Lock()
+	lock.RLock()
 	Config = readIni("conf.ini")
 	if Config == nil {
 		logs.LogFatal("error")
 	}
-	Lock.Unlock()
+	lock.RUnlock()
 }
 
 func UpdateConfig(req *global.UpdateCfgReq) {
-	Lock.Lock()
+	lock.Lock()
 	if req.Interval != "" {
 		ini.SetString("flag", "interval", req.Interval)
 	}
@@ -227,5 +229,43 @@ func UpdateConfig(req *global.UpdateCfgReq) {
 		ini.SetString("upload", "writeFile", req.WriteFile)
 	}
 	ini.SaveTo("conf.ini")
-	Lock.Unlock()
+	lock.Unlock()
+}
+
+func GetConfig(req *global.GetCfgReq) (*global.GetCfgResp, bool) {
+	lock.RLock()
+	resp := &global.GetCfgResp{
+		ErrCode: 0,
+		ErrMsg:  "ok",
+		Data: &global.CfgData{
+			Log_dir:            Config.Log_dir,
+			Log_level:          Config.Log_level,
+			Log_mode:           Config.Log_mode,
+			Log_style:          Config.Log_style,
+			Log_timezone:       Config.Log_timezone,
+			HttpAddr:           Config.HttpAddr,
+			UploadPath:         Config.UploadPath,
+			GetPath:            Config.GetPath,
+			DelPath:            Config.DelPath,
+			FileinfoPath:       Config.FileinfoPath,
+			UpdateCfgPath:      Config.UpdateCfgPath,
+			GetCfgPath:         Config.GetCfgPath,
+			CheckMd5:           Config.CheckMd5,
+			WriteFile:          Config.WriteFile,
+			MultiFile:          Config.MultiFile,
+			UseAsync:           Config.UseAsync,
+			MaxMemory:          Config.MaxMemory,
+			MaxSegmentSize:     Config.MaxSegmentSize,
+			MaxSingleSize:      Config.MaxSingleSize,
+			MaxTotalSize:       Config.MaxTotalSize,
+			PendingTimeout:     Config.PendingTimeout,
+			FileExpiredTimeout: Config.FileExpiredTimeout,
+			UploadDir:          Config.UploadDir,
+			OssType:            Config.OssType,
+			UseTgBot:           Config.UseTgBot,
+			Interval:           Config.Interval,
+		},
+	}
+	lock.RUnlock()
+	return resp, true
 }

@@ -130,6 +130,53 @@ type UpdateCfgResp struct {
 }
 
 // <summary>
+// GetCfgReq
+// <summary>
+type GetCfgReq struct {
+}
+
+// <summary>
+// GetCfgResp
+// <summary>
+type GetCfgResp struct {
+	ErrCode int    `json:"code" form:"code"`
+	ErrMsg  string `json:"errmsg" form:"errmsg"`
+	Data    any    `json:"data" form:"data"`
+}
+
+// <summary>
+// CfgData
+// <summary>
+type CfgData struct {
+	Log_dir            string `json:"log_dir" form:"log_dir"`
+	Log_level          int    `json:"log_level" form:"log_level"`
+	Log_mode           int    `json:"log_mode" form:"log_mode"`
+	Log_style          int    `json:"log_style" form:"log_style"`
+	Log_timezone       int64  `json:"log_timezone" form:"log_timezone"`
+	HttpAddr           string `json:"http_addr" form:"http_addr"`
+	UploadPath         string `json:"upload_path" form:"upload_path"`
+	GetPath            string `json:"get_path" form:"get_path"`
+	DelPath            string `json:"delfile_path" form:"delfile_path"`
+	FileinfoPath       string `json:"fileinfo_path" form:"fileinfo_path"`
+	UpdateCfgPath      string `json:"updatecfg_path" form:"updatecfg_path"`
+	GetCfgPath         string `json:"getcfg_path" form:"getcfg_path"`
+	CheckMd5           int    `json:"checkMd5" form:"checkMd5"`
+	WriteFile          int    `json:"writeFile" form:"writeFile"`
+	MultiFile          int    `json:"multiFile" form:"multiFile"`
+	UseAsync           int    `json:"useAsync" form:"useAsync"`
+	MaxMemory          int64  `json:"maxMemory" form:"maxMemory"`
+	MaxSegmentSize     int64  `json:"maxSegmentSize" form:"maxSegmentSize"`
+	MaxSingleSize      int64  `json:"maxSingleSize" form:"maxSingleSize"`
+	MaxTotalSize       int64  `json:"maxTotalSize" form:"maxTotalSize"`
+	PendingTimeout     int    `json:"pendingTimeout" form:"pendingTimeout"`
+	FileExpiredTimeout int    `json:"fileExpiredTimeout" form:"fileExpiredTimeout"`
+	UploadDir          string `json:"uploadDir" form:"uploadDir"`
+	OssType            string `json:"ossType" form:"ossType"`
+	UseTgBot           int    `json:"useTgBot" form:"useTgBot"`
+	Interval           int    `json:"interval" form:"interval"`
+}
+
+// <summary>
 // Resp
 // <summary>
 type Resp struct {

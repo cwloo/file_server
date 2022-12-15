@@ -241,7 +241,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 						logs.LogWarn("%v %v[%v] %v chkmd5 [ok] %v", uuid, header.Filename, info.Md5(), info.DstName(), url)
 					} else {
 						fileInfos.Remove(info.Md5()).Put()
-						os.Remove(config.Config.UploadlDir + info.DstName())
+						os.Remove(config.Config.UploadDir + info.DstName())
 						result = append(result,
 							global.Result{
 								Uuid:    uuid,
@@ -278,7 +278,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 						logs.LogWarn("%v %v[%v] %v chkmd5 [ok] %v", uuid, header.Filename, info.Md5(), info.DstName(), url)
 					} else {
 						fileInfos.Remove(info.Md5()).Put()
-						os.Remove(config.Config.UploadlDir + info.DstName())
+						os.Remove(config.Config.UploadDir + info.DstName())
 						result = append(result,
 							global.Result{
 								Uuid:    uuid,
@@ -527,7 +527,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 						logs.LogWarn("%v %v[%v] %v chkmd5 [ok] %v", uuid, header.Filename, info.Md5(), info.DstName(), url)
 					} else {
 						fileInfos.Remove(info.Md5()).Put()
-						os.Remove(config.Config.UploadlDir + info.DstName())
+						os.Remove(config.Config.UploadDir + info.DstName())
 						result = append(result,
 							global.Result{
 								Uuid:    uuid,
@@ -564,7 +564,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 						logs.LogWarn("%v %v[%v] %v chkmd5 [ok] %v", uuid, header.Filename, info.Md5(), info.DstName(), url)
 					} else {
 						fileInfos.Remove(info.Md5()).Put()
-						os.Remove(config.Config.UploadlDir + info.DstName())
+						os.Remove(config.Config.UploadDir + info.DstName())
 						result = append(result,
 							global.Result{
 								Uuid:    uuid,

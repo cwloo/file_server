@@ -1,7 +1,6 @@
 package main
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/cwloo/gonet/core/base/task"
@@ -34,27 +33,9 @@ func main() {
 		handlerReadConfig()
 	}))
 
-	mux := http.NewServeMux()
-	mux.HandleFunc(config.Config.UploadPath, UploadReq)
-	mux.HandleFunc(config.Config.GetPath, GetReq)
-	mux.HandleFunc(config.Config.DelPath, DelCacheFileReq)
-	mux.HandleFunc(config.Config.FileinfoPath, GetFileinfoReq)
-	mux.HandleFunc(config.Config.UpdateCfgPath, UpdateConfigReq)
+	server := NewHttpServer()
+	Register(server)
+	server.Run()
 
-	server := &http.Server{
-		Addr:              config.Config.HttpAddr,
-		Handler:           mux,
-		ReadTimeout:       time.Duration(config.Config.PendingTimeout) * time.Second,
-		ReadHeaderTimeout: time.Duration(config.Config.PendingTimeout) * time.Second,
-		WriteTimeout:      time.Duration(config.Config.PendingTimeout) * time.Second,
-		IdleTimeout:       time.Duration(config.Config.PendingTimeout) * time.Second,
-	}
-
-	logs.LogInfo(server.Addr)
-
-	server.SetKeepAlivesEnabled(true)
-	err := server.ListenAndServe()
-	if err != nil {
-		logs.LogFatal(err.Error())
-	}
+	logs.LogClose()
 }

@@ -162,12 +162,12 @@ func (s *SyncUploader) uploading(req *global.Req) {
 			continue
 		}
 		////// 检查上传目录
-		_, err = os.Stat(config.Config.UploadlDir)
+		_, err = os.Stat(config.Config.UploadDir)
 		if err != nil && os.IsNotExist(err) {
-			os.MkdirAll(config.Config.UploadlDir, 0777)
+			os.MkdirAll(config.Config.UploadDir, 0777)
 		}
 		////// 检查上传文件
-		f := config.Config.UploadlDir + info.DstName()
+		f := config.Config.UploadDir + info.DstName()
 		switch config.Config.WriteFile > 0 {
 		case true:
 			_, err = os.Stat(f)
@@ -383,12 +383,12 @@ func (s *SyncUploader) multi_uploading(req *global.Req) {
 			continue
 		}
 		////// 检查上传目录
-		_, err = os.Stat(config.Config.UploadlDir)
+		_, err = os.Stat(config.Config.UploadDir)
 		if err != nil && os.IsNotExist(err) {
-			os.MkdirAll(config.Config.UploadlDir, 0777)
+			os.MkdirAll(config.Config.UploadDir, 0777)
 		}
 		////// 检查上传文件
-		f := config.Config.UploadlDir + info.DstName()
+		f := config.Config.UploadDir + info.DstName()
 		switch config.Config.WriteFile > 0 {
 		case true:
 			_, err = os.Stat(f)

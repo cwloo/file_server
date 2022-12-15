@@ -25,7 +25,7 @@ func handlerFileJsonReq(body []byte) (*global.FileInfoResp, bool) {
 	if req.Md5 == "" && len(req.Md5) != 32 {
 		return &global.FileInfoResp{Md5: req.Md5, ErrCode: 1, ErrMsg: "parse param error"}, false
 	}
-	return QueryFileinfoCache(req.Md5)
+	return QueryCacheFile(req.Md5)
 }
 
 func handlerFileQuery(query url.Values) (*global.FileInfoResp, bool) {
@@ -36,7 +36,7 @@ func handlerFileQuery(query url.Values) (*global.FileInfoResp, bool) {
 	if md5 == "" && len(md5) != 32 {
 		return &global.FileInfoResp{Md5: md5, ErrCode: 1, ErrMsg: "parse param error"}, false
 	}
-	return QueryFileinfoCache(md5)
+	return QueryCacheFile(md5)
 }
 
 func handlerFileinfo(w http.ResponseWriter, r *http.Request) {

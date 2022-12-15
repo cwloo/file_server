@@ -123,7 +123,7 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader) (
 
 func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader) (string, string, error) {
 	yunPath := ""
-	f := config.Config.UploadlDir + info.DstName()
+	f := config.Config.UploadDir + info.DstName()
 	fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 	if err != nil {
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "OpenFile:", err.Error()}, "")
