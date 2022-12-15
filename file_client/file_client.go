@@ -145,7 +145,7 @@ func upload() {
 	// 						logs.LogError("--- %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 	// 						continue
 
-	// 						// 别人正在上传该文件的话，你要拿到上传文件的uuid和now值继续重试，因为别人有可能暂停上传，这样你就会接着继续上传该文件
+	// 						// 别人正在上传该文件的话，你要拿到上传文件的uuid和now值并继续重试，因为别人有可能暂停上传，这样你就会接着上传该文件
 	// 					case ErrRepeat.ErrCode:
 	// 						logs.LogWarn("*** %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 	// 						logs.LogWarn("request =>> %v %v", method, url_fileinfo+"?md5="+result.Md5)
@@ -205,7 +205,7 @@ func upload() {
 	// 						}
 	// 						offset[result.Md5] = result.Now
 
-	// 						// 校正需要重传，有可能别人正在上传该文件，你会一直收到校正重传，所以只需显示进度即可，如果上传用户暂停的话，你会接着上传该文件
+	// 						// 校正需要重传，有可能别人正在上传该文件，你会一直收到校正重传，所以只需显示进度即可并继续重试，如果上传用户暂停的话，你会接着上传该文件
 	// 					case ErrCheckReUpload.ErrCode:
 	// 						if results == nil {
 	// 							results = map[string]Result{}
@@ -327,7 +327,7 @@ func upload() {
 						logs.LogError("--- %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 						continue
 
-						// 别人正在上传该文件的话，你要拿到上传文件的uuid和now值继续重试，因为别人有可能暂停上传，这样你就会接着继续上传该文件
+						// 别人正在上传该文件的话，你要拿到上传文件的uuid和now值并继续重试，因为别人有可能暂停上传，这样你就会接着上传该文件
 					case ErrRepeat.ErrCode:
 						logs.LogWarn("--- %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 						logs.LogWarn("request =>> %v %v", method, url_fileinfo+"?md5="+result.Md5)
@@ -387,7 +387,7 @@ func upload() {
 						}
 						offset[result.Md5] = result.Now
 
-						// 校正需要重传，有可能别人正在上传该文件，你会一直收到校正重传，所以只需显示进度即可，如果上传用户暂停的话，你会接着上传该文件
+						// 校正需要重传，有可能别人正在上传该文件，你会一直收到校正重传，所以只需显示进度即可并继续重试，如果上传用户暂停的话，你会接着上传该文件
 					case ErrCheckReUpload.ErrCode:
 						offset[result.Md5] = result.Now
 						progress, _ := strconv.ParseFloat(fmt.Sprintf("%f", float64(result.Now)/float64(result.Total)), 64)
@@ -520,7 +520,6 @@ func multiUpload() {
 	// 					case ErrParamsUUID.ErrCode:
 	// 						fallthrough
 	// 					case ErrParsePartData.ErrCode:
-	// 						// 需要继续重试
 	// 						logs.LogError("*** %v %v", resp.Uuid, resp.ErrMsg)
 	// 						continue
 	// 					}
@@ -675,7 +674,6 @@ func multiUpload() {
 	// 			case ErrParamsUUID.ErrCode:
 	// 				fallthrough
 	// 			case ErrParsePartData.ErrCode:
-	// 				// 需要继续重试
 	// 				logs.LogError("--- %v %v", resp.Uuid, resp.ErrMsg)
 	// 				continue
 	// 			}
