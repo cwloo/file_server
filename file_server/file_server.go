@@ -33,9 +33,8 @@ func main() {
 		handlerReadConfig()
 	}))
 
-	server := NewHttpServer()
-	Register(server)
-	server.Run()
+	router := NewRouter()
+	router.Run()
 
 	logs.LogClose()
 }

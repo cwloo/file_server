@@ -41,6 +41,7 @@ func NewHttpServer() HttpServer {
 
 func (s *httpserver) Router(pattern string, handler Handler) {
 	if !s.valid() {
+		logs.LogError("error")
 		return
 	}
 	s.mux().HandleFunc(pattern, handler)
