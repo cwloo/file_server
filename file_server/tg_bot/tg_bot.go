@@ -19,7 +19,7 @@ type TgBotApi struct {
 	TgBot_Token  string
 	TgBot_ChatId int64
 	BotApi       *tgbotapi.BotAPI
-	lock         *sync.RWMutex
+	l            *sync.RWMutex
 }
 
 func NewTgBot(TgBot_Token string, TgBot_ChatId int64, useTgBot bool) {
@@ -35,7 +35,7 @@ func newTgBot(TgBot_Token string, TgBot_ChatId int64, useTgBot bool) *TgBotApi {
 	s := &TgBotApi{
 		TgBot_Token:  TgBot_Token,
 		TgBot_ChatId: TgBot_ChatId,
-		lock:         &sync.RWMutex{},
+		l:            &sync.RWMutex{},
 	}
 	switch useTgBot {
 	case true:
@@ -63,22 +63,29 @@ func (s *TgBotApi) update(TgBot_Token string, TgBot_ChatId int64, useTgBot bool)
 }
 
 func (s *TgBotApi) resetBotApi() {
-	s.lock.Lock()
+	s.l.Lock()
 	s.BotApi = nil
-	s.lock.Unlock()
+	s.l.Unlock()
+}
+
+func (s *TgBotApi) check(TgBot_Token string) bool {
+	s.l.RLock()
+	need := s.BotApi == nil || s.TgBot_Token != TgBot_Token
+	s.l.RUnlock()
+	return need
 }
 
 func (s *TgBotApi) newBotApi(TgBot_Token string) {
-	s.lock.Lock()
-	if s.BotApi == nil || s.TgBot_Token != TgBot_Token {
+	if s.check(TgBot_Token) {
 		botApi, err := tgbotapi.NewBotAPI(TgBot_Token)
 		if err != nil {
 			logs.LogFatal(err.Error())
 		}
+		s.l.Lock()
 		s.TgBot_Token = TgBot_Token
 		s.BotApi = botApi
+		s.l.Unlock()
 	}
-	s.lock.Unlock()
 }
 
 func TgWarnMsg(msgs ...string) {
@@ -103,7 +110,7 @@ func TgErrMsg(msgs ...string) {
 }
 
 func (s *TgBotApi) tgBotMsg(alert string, msgs ...string) {
-	s.lock.RLock()
+	s.l.RLock()
 	if s.BotApi == nil {
 		return
 	}
@@ -111,5 +118,5 @@ func (s *TgBotApi) tgBotMsg(alert string, msgs ...string) {
 		smsg := tgbotapi.NewMessage(s.TgBot_ChatId, strings.Join([]string{alert, msg}, ""))
 		s.BotApi.Send(smsg)
 	}
-	s.lock.RUnlock()
+	s.l.RUnlock()
 }
