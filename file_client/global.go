@@ -66,6 +66,19 @@ type Result struct {
 	Url     string `json:"url,omitempty"`
 }
 
+// <summary>
+// FileInfoResp
+// <summary>
+type FileInfoResp struct {
+	Uuid    string `json:"uuid,omitempty"`
+	File    string `json:"file,omitempty"`
+	Md5     string `json:"md5,omitempty"`
+	Now     int64  `json:"now,omitempty"`
+	Total   int64  `json:"total,omitempty"`
+	ErrCode int    `json:"code" form:"code"`
+	ErrMsg  string `json:"errmsg" form:"errmsg"`
+}
+
 func Init() {
 	SegmentSize = Config.SegmentSize
 	MultiFile = Config.MultiFile > 0

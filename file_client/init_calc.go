@@ -9,9 +9,10 @@ import (
 	"github.com/cwloo/gonet/utils"
 )
 
-func calcFileSize(MD5 map[string]string) (total map[string]int64, offset map[string]int64) {
+func calcFileSize(MD5 map[string]string) (total map[string]int64, offset map[string]int64, uuids map[string]string) {
 	total = map[string]int64{}
 	offset = map[string]int64{}
+	uuids = map[string]string{}
 	for f, md5 := range MD5 {
 		sta, err := os.Stat(f)
 		if err != nil && os.IsNotExist(err) {
@@ -20,6 +21,7 @@ func calcFileSize(MD5 map[string]string) (total map[string]int64, offset map[str
 		if sta.Size() > 0 {
 			offset[md5] = int64(0)
 			total[md5] = sta.Size()
+			uuids[md5] = utils.CreateGUID()
 		}
 	}
 	return

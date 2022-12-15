@@ -21,6 +21,7 @@ type IniConfig struct {
 	HttpProto    string
 	HttpAddr     string
 	UploadPath   string
+	FileinfoPath string
 	GetPath      string
 	SegmentSize  int64
 	MultiFile    int
@@ -47,6 +48,7 @@ func readIni(filename string) (c *IniConfig) {
 	c.HttpAddr = ini.GetString("httpserver", "addr")
 	c.UploadPath = ini.GetString("path", "upload")
 	c.GetPath = ini.GetString("path", "get")
+	c.FileinfoPath = ini.GetString("path", "fileinfo")
 	c.MultiFile = ini.GetInt("upload", "multiFile")
 	str := ini.GetString("upload", "segmentSize")
 	slice := strings.Split(str, "*")
