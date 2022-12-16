@@ -63,15 +63,17 @@ func (s *ErrorMsg) Error() string {
 // Req
 // <summary>
 type Req struct {
-	Uuid   string
-	Md5    string
-	Offset string
-	Total  string
-	Keys   []string
-	W      http.ResponseWriter
-	R      *http.Request
-	Resp   *Resp
-	Result []Result
+	Uuid       string
+	Md5        string
+	Filename   string
+	Headersize int64
+	Offset     string
+	Total      string
+	Keys       []string
+	W          http.ResponseWriter
+	R          *http.Request
+	Resp       *Resp
+	Result     []Result
 }
 
 // <summary>

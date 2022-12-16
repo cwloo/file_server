@@ -162,12 +162,39 @@ func (s *AsyncUploader) uploading(req *global.Req) {
 		part, header, err := req.R.FormFile(k)
 		if err != nil {
 			logs.LogError(err.Error())
-			return
+			size, _ := strconv.ParseInt(req.Total, 10, 0)
+			result = append(result,
+				global.Result{
+					Uuid:    req.Uuid,
+					File:    req.Filename,
+					Md5:     req.Md5,
+					Total:   size,
+					ErrCode: global.ErrCheckReUpload.ErrCode,
+					ErrMsg:  global.ErrCheckReUpload.ErrMsg,
+					Message: strings.Join([]string{req.Uuid, " check reuploading ", req.Filename, " progress:", strconv.FormatInt(0, 10), "/", req.Total}, ""),
+				})
+			logs.LogError("%v %v[%v] %v/%v offset:%v", req.Uuid, req.Filename, req.Md5, 0, req.Total, req.Offset)
+			offset_n, _ := strconv.ParseInt(req.Offset, 10, 0)
+			logs.LogDebug("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", req.Uuid, req.Filename, req.Md5, 0, req.Total, offset_n, req.Headersize)
+			continue
 		}
 		info := fileInfos.Get(req.Md5)
 		if info == nil {
-			logs.LogFatal("error")
-			return
+			size, _ := strconv.ParseInt(req.Total, 10, 0)
+			result = append(result,
+				global.Result{
+					Uuid:    req.Uuid,
+					File:    req.Filename,
+					Md5:     req.Md5,
+					Total:   size,
+					ErrCode: global.ErrCheckReUpload.ErrCode,
+					ErrMsg:  global.ErrCheckReUpload.ErrMsg,
+					Message: strings.Join([]string{req.Uuid, " check reuploading ", header.Filename, " progress:", strconv.FormatInt(0, 10), "/", req.Total}, ""),
+				})
+			logs.LogError("%v %v[%v] %v/%v offset:%v", req.Uuid, header.Filename, req.Md5, 0, req.Total, req.Offset)
+			offset_n, _ := strconv.ParseInt(req.Offset, 10, 0)
+			logs.LogDebug("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", req.Uuid, header.Filename, req.Md5, 0, req.Total, offset_n, header.Size)
+			continue
 		}
 		////// 还未接收完
 		if info.Done(false) {
@@ -428,12 +455,39 @@ func (s *AsyncUploader) multi_uploading(req *global.Req) {
 		part, header, err := req.R.FormFile(k)
 		if err != nil {
 			logs.LogError(err.Error())
-			return
+			size, _ := strconv.ParseInt(req.Total, 10, 0)
+			result = append(result,
+				global.Result{
+					Uuid:    req.Uuid,
+					File:    "",
+					Md5:     req.Md5,
+					Total:   size,
+					ErrCode: global.ErrCheckReUpload.ErrCode,
+					ErrMsg:  global.ErrCheckReUpload.ErrMsg,
+					Message: strings.Join([]string{req.Uuid, " check reuploading ", "", " progress:", strconv.FormatInt(0, 10), "/", total}, ""),
+				})
+			logs.LogError(err.Error())
+			offset_n, _ := strconv.ParseInt(offset, 10, 0)
+			logs.LogDebug("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[unknown:%d]", req.Uuid, "", md5, 0, total, offset_n, 0)
+			continue
 		}
 		info := fileInfos.Get(md5)
 		if info == nil {
-			logs.LogFatal("error")
-			return
+			size, _ := strconv.ParseInt(req.Total, 10, 0)
+			result = append(result,
+				global.Result{
+					Uuid:    req.Uuid,
+					File:    req.Filename,
+					Md5:     req.Md5,
+					Total:   size,
+					ErrCode: global.ErrCheckReUpload.ErrCode,
+					ErrMsg:  global.ErrCheckReUpload.ErrMsg,
+					Message: strings.Join([]string{req.Uuid, " check reuploading ", req.Filename, " progress:", strconv.FormatInt(0, 10), "/", total}, ""),
+				})
+			logs.LogError(err.Error())
+			offset_n, _ := strconv.ParseInt(offset, 10, 0)
+			logs.LogDebug("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", req.Uuid, header.Filename, md5, 0, total, offset_n, header.Size)
+			continue
 		}
 		////// 还未接收完
 		if info.Done(false) {

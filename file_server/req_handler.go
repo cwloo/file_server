@@ -62,6 +62,8 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 		writeResponse(w, r, resp)
 		return
 	}
+	filename := ""
+	headersize := int64(0)
 	uuid := ""
 	md5 := ""
 	offset := ""
@@ -116,6 +118,8 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 					Message: ""})
 			continue
 		}
+		filename = header.Filename
+		headersize = headersize
 		/// header.size检查
 		if !checkMultiPartSize(header) {
 			result = append(result,
@@ -314,14 +318,14 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 			/// 有待上传文件，启动新任务
 			j, _ := json.Marshal(keys)
 			logs.LogTrace("--------------------- ****** 有待上传文件，启动任务 %v ... %v", uuid, string(j))
-			uploader.Upload(&global.Req{Uuid: uuid, Md5: md5, Offset: offset, Total: total, Keys: keys, W: w, R: r, Resp: resp, Result: result})
+			uploader.Upload(&global.Req{Uuid: uuid, Filename: filename, Headersize: headersize, Md5: md5, Offset: offset, Total: total, Keys: keys, W: w, R: r, Resp: resp, Result: result})
 		} else {
 			exist = true
 			///////////////////////////// 当前上传任务 /////////////////////////////
 			/// 有待上传文件，加入当前任务
 			// j, _ := json.Marshal(keys)
 			// logs.LogTrace("--------------------- ****** 有待上传文件，加入任务 %v ... %v", uuid, string(j))
-			uploader.Upload(&global.Req{Uuid: uuid, Md5: md5, Offset: offset, Total: total, Keys: keys, W: w, R: r, Resp: resp, Result: result})
+			uploader.Upload(&global.Req{Uuid: uuid, Filename: filename, Headersize: headersize, Md5: md5, Offset: offset, Total: total, Keys: keys, W: w, R: r, Resp: resp, Result: result})
 		}
 	} else {
 		/// 无待上传文件，直接返回
