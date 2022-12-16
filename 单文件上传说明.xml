@@ -32,46 +32,44 @@ Content-Disposition: form-data; name=\"50c23496389c3b2b9e67d202ffb48d03.total\"
 
 form-data; name=\"c5459c3b484665d272116b2a53d2c922\"; filename=\"nox_setup_v7.0.3.8_full.exe\", "Content-Type": "application/octet-stream"
 
+
+<!-- 上传错误码说明 -->
+
+<!-- 1. ErrSegOk.ErrCode 表示上传分段成功，拿到now值继续传。-->
+
+<!-- 2. ErrRepeat.ErrCode 表示文件重复上传，别人正在上传该文件，拿到uuid和now值继续传。-->
+<!-- 别人正在上传该文件的话，你要调用getfileinfo拿到该上传文件的uuid和now值并继续重试，因为别人有可能暂停上传，这样你就会接着上传该文件。-->
+
+<!-- 3. ErrCheckReUpload.ErrCode 表示校正需要重传，拿到now值继续传。-->
+<!-- 有可能别人正在上传该文件，你会一直收到校正重传，所以只需显示进度即可并继续重试，如果上传用户暂停的话，你会接着上传该文件。-->
+
+<!-- 4. ErrFileMd5.ErrCode 表示上传完成，校验失败。-->
+
+<!-- 5. ErrOk.ErrCode 表示上传完成，并且成功。-->
+
+<!-- 6. ErrMultiFileNotSupport.ErrCode 表示提交的form表单只支持单个文件。-->
+
+<!-- 7. 其他错误没有返回now值，offset值还是之前的值不变，继续从offset位置读文件继续传。因为有些未知错误，服务端不知道是哪个文件，所以无法返回now值。-->
+
+
 <!-- 前端处理逻辑 -->
-
-<!-- 1. ErrFileMd5.ErrCode表示上传失败。-->
-
-<!-- 2. ErrOk.ErrCode表示上传成功。-->
-
-<!-- 3. ErrSegOk.ErrCode表示上传分段成功，拿到now值继续传。-->
-
-<!-- 4. ErrCheckReUpload.ErrCode表示校正需要重传，拿到now值继续传。-->
-
-<!-- 5. 其他错误没有返回now值，offset值还是之前的值不变，继续从offset位置读文件继续传。因为有些未知错误，服务端不知道是哪个文件，所以无法返回now值。-->
-
 
 <!-- 上传文件第一个分片从文件开始位置读，offset应该是0。-->
 
-<!-- 收到 ErrSegOk 和 ErrCheckReUpload 更新offset值，然后继续读文件上传。-->
+<!-- 收到 ErrSegOk.ErrCode 和 ErrCheckReUpload 更新offset=now值，然后继续读文件上传。-->
 
-<!-- 收到 ErrRepeat 调用 getfileinfo 拿到uuid和now更新uuid和offset值，继续读文件上传。-->
+<!-- 收到 ErrRepeat.ErrCode 调用 getfileinfo 拿到uuid和now值更新uuid和offset值，继续读文件上传。-->
 
-<!-- 其他错误，offset值不变，继续读文件上传。-->
+<!-- 收到 ErrOk.ErrCode 上传成功。-->
+
+<!-- 收到 ErrFileMd5.ErrCode 上传失败。 -->
+
+<!-- 收到 ErrMultiFileNotSupport.ErrCode 提交的form表单格式不对。-->
+
+<!-- 收到其他错误，offset值不变，继续读文件上传。-->
 
 <!-- 当 offset<total 时，一直for循环操作，当 offset>=total 时退出。-->
 
-
-<!-- 上传错误码 -->
-<!-- ErrOk                  = ErrorMsg{0, "Ok"}                                    //上传完成，并且成功
-<!-- ErrSegOk               = ErrorMsg{1, "upload file segment succ"}              //上传成功(分段续传)                         --需要继续分段上传剩余数据
-<!-- ErrFileMd5             = ErrorMsg{2, "upload file over, but md5 failed"}      //上传完成，校验出错                         --上传失败
-<!-- ErrRepeat              = ErrorMsg{3, "Repeat upload same file"}               //文件重复上传                               --别人上传了
-<!-- ErrCheckReUpload       = ErrorMsg{4, "check and re-upload file"}              //文件校正重传                               --需要继续 客户端拿到返回校正数据继续上传
-<!-- ErrParamsUUID          = ErrorMsg{5, "upload param error uuid"}               //上传参数错误 uuid                          --上传错误
-<!-- ErrParamsMD5           = ErrorMsg{6, "upload param error md5"}                //上传参数错误 文件md5                       --上传错误
-<!-- ErrParamsOffset        = ErrorMsg{7, "upload param error offset"}             //上传参数错误 文件已读大小偏移数           --上传错误
-<!-- ErrParamsTotalLimit    = ErrorMsg{8, "upload param error total size"}         //上传参数错误 单个上传文件字节数           --上传错误
-<!-- ErrParamsSegSizeLimit  = ErrorMsg{9, "upload per-segment size limited"}       //上传参数错误 单次上传字节数限制           --上传错误
-<!-- ErrParamsAllTotalLimit = ErrorMsg{10, "upload all total szie limited"}        //上传参数错误 单次上传文件总大小           --上传错误
-<!-- ErrParsePartData       = ErrorMsg{11, "parse multipart form-data err"}        //解析multipart form-data数据错误            --上传失败
-<!-- ErrParseFormFile       = ErrorMsg{12, "parse multipart form-file err"}        //解析multipart form-file文件错误            --上传失败
-<!-- ErrParamsSegSizeZero   = ErrorMsg{13, "upload multipart form-data size zero"} //上传form-data数据字节大小为0               --上传失败
-<!-- ErrMultiFileNotSupport = ErrorMsg{14, "upload multifiles not supported"}      //MultiFile为false时，一次只能上传一个文件
 
 <!-- 查看上传服务器配置 -->
 http://192.168.0.113:8089/uploadapi/getconfig
@@ -100,53 +98,22 @@ http://192.168.0.113:8089/uploadapi/updateconfig?writeFile=0
 <!-- 1-取消文件上传 2-删除已上传文件 -->
 https://192.168.0.113:8089/uploadapi/delfile?type=1&md5=562a18c8d1554faa0aa61c3cb594993e
 
-type DelReq struct {
-	Type  int    `json:"type,omitempty"` <!-- 1-取消文件上传 2-移除已上传的文件 -->
-	Md5   string `json:"md5,omitempty"`
-	Uuid  string `json:"uuid,omitempty"`
-	Check bool   `json:"check,omitempty"` <!-- 是否校验uuid -->
-}
-type DelResp struct {
-	Type    int    `json:"type,omitempty"`
-	Md5     string `json:"md5,omitempty"`
-	ErrCode int    `json:"code,omitempty"`
-	ErrMsg  string `json:"errmsg,omitempty"`
-}
-
 <!-- 查询文件信息，ErrRepeat.ErrCode 时，针对用户上传某个文件，然后一直暂停，其他用户上传不了该文件的情况，调用该接口继续上传 -->
-
 https://192.168.0.113:8089/uploadapi/getfileinfo?md5=562a18c8d1554faa0aa61c3cb594993e
 
-type FileInfoReq struct {
-	Md5 string `json:"md5,omitempty"`
-}
-type FileInfoResp struct {
-	Uuid    string `json:"uuid,omitempty"` <!-- 用该 uuid 上传 -->
-	File    string `json:"file,omitempty"`
-	Md5     string `json:"md5,omitempty"`
-	Now     int64  `json:"now,omitempty"`  <!-- 文件上传进度 -->
-	Total   int64  `json:"total,omitempty"`
-	ErrCode int    `json:"code,omitempty"`
-	ErrMsg  string `json:"errmsg,omitempty"`
-}
-
-<!-- 请求返回json数据 Resp -->
-type Resp struct {
- 	Uuid    string      `json:"uuid,omitempty"`
- 	ErrCode int         `json:"code,omitempty"`
- 	ErrMsg  string      `json:"errmsg,omitempty"`
- 	Data    []Result    `json:"data,omitempty"` <!-- Result数组，对应一次上传多个文件的返回结果，比如一次上传5个文件，那么就有5条 Result -->
-}
-
-<!-- 请求返回json数据 Result -->
-type Result struct {
-	Uuid    string `json:"uuid,omitempty"`
-	File    string `json:"file,omitempty"`
-	Md5     string `json:"md5,omitempty"`
-	Now     int64  `json:"now,omitempty"`      <!-- 当前文件上传进度，即文件偏移offset，下次需要从这个offset读取文件继续上传 -->
-	Total   int64  `json:"total,omitempty"`    <!-- 当前文件总的字节数 -->
-	Expired int64  `json:"expired,omitempty"`  <!-- 未决的上传过期时间，如果不继续上传，超过这个时间服务器就会清理，客户端需要重新上传 -->
-	ErrCode int    `json:"code,omitempty"`
-	ErrMsg  string `json:"errmsg,omitempty"`
-	Message string `json:"message,omitempty"`
-}
+<!-- 上传错误码 -->
+<!-- ErrOk                  = ErrorMsg{0, "Ok"}                                    //上传完成，并且成功
+<!-- ErrSegOk               = ErrorMsg{1, "upload file segment succ"}              //上传成功(分段续传)                         --需要继续分段上传剩余数据
+<!-- ErrFileMd5             = ErrorMsg{2, "upload file over, but md5 failed"}      //上传完成，校验出错                         --上传失败
+<!-- ErrRepeat              = ErrorMsg{3, "Repeat upload same file"}               //文件重复上传                               --别人上传了
+<!-- ErrCheckReUpload       = ErrorMsg{4, "check and re-upload file"}              //文件校正重传                               --需要继续 客户端拿到返回校正数据继续上传
+<!-- ErrParamsUUID          = ErrorMsg{5, "upload param error uuid"}               //上传参数错误 uuid                          --上传错误
+<!-- ErrParamsMD5           = ErrorMsg{6, "upload param error md5"}                //上传参数错误 文件md5                       --上传错误
+<!-- ErrParamsOffset        = ErrorMsg{7, "upload param error offset"}             //上传参数错误 文件已读大小偏移数           --上传错误
+<!-- ErrParamsTotalLimit    = ErrorMsg{8, "upload param error total size"}         //上传参数错误 单个上传文件字节数           --上传错误
+<!-- ErrParamsSegSizeLimit  = ErrorMsg{9, "upload per-segment size limited"}       //上传参数错误 单次上传字节数限制           --上传错误
+<!-- ErrParamsAllTotalLimit = ErrorMsg{10, "upload all total szie limited"}        //上传参数错误 单次上传文件总大小           --上传错误
+<!-- ErrParsePartData       = ErrorMsg{11, "parse multipart form-data err"}        //解析multipart form-data数据错误            --上传失败
+<!-- ErrParseFormFile       = ErrorMsg{12, "parse multipart form-file err"}        //解析multipart form-file文件错误            --上传失败
+<!-- ErrParamsSegSizeZero   = ErrorMsg{13, "upload multipart form-data size zero"} //上传form-data数据字节大小为0               --上传失败
+<!-- ErrMultiFileNotSupport = ErrorMsg{14, "upload multifiles not supported"}      //MultiFile为false时，一次只能上传一个文件
