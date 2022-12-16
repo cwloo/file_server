@@ -62,8 +62,6 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 		writeResponse(w, r, resp)
 		return
 	}
-	filename := ""
-	headersize := int64(0)
 	uuid := ""
 	md5 := ""
 	offset := ""
@@ -72,7 +70,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 	for k := range form.Value {
 		switch strings.ToLower(k) {
 		case "uuid":
-			uuid = r.FormValue(k)
+			uuid = strings.ToLower(r.FormValue(k))
 		case "md5":
 			md5 = strings.ToLower(r.FormValue(k))
 		case "offset":
@@ -94,7 +92,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 	var resp *global.Resp
 	result := []global.Result{}
 	allTotal := int64(0)
-	keys := []string{}
+	keys := []*global.File{}
 	if len(form.File) > 1 {
 		resp := &global.Resp{
 			ErrCode: global.ErrMultiFileNotSupport.ErrCode,
@@ -118,8 +116,6 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 					Message: ""})
 			continue
 		}
-		filename = header.Filename
-		headersize = headersize
 		/// header.size检查
 		if !checkMultiPartSize(header) {
 			result = append(result,
@@ -212,7 +208,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 		info, ok := fileInfos.GetAdd(md5, uuid, header.Filename, total)
 		if !ok {
 			/// 没有上传，等待上传
-			keys = append(keys, k)
+			keys = append(keys, &global.File{Md5: md5, Filename: header.Filename, Headersize: header.Size, Offset: offset, Total: total, Key: k})
 			logs.LogWarn("--- *** 没有上传，等待上传 %v %v[%v] %v/%v seg_size[%v]", uuid, header.Filename, md5, info.Now(false), total, header.Size)
 		} else {
 			info.Assert()
@@ -259,7 +255,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 						logs.LogError("%v %v[%v] %v chkmd5 [Err]", uuid, header.Filename, md5, info.DstName())
 					}
 				} else {
-					keys = append(keys, k)
+					keys = append(keys, &global.File{Md5: md5, Filename: header.Filename, Headersize: header.Size, Offset: offset, Total: total, Key: k})
 				}
 			} else {
 				/// 已在其它上传任务中
@@ -318,14 +314,14 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 			/// 有待上传文件，启动新任务
 			j, _ := json.Marshal(keys)
 			logs.LogTrace("--------------------- ****** 有待上传文件，启动任务 %v ... %v", uuid, string(j))
-			uploader.Upload(&global.Req{Uuid: uuid, Filename: filename, Headersize: headersize, Md5: md5, Offset: offset, Total: total, Keys: keys, W: w, R: r, Resp: resp, Result: result})
+			uploader.Upload(&global.Req{Uuid: uuid, Key: keys, W: w, R: r, Resp: resp, Result: result})
 		} else {
 			exist = true
 			///////////////////////////// 当前上传任务 /////////////////////////////
 			/// 有待上传文件，加入当前任务
-			// j, _ := json.Marshal(keys)
-			// logs.LogTrace("--------------------- ****** 有待上传文件，加入任务 %v ... %v", uuid, string(j))
-			uploader.Upload(&global.Req{Uuid: uuid, Filename: filename, Headersize: headersize, Md5: md5, Offset: offset, Total: total, Keys: keys, W: w, R: r, Resp: resp, Result: result})
+			j, _ := json.Marshal(keys)
+			logs.LogTrace("--------------------- ****** 有待上传文件，加入任务 %v ... %v", uuid, string(j))
+			uploader.Upload(&global.Req{Uuid: uuid, Key: keys, W: w, R: r, Resp: resp, Result: result})
 		}
 	} else {
 		/// 无待上传文件，直接返回
@@ -371,7 +367,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 	for k := range form.Value {
 		switch k {
 		case "uuid":
-			uuid = r.FormValue(k)
+			uuid = strings.ToLower(r.FormValue(k))
 		}
 		// logs.LogTrace("%v=%v", k, v)
 	}
@@ -387,7 +383,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 	var resp *global.Resp
 	result := []global.Result{}
 	allTotal := int64(0)
-	keys := []string{}
+	keys := []*global.File{}
 	for k := range form.File {
 		offset := r.FormValue(k + ".offset")
 		total := r.FormValue(k + ".total")
@@ -498,7 +494,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 		info, ok := fileInfos.GetAdd(md5, uuid, header.Filename, total)
 		if !ok {
 			/// 没有上传，等待上传
-			keys = append(keys, k)
+			keys = append(keys, &global.File{Md5: md5, Filename: header.Filename, Headersize: header.Size, Offset: offset, Total: total, Key: k})
 			logs.LogWarn("--- *** 没有上传，等待上传 %v %v[%v] %v/%v seg_size[%v]", uuid, header.Filename, md5, info.Now(false), total, header.Size)
 		} else {
 			info.Assert()
@@ -545,7 +541,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 						logs.LogError("%v %v[%v] %v chkmd5 [Err]", uuid, header.Filename, md5, info.DstName())
 					}
 				} else {
-					keys = append(keys, k)
+					keys = append(keys, &global.File{Md5: md5, Filename: header.Filename, Headersize: header.Size, Offset: offset, Total: total, Key: k})
 				}
 			} else {
 				/// 已在其它上传任务中
@@ -604,14 +600,14 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 			/// 有待上传文件，启动新任务
 			j, _ := json.Marshal(keys)
 			logs.LogTrace("--------------------- ****** 有待上传文件，启动任务 %v ... %v", uuid, string(j))
-			uploader.Upload(&global.Req{Uuid: uuid, Keys: keys, W: w, R: r, Resp: resp, Result: result})
+			uploader.Upload(&global.Req{Uuid: uuid, Key: keys, W: w, R: r, Resp: resp, Result: result})
 		} else {
 			exist = true
 			///////////////////////////// 当前上传任务 /////////////////////////////
 			/// 有待上传文件，加入当前任务
-			// j, _ := json.Marshal(keys)
-			// logs.LogTrace("--------------------- ****** 有待上传文件，加入任务 %v ... %v", uuid, string(j))
-			uploader.Upload(&global.Req{Uuid: uuid, Keys: keys, W: w, R: r, Resp: resp, Result: result})
+			j, _ := json.Marshal(keys)
+			logs.LogTrace("--------------------- ****** 有待上传文件，加入任务 %v ... %v", uuid, string(j))
+			uploader.Upload(&global.Req{Uuid: uuid, Key: keys, W: w, R: r, Resp: resp, Result: result})
 		}
 	} else {
 		/// 无待上传文件，直接返回
