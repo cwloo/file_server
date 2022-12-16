@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/cwloo/gonet/logs"
+	"github.com/cwloo/uploader/file_server/global"
 )
 
 var fileInfos = NewFileInfos()
@@ -20,7 +21,7 @@ var (
 	}
 )
 
-type SegmentCallback func(FileInfo, OSS) (string, error)
+type SegmentCallback func(FileInfo, OSS) (string, *global.ErrorMsg)
 type CheckCallback func(FileInfo) (time.Time, bool)
 
 // <summary>
@@ -34,9 +35,10 @@ type FileInfo interface {
 	YunName() string
 	Date() string
 	Assert()
-	Update(int64, SegmentCallback, CheckCallback) (done, ok bool, url string, start time.Time)
+	Update(int64, SegmentCallback, CheckCallback) (done, ok bool, url string, err *global.ErrorMsg, start time.Time)
 	Now(lock bool) int64
 	Total(lock bool) int64
+	Last(lock bool, size int64) bool
 	Done(lock bool) bool
 	Ok(lock bool) (bool, string)
 	Url(lock bool) string
@@ -201,7 +203,7 @@ func (s *Fileinfo) Assert() {
 	}
 }
 
-func (s *Fileinfo) Update(size int64, onSeg SegmentCallback, onCheck CheckCallback) (done, ok bool, url string, start time.Time) {
+func (s *Fileinfo) Update(size int64, onSeg SegmentCallback, onCheck CheckCallback) (done, ok bool, url string, err *global.ErrorMsg, start time.Time) {
 	if size <= 0 {
 		logs.LogFatal("error")
 	}
@@ -209,25 +211,52 @@ func (s *Fileinfo) Update(size int64, onSeg SegmentCallback, onCheck CheckCallba
 	if s.now == 0 {
 		s.oss = NewOss(s)
 	}
-	s.now += size
-	if s.now > s.total {
+	if s.now+size > s.total {
 		logs.LogFatal("error")
 	}
-	url, _ = onSeg(s, s.oss)
-	done = s.now == s.total
-	if done {
-		s.oss.Put()
-		s.oss = nil
-		start, ok = onCheck(s)
-		if ok {
-			now := time.Now()
-			s.time = now
-			s.hitTime = now
-			s.url = url
+	url, err = onSeg(s, s.oss)
+	switch err {
+	case nil:
+		s.now += size
+		done = s.now == s.total
+		if done {
+			s.oss.Put()
+			s.oss = nil
+			start, ok = onCheck(s)
+			if ok {
+				now := time.Now()
+				s.time = now
+				s.hitTime = now
+				s.url = url
+			}
+		}
+	default:
+		switch err.ErrCode {
+		case global.ErrFatal.ErrCode:
+			s.oss.Put()
+			s.oss = nil
 		}
 	}
 	s.l.Unlock()
 	return
+}
+
+func (s *Fileinfo) Last(lock bool, size int64) bool {
+	switch lock {
+	case true:
+		s.l.RLock()
+		if s.now+size > s.total {
+			logs.LogFatal("error")
+		}
+		last := s.now+size == s.total
+		s.l.RUnlock()
+		return last
+	default:
+		if s.now+size > s.total {
+			logs.LogFatal("error")
+		}
+		return s.now+size == s.total
+	}
 }
 
 func (s *Fileinfo) Done(lock bool) bool {

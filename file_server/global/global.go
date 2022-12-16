@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/cwloo/gonet/core/base/cc"
 )
@@ -50,6 +52,15 @@ type ErrorMsg struct {
 	ErrCode int    `json:"code" form:"code"`
 	ErrMsg  string `json:"errmsg" form:"errmsg"`
 }
+
+func (s *ErrorMsg) Error() string {
+	return strings.Join([]string{strconv.Itoa(s.ErrCode), s.ErrMsg}, ":")
+}
+
+var (
+	ErrRetry = ErrorMsg{101, ""}
+	ErrFatal = ErrorMsg{102, ""}
+)
 
 // <summary>
 // Req

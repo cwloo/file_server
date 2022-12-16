@@ -4,13 +4,14 @@ import (
 	"mime/multipart"
 
 	"github.com/cwloo/uploader/file_server/config"
+	"github.com/cwloo/uploader/file_server/global"
 )
 
 // <summary>
 // OSS 云存储
 // <summary>
 type OSS interface {
-	UploadFile(info FileInfo, header *multipart.FileHeader) (string, string, error)
+	UploadFile(info FileInfo, header *multipart.FileHeader) (string, string, *global.ErrorMsg)
 	DeleteFile(key string) error
 	Put()
 }

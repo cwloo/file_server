@@ -11,6 +11,7 @@ import (
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/uploader/file_server/config"
+	"github.com/cwloo/uploader/file_server/global"
 	"github.com/cwloo/uploader/file_server/tg_bot"
 )
 
@@ -31,7 +32,6 @@ type Aliyun struct {
 	imur    *oss.InitiateMultipartUploadResult
 	parts   []oss.UploadPart
 	yunPath string
-	num     int
 }
 
 func NewAliyun(info FileInfo) OSS {
@@ -62,7 +62,7 @@ func (s *Aliyun) valid() bool {
 	return s.imur != nil
 }
 
-func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader) (string, string, error) {
+func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader) (string, string, *global.ErrorMsg) {
 	switch s.valid() {
 	case true:
 		switch uploadFromFile {
@@ -81,29 +81,28 @@ func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader) (string
 	}
 }
 
-func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader) (string, string, error) {
+func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader) (string, string, *global.ErrorMsg) {
 	yunPath := ""
 	part, err := header.Open()
 	if err != nil {
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "Open:", err.Error()}, "")
 		logs.LogError(errMsg)
 		tg_bot.TgErrMsg(errMsg)
-		return "", "", err
+		return "", "", &global.ErrorMsg{ErrCode: global.ErrRetry.ErrCode, ErrMsg: errMsg}
 	}
-	s.num++
 	start := time.Now()
-	part_oss, err := s.bucket.UploadPart(*s.imur, part, header.Size, s.num, oss.Routines(config.Config.Aliyun_Routines))
+	part_oss, err := s.bucket.UploadPart(*s.imur, part, header.Size, len(s.parts)+1, oss.Routines(config.Config.Aliyun_Routines))
 	if err != nil {
 		_ = part.Close()
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "UploadPart:", err.Error()}, "")
 		logs.LogError(errMsg)
 		tg_bot.TgErrMsg(errMsg)
-		return "", "", err
+		return "", "", &global.ErrorMsg{ErrCode: global.ErrRetry.ErrCode, ErrMsg: errMsg}
 	}
 	_ = part.Close()
 	s.parts = append(s.parts, part_oss)
 	logs.LogWarn("%v %v[%v] %v elapsed:%v", info.Uuid(), info.SrcName(), info.Md5(), info.YunName(), time.Since(start))
-	switch info.Done(false) {
+	switch info.Last(false, header.Size) {
 	case true:
 		_, err := s.bucket.CompleteMultipartUpload(*s.imur, s.parts)
 		if err != nil {
@@ -111,7 +110,7 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader) (
 			logs.LogError(errMsg)
 			tg_bot.TgErrMsg(errMsg)
 			s.reset()
-			return "", "", err
+			return "", "", &global.ErrorMsg{ErrCode: global.ErrFatal.ErrCode, ErrMsg: errMsg}
 		}
 		yunPath = s.yunPath
 		s.reset()
@@ -121,7 +120,7 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader) (
 	return strings.Join([]string{config.Config.Aliyun_BucketUrl, "/", yunPath}, ""), yunPath, nil
 }
 
-func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader) (string, string, error) {
+func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader) (string, string, *global.ErrorMsg) {
 	yunPath := ""
 	f := config.Config.UploadDir + info.DstName()
 	fd, err := os.OpenFile(f, os.O_RDONLY, 0)
@@ -129,32 +128,31 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader) (st
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "OpenFile:", err.Error()}, "")
 		logs.LogError(errMsg)
 		tg_bot.TgErrMsg(errMsg)
-		return "", "", err
+		return "", "", &global.ErrorMsg{ErrCode: global.ErrRetry.ErrCode, ErrMsg: errMsg}
 	}
-	// _, err = fd.Seek(info.Now(false)-header.Size, io.SeekStart)
+	// _, err = fd.Seek(info.Now(false), io.SeekStart)
 	_, err = fd.Seek(header.Size, io.SeekEnd)
 	if err != nil {
 		_ = fd.Close()
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "Seek:", err.Error()}, "")
 		logs.LogError(errMsg)
 		tg_bot.TgErrMsg(errMsg)
-		return "", "", err
+		return "", "", &global.ErrorMsg{ErrCode: global.ErrRetry.ErrCode, ErrMsg: errMsg}
 	}
-	s.num++
 	start := time.Now()
-	// part_oss, err := s.bucket.UploadPartFromFile(*s.imur, f, info.Now(false)-header.Size, header.Size, s.num, oss.Routines(config.Config.Aliyun_Routines))
-	part_oss, err := s.bucket.UploadPart(*s.imur, fd, header.Size, s.num, oss.Routines(config.Config.Aliyun_Routines))
+	// part_oss, err := s.bucket.UploadPartFromFile(*s.imur, f, info.Now(false), header.Size, len(s.parts)+1, oss.Routines(config.Config.Aliyun_Routines))
+	part_oss, err := s.bucket.UploadPart(*s.imur, fd, header.Size, len(s.parts)+1, oss.Routines(config.Config.Aliyun_Routines))
 	if err != nil {
 		_ = fd.Close()
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "UploadPart:", err.Error()}, "")
 		logs.LogError(errMsg)
 		tg_bot.TgErrMsg(errMsg)
-		return "", "", err
+		return "", "", &global.ErrorMsg{ErrCode: global.ErrRetry.ErrCode, ErrMsg: errMsg}
 	}
 	_ = fd.Close()
 	s.parts = append(s.parts, part_oss)
 	logs.LogWarn("%v %v[%v] %v elapsed:%v", info.Uuid(), info.SrcName(), info.Md5(), info.YunName(), time.Since(start))
-	switch info.Done(false) {
+	switch info.Last(false, header.Size) {
 	case true:
 		_, err := s.bucket.CompleteMultipartUpload(*s.imur, s.parts)
 		if err != nil {
@@ -162,7 +160,7 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader) (st
 			logs.LogError(errMsg)
 			tg_bot.TgErrMsg(errMsg)
 			s.reset()
-			return "", "", err
+			return "", "", &global.ErrorMsg{ErrCode: global.ErrFatal.ErrCode, ErrMsg: errMsg}
 		}
 		yunPath = s.yunPath
 		s.reset()
@@ -177,7 +175,6 @@ func (s *Aliyun) reset() {
 	s.imur = nil
 	s.parts = nil
 	s.yunPath = ""
-	s.num = 0
 }
 
 func (s *Aliyun) Put() {
