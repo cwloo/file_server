@@ -27,8 +27,8 @@ func (s *Router) Run() {
 	s.server.Router(config.Config.FileinfoPath, s.GetFileinfoReq)
 	s.server.Router(config.Config.UpdateCfgPath, s.UpdateConfigReq)
 	s.server.Router(config.Config.GetCfgPath, s.GetConfigReq)
-	s.server.Router(config.Config.FileDetailPath, s.ListReq)
-	s.server.Router(config.Config.UuidListPath, s.ListReq)
+	s.server.Router(config.Config.FileDetailPath, s.FileDetailReq)
+	s.server.Router(config.Config.UuidListPath, s.UuidListReq)
 	s.server.Router(config.Config.ListPath, s.ListReq)
 	s.server.Run()
 }
