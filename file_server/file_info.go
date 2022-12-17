@@ -35,6 +35,7 @@ type FileInfo interface {
 	DstName() string
 	YunName() string
 	Date() string
+	DateTime() string
 	Assert()
 	Update(int64, SegmentCallback, CheckCallback) (done, ok bool, url string, err *global.ErrorMsg, start time.Time)
 	Now(lock bool) int64
@@ -62,6 +63,7 @@ type Fileinfo struct {
 	total   int64
 	url     string
 	date    string
+	create  string
 	time    time.Time
 	hitTime time.Time
 	l       *sync.RWMutex
@@ -79,6 +81,7 @@ func NewFileInfo(uuid, md5, Filename string, total int64) FileInfo {
 	s.uuid = uuid
 	s.md5 = md5
 	s.date = YMD
+	s.create = YMDHMS
 	s.srcName = Filename
 	s.dstName = dstName
 	switch config.Config.UseOriginFilename > 0 {
@@ -202,6 +205,10 @@ func (s *Fileinfo) YunName() string {
 
 func (s *Fileinfo) Date() string {
 	return s.date
+}
+
+func (s *Fileinfo) DateTime() string {
+	return s.create
 }
 
 func (s *Fileinfo) Assert() {

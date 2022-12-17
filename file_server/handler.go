@@ -54,6 +54,47 @@ func QueryCacheFile(md5 string) (*global.FileInfoResp, bool) {
 		ErrMsg:  "ok"}, true
 }
 
+func QueryCacheList() (*global.ListResp, bool) {
+	resp := &global.ListResp{
+		Uuids:   []string{},
+		Files:   []*global.Fileinfo{},
+		ErrCode: 0,
+		ErrMsg:  "ok"}
+	uploaders.Range(func(uuid string, uploader Uploader) {
+		resp.Uuids = append(resp.Uuids, uuid)
+	})
+	fileInfos.Range(func(md5 string, info FileInfo) {
+		ok, _ := info.Ok(false)
+		switch ok {
+		case true:
+			resp.Files = append(resp.Files, &global.Fileinfo{
+				Uuid:     info.Uuid(),
+				Md5:      info.Md5(),
+				FileName: info.SrcName(),
+				DstName:  info.DstName(),
+				YunName:  info.YunName(),
+				Now:      info.Now(false),
+				Total:    info.Total(false),
+				Url:      info.Url(false),
+				Create:   info.DateTime(),
+				Time:     info.Time(false).Format("20060102150405"),
+			})
+		default:
+			resp.Files = append(resp.Files, &global.Fileinfo{
+				Uuid:     info.Uuid(),
+				Md5:      info.Md5(),
+				FileName: info.SrcName(),
+				DstName:  info.DstName(),
+				YunName:  info.YunName(),
+				Now:      info.Now(false),
+				Total:    info.Total(false),
+				Create:   info.DateTime(),
+			})
+		}
+	})
+	return resp, true
+}
+
 func DelCacheFile(delType int, md5 string) {
 	switch delType {
 	case 1:

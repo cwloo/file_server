@@ -27,6 +27,7 @@ func (s *Router) Run() {
 	s.server.Router(config.Config.FileinfoPath, s.GetFileinfoReq)
 	s.server.Router(config.Config.UpdateCfgPath, s.UpdateConfigReq)
 	s.server.Router(config.Config.GetCfgPath, s.GetConfigReq)
+	s.server.Router(config.Config.ListPath, s.ListReq)
 	s.server.Run()
 }
 
@@ -62,4 +63,8 @@ func (s *Router) UpdateConfigReq(w http.ResponseWriter, r *http.Request) {
 
 func (s *Router) GetConfigReq(w http.ResponseWriter, r *http.Request) {
 	handlerGetCfg(w, r)
+}
+
+func (s *Router) ListReq(w http.ResponseWriter, r *http.Request) {
+	handlerList(w, r)
 }
