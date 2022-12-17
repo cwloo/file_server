@@ -41,6 +41,7 @@ var (
 	ErrMultiFileNotSupport = ErrorMsg{14, "upload multifiles not supported"}      //MultiFile为false时，一次只能上传一个文件
 	ErrRetry               = ErrorMsg{101, ""}                                    //
 	ErrFatal               = ErrorMsg{102, ""}                                    //
+	ErrCancel              = ErrorMsg{103, ""}                                    //
 	path, _                = os.Executable()                                      //
 	Dir, Exe               = filepath.Split(path)                                 //
 	Dir_upload             = Dir + "upload/"                                      //上传服务端本地目录，末尾要加上'/'

@@ -404,6 +404,23 @@ func (s *AsyncUploader) uploading(req *global.Req) {
 			}
 		default:
 			switch errMsg.ErrCode {
+			case global.ErrCancel.ErrCode:
+				result = append(result,
+					global.Result{
+						Uuid:    req.Uuid,
+						File:    header.Filename,
+						Md5:     info.Md5(),
+						Now:     info.Now(false),
+						Total:   info.Total(false),
+						Expired: s.Get().Add(time.Duration(config.Config.PendingTimeout) * time.Second).Unix(),
+						ErrCode: global.ErrSegOk.ErrCode,
+						ErrMsg:  global.ErrSegOk.ErrMsg,
+						Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(false), 10) + "/" + k.Total}, "")})
+				if info.Now(false) == header.Size {
+					logs.LogTrace("%v %v[%v] %v ==>>> %v/%v +%v first_segment", req.Uuid, header.Filename, k.Md5, info.DstName(), info.Now(false), k.Total, header.Size)
+				} else {
+					logs.LogWarn("%v %v[%v] %v ==>>> %v/%v +%v continue_segment", req.Uuid, header.Filename, k.Md5, info.DstName(), info.Now(false), k.Total, header.Size)
+				}
 			case global.ErrRetry.ErrCode:
 				retry_c++
 				switch retry_c <= 2 {

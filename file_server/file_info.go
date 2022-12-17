@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/cwloo/gonet/logs"
+	"github.com/cwloo/uploader/file_server/config"
 	"github.com/cwloo/uploader/file_server/global"
 )
 
@@ -65,6 +66,7 @@ type Fileinfo struct {
 	hitTime time.Time
 	l       *sync.RWMutex
 	oss     OSS
+	cancel  bool
 }
 
 func NewFileInfo(uuid, md5, Filename string, total int64) FileInfo {
@@ -72,8 +74,6 @@ func NewFileInfo(uuid, md5, Filename string, total int64) FileInfo {
 	YMD := now.Format("2006-01-02")
 	YMDHMS := now.Format("20060102150405")
 	ext := filepath.Ext(Filename)
-	suffix := strings.TrimSuffix(Filename, ext)
-	yunName := strings.Join([]string{suffix, "-", YMDHMS, ext}, "")
 	dstName := strings.Join([]string{md5, "_", YMDHMS, ext}, "")
 	s := fileinfos.Get().(*Fileinfo)
 	s.uuid = uuid
@@ -81,7 +81,14 @@ func NewFileInfo(uuid, md5, Filename string, total int64) FileInfo {
 	s.date = YMD
 	s.srcName = Filename
 	s.dstName = dstName
-	s.yunName = yunName
+	switch config.Config.UseOriginFilename > 0 {
+	case true:
+		suffix := strings.TrimSuffix(Filename, ext)
+		yunName := strings.Join([]string{suffix, "-", YMDHMS, ext}, "")
+		s.yunName = yunName
+	default:
+		s.yunName = dstName
+	}
 	s.now = 0
 	s.total = total
 	s.l = &sync.RWMutex{}
@@ -117,15 +124,36 @@ func (s *Fileinfo) assert() {
 }
 
 func (s *Fileinfo) reset() {
-	if s.oss != nil {
-		s.oss.Put()
-		s.oss = nil
-	}
+	s.l.Lock()
+	s.resetOss(false)
+	s.cancel = true
+	s.l.Unlock()
 }
 
 func (s *Fileinfo) Put() {
 	s.reset()
 	fileinfos.Put(s)
+}
+
+func (s *Fileinfo) resetOss(lock bool) {
+	switch lock {
+	case true:
+		s.l.Lock()
+		switch s.oss {
+		case nil:
+		default:
+			s.oss.Put()
+			s.oss = nil
+		}
+		s.l.Unlock()
+	default:
+		switch s.oss {
+		case nil:
+		default:
+			s.oss.Put()
+			s.oss = nil
+		}
+	}
 }
 
 func (s *Fileinfo) Uuid() string {
@@ -208,34 +236,38 @@ func (s *Fileinfo) Update(size int64, onSeg SegmentCallback, onCheck CheckCallba
 		logs.LogFatal("error")
 	}
 	s.l.Lock()
-	if s.now == 0 {
-		s.oss = NewOss(s)
-	}
-	if s.now+size > s.total {
-		s.l.Unlock()
-		goto ERR
-	}
-	url, err = onSeg(s, s.oss)
-	switch err {
-	case nil:
-		s.now += size
-		done = s.now == s.total
-		if done {
-			s.oss.Put()
-			s.oss = nil
-			start, ok = onCheck(s)
-			if ok {
-				now := time.Now()
-				s.time = now
-				s.hitTime = now
-				s.url = url
-			}
-		}
+	switch s.cancel {
+	case true:
+		errMsg := strings.Join([]string{s.uuid, " ", s.srcName, "[", s.md5, "] ", s.yunName, "\n", "Cancel"}, "")
+		err = &global.ErrorMsg{ErrCode: global.ErrCancel.ErrCode, ErrMsg: errMsg}
 	default:
-		switch err.ErrCode {
-		case global.ErrFatal.ErrCode:
-			s.oss.Put()
-			s.oss = nil
+		if s.now == 0 {
+			s.oss = NewOss(s)
+		}
+		if s.now+size > s.total {
+			s.l.Unlock()
+			goto ERR
+		}
+		url, err = onSeg(s, s.oss)
+		switch err {
+		case nil:
+			s.now += size
+			done = s.now == s.total
+			if done {
+				s.resetOss(false)
+				start, ok = onCheck(s)
+				if ok {
+					now := time.Now()
+					s.time = now
+					s.hitTime = now
+					s.url = url
+				}
+			}
+		default:
+			switch err.ErrCode {
+			case global.ErrFatal.ErrCode:
+				s.resetOss(false)
+			}
 		}
 	}
 	s.l.Unlock()

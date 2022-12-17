@@ -53,10 +53,11 @@ type IniConfig struct {
 	Aliyun_AccessKeySecret string
 	Aliyun_Routines        int
 
-	TgBot_ChatId int64
-	TgBot_Token  string
-	UseTgBot     int
-	Interval     int
+	TgBot_ChatId      int64
+	TgBot_Token       string
+	UseTgBot          int
+	Interval          int
+	UseOriginFilename int
 }
 
 func readIni(filename string) (c *IniConfig) {
@@ -94,6 +95,7 @@ func readIni(filename string) (c *IniConfig) {
 	c.MultiFile = ini.GetInt("upload", "multiFile")
 	c.UseAsync = ini.GetInt("upload", "useAsync")
 	c.UseTgBot = ini.GetInt("upload", "useTgBot")
+	c.UseOriginFilename = ini.GetInt("upload", "useOriginFilename")
 	str := ini.GetString("upload", "maxMemory")
 	slice := strings.Split(str, "*")
 	val := int64(1)
