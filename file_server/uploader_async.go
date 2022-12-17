@@ -405,22 +405,22 @@ func (s *AsyncUploader) uploading(req *global.Req) {
 		default:
 			switch errMsg.ErrCode {
 			case global.ErrCancel.ErrCode:
+				fileInfos.Remove(info.Md5()).Put()
+				os.Remove(f)
+				size, _ := strconv.ParseInt(k.Total, 10, 0)
 				result = append(result,
 					global.Result{
 						Uuid:    req.Uuid,
-						File:    header.Filename,
-						Md5:     info.Md5(),
-						Now:     info.Now(false),
-						Total:   info.Total(false),
-						Expired: s.Get().Add(time.Duration(config.Config.PendingTimeout) * time.Second).Unix(),
-						ErrCode: global.ErrSegOk.ErrCode,
-						ErrMsg:  global.ErrSegOk.ErrMsg,
-						Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(false), 10) + "/" + k.Total}, "")})
-				if info.Now(false) == header.Size {
-					logs.LogTrace("%v %v[%v] %v ==>>> %v/%v +%v first_segment", req.Uuid, header.Filename, k.Md5, info.DstName(), info.Now(false), k.Total, header.Size)
-				} else {
-					logs.LogWarn("%v %v[%v] %v ==>>> %v/%v +%v continue_segment", req.Uuid, header.Filename, k.Md5, info.DstName(), info.Now(false), k.Total, header.Size)
-				}
+						File:    k.Filename,
+						Md5:     k.Md5,
+						Total:   size,
+						ErrCode: global.ErrCheckReUpload.ErrCode,
+						ErrMsg:  global.ErrCheckReUpload.ErrMsg,
+						Message: strings.Join([]string{req.Uuid, " check reuploading ", header.Filename, " progress:", strconv.FormatInt(0, 10), "/", k.Total}, ""),
+					})
+				logs.LogError("%v %v[%v] %v/%v offset:%v", req.Uuid, header.Filename, k.Md5, 0, k.Total, k.Offset)
+				offset_n, _ := strconv.ParseInt(k.Offset, 10, 0)
+				logs.LogDebug("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", req.Uuid, header.Filename, k.Md5, 0, k.Total, offset_n, header.Size)
 			case global.ErrRetry.ErrCode:
 				retry_c++
 				switch retry_c <= 2 {
