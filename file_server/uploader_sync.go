@@ -339,6 +339,8 @@ func (s *SyncUploader) uploading(req *global.Req) {
 		default:
 			switch errMsg.ErrCode {
 			case global.ErrCancel.ErrCode:
+				fileInfos.Remove(info.Md5()).Put()
+				os.Remove(f)
 				size, _ := strconv.ParseInt(k.Total, 10, 0)
 				result = append(result,
 					global.Result{
