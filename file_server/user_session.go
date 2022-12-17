@@ -73,7 +73,18 @@ OK:
 	return
 }
 
+func (s *SessionToHandler) List() {
+	s.l.Lock()
+	logs.LogDebug("---------------------------------------------------------------------------------")
+	for uuid := range s.m {
+		logs.LogError("%v", uuid)
+	}
+	logs.LogDebug("---------------------------------------------------------------------------------")
+	s.l.Unlock()
+}
+
 func (s *SessionToHandler) Remove(uuid string) (handler Uploader) {
+	s.List()
 	n := 0
 	s.l.Lock()
 	if c, ok := s.m[uuid]; ok {

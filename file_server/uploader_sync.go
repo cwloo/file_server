@@ -74,6 +74,7 @@ func (s *SyncUploader) NotifyClose() {
 
 func (s *SyncUploader) Remove(md5 string) {
 	if s.state.Remove(md5) && s.state.AllDone() {
+		s.Clear()
 		uploaders.Remove(s.uuid).Put()
 	}
 }
@@ -386,6 +387,7 @@ func (s *SyncUploader) uploading(req *global.Req) {
 		}
 	}
 	if resp != nil {
+		logs.LogTrace("writeResponse")
 		/// http.ResponseWriter 生命周期原因，不支持异步
 		writeResponse(req.W, req.R, resp)
 		// logs.LogError("%v %v", req.Uuid, string(j))

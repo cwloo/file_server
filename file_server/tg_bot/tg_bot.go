@@ -114,6 +114,7 @@ func TgErrMsg(msgs ...string) {
 func (s *TgBotApi) tgBotMsg(alert string, msgs ...string) {
 	s.l.RLock()
 	if s.BotApi == nil {
+		s.l.RUnlock()
 		return
 	}
 	for _, msg := range msgs {

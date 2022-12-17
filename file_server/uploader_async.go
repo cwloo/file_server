@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cwloo/gonet/core/base/cc"
 	"github.com/cwloo/gonet/core/base/mq/lq"
 	"github.com/cwloo/gonet/core/base/pipe"
 	"github.com/cwloo/gonet/core/base/run"
@@ -38,6 +39,7 @@ type AsyncUploader struct {
 	signaled bool
 	l_signal *sync.Mutex
 	cond     *sync.Cond
+	flag     cc.AtomFlag
 }
 
 func NewAsyncUploader(uuid string) Uploader {
@@ -49,10 +51,27 @@ func NewAsyncUploader(uuid string) Uploader {
 	s.l_tm = &sync.RWMutex{}
 	s.l_signal = &sync.Mutex{}
 	s.cond = sync.NewCond(s.l_signal)
-	mq := lq.NewQueue(1000)
-	runner := NewProcessor(s.handler)
-	s.pipe = pipe.NewPipeWithQuit(global.I32.New(), "uploader.pipe", mq, runner, s.onQuit)
+	s.flag = cc.NewAtomFlag()
+	s.start()
 	return s
+}
+
+func (s *AsyncUploader) start() {
+	if s.pipe == nil && s.flag.TestSet() {
+		mq := lq.NewQueue(1000)
+		runner := NewProcessor(s.handler)
+		s.pipe = pipe.NewPipeWithQuit(global.I32.New(), "uploader.pipe", mq, runner, s.onQuit)
+		s.flag.Reset()
+	}
+	s.wait_started()
+}
+
+func (s *AsyncUploader) wait_started() {
+	for {
+		if s.pipe != nil {
+			break
+		}
+	}
 }
 
 func (s *AsyncUploader) reset() {
@@ -68,7 +87,6 @@ func (s *AsyncUploader) Put() {
 func (s *AsyncUploader) notify() {
 	s.l_signal.Lock()
 	s.signaled = true
-	// s.cond.Signal()
 	s.cond.Broadcast()
 	s.l_signal.Unlock()
 }
@@ -100,12 +118,17 @@ func (s *AsyncUploader) Close() {
 }
 
 func (s *AsyncUploader) NotifyClose() {
-	s.pipe.NotifyClose()
+	if s.pipe.NotifyClose() {
+		logs.LogTrace("ok")
+	} else {
+		logs.LogError("err")
+		s.notify()
+	}
 }
 
 func (s *AsyncUploader) Remove(md5 string) {
 	if s.state.Remove(md5) && s.state.AllDone() {
-		s.pipe.NotifyClose()
+		s.NotifyClose()
 	}
 }
 
@@ -146,6 +169,7 @@ func (s *AsyncUploader) Upload(req *global.Req) {
 	for _, key := range req.Key {
 		s.state.TryAdd(key.Md5)
 	}
+	s.start()
 	s.pipe.Do(req)
 	/// http.ResponseWriter 生命周期原因，不支持异步，所以加了 wait
 	s.wait()
@@ -429,6 +453,7 @@ func (s *AsyncUploader) uploading(req *global.Req) {
 		}
 	}
 	if resp != nil {
+		logs.LogTrace("writeResponse")
 		/// http.ResponseWriter 生命周期原因，不支持异步，所以加了 notify
 		writeResponse(req.W, req.R, resp)
 		// logs.LogError("%v %v", req.Uuid, string(j))
