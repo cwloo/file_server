@@ -166,7 +166,7 @@ func (s *AsyncUploader) handler(msg any, args ...any) (exit bool) {
 }
 
 func (s *AsyncUploader) Upload(req *global.Req) {
-	for _, key := range req.Key {
+	for _, key := range req.Keys {
 		s.state.TryAdd(key.Md5)
 	}
 	s.start()
@@ -180,7 +180,7 @@ func (s *AsyncUploader) uploading(req *global.Req) {
 	s.update()
 	resp := req.Resp
 	result := req.Result
-	for _, k := range req.Key {
+	for _, k := range req.Keys {
 		part, header, err := req.R.FormFile(k.Key)
 		if err != nil {
 			logs.LogError(err.Error())

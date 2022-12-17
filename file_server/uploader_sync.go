@@ -98,7 +98,7 @@ func (s *SyncUploader) Clear() {
 }
 
 func (s *SyncUploader) Upload(req *global.Req) {
-	for _, key := range req.Key {
+	for _, key := range req.Keys {
 		s.state.TryAdd(key.Md5)
 	}
 	s.uploading(req)
@@ -114,7 +114,7 @@ func (s *SyncUploader) uploading(req *global.Req) {
 	s.update()
 	resp := req.Resp
 	result := req.Result
-	for _, k := range req.Key {
+	for _, k := range req.Keys {
 		s.state.TryAdd(k.Md5)
 		part, header, err := req.R.FormFile(k.Key)
 		if err != nil {

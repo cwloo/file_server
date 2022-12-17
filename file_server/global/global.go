@@ -64,7 +64,7 @@ func (s *ErrorMsg) Error() string {
 // <summary>
 type Req struct {
 	Uuid   string
-	Key    []*File
+	Keys   []*File
 	W      http.ResponseWriter
 	R      *http.Request
 	Resp   *Resp
