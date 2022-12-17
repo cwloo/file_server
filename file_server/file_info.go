@@ -136,28 +136,28 @@ func (s *Fileinfo) Md5() string {
 	return s.md5
 }
 
-func (s *Fileinfo) Now(lock bool) int64 {
+func (s *Fileinfo) Now(lock bool) (now int64) {
 	switch lock {
 	case true:
 		s.l.RLock()
-		now := s.now
+		now = s.now
 		s.l.RUnlock()
-		return now
 	default:
-		return s.now
+		now = s.now
 	}
+	return
 }
 
-func (s *Fileinfo) Total(lock bool) int64 {
+func (s *Fileinfo) Total(lock bool) (total int64) {
 	switch lock {
 	case true:
 		s.l.RLock()
-		total := s.total
+		total = s.total
 		s.l.RUnlock()
-		return total
 	default:
-		return s.total
+		total = s.total
 	}
+	return
 }
 
 func (s *Fileinfo) SrcName() string {
@@ -212,7 +212,8 @@ func (s *Fileinfo) Update(size int64, onSeg SegmentCallback, onCheck CheckCallba
 		s.oss = NewOss(s)
 	}
 	if s.now+size > s.total {
-		logs.LogFatal("error")
+		s.l.Unlock()
+		goto ERR
 	}
 	url, err = onSeg(s, s.oss)
 	switch err {
@@ -239,106 +240,121 @@ func (s *Fileinfo) Update(size int64, onSeg SegmentCallback, onCheck CheckCallba
 	}
 	s.l.Unlock()
 	return
+ERR:
+	logs.LogFatal("error")
+	return
 }
 
-func (s *Fileinfo) Last(lock bool, size int64) bool {
+func (s *Fileinfo) Last(lock bool, size int64) (ok bool) {
 	switch lock {
 	case true:
 		s.l.RLock()
 		if s.now+size > s.total {
-			logs.LogFatal("error")
+			s.l.RUnlock()
+			goto ERR
 		}
-		last := s.now+size == s.total
+		ok = s.now+size == s.total
 		s.l.RUnlock()
-		return last
 	default:
 		if s.now+size > s.total {
-			logs.LogFatal("error")
+			goto ERR
 		}
-		return s.now+size == s.total
+		ok = s.now+size == s.total
 	}
+	return
+ERR:
+	logs.LogFatal("error")
+	return
 }
 
-func (s *Fileinfo) Done(lock bool) bool {
+func (s *Fileinfo) Done(lock bool) (done bool) {
 	switch lock {
 	case true:
 		s.l.RLock()
-		done := s.now == s.total
+		done = s.now == s.total
 		if done {
 			if s.now == 0 {
-				logs.LogFatal("error")
+				s.l.RUnlock()
+				goto ERR
 			}
 		}
 		s.l.RUnlock()
-		return done
 	default:
-		done := s.now == s.total
+		done = s.now == s.total
 		if done {
 			if s.now == 0 {
-				logs.LogFatal("error")
+				goto ERR
 			}
 		}
-		return done
 	}
+	return
+ERR:
+	logs.LogFatal("error")
+	return
 }
 
-func (s *Fileinfo) Ok(lock bool) (bool, string) {
+func (s *Fileinfo) Ok(lock bool) (ok bool, url string) {
 	switch lock {
 	case true:
 		s.l.RLock()
-		ok, url := s.ok_()
+		ok = s.time.Unix() > 0
+		url = s.url
+		if ok {
+			if s.now != s.total {
+				s.l.RUnlock()
+				goto ERR
+			}
+		}
 		s.l.RUnlock()
-		return ok, url
 	default:
-		return s.ok_()
-	}
-}
-
-func (s *Fileinfo) ok_() (bool, string) {
-	ok := s.time.Unix() > 0
-	url := s.url
-	if ok {
-		if s.now != s.total {
-			logs.LogFatal("error")
+		ok = s.time.Unix() > 0
+		url = s.url
+		if ok {
+			if s.now != s.total {
+				goto ERR
+			}
 		}
 	}
-	return ok, url
+	return
+ERR:
+	logs.LogFatal("error")
+	return
 }
 
-func (s *Fileinfo) Url(lock bool) string {
+func (s *Fileinfo) Url(lock bool) (url string) {
 	switch lock {
 	case true:
 		s.l.RLock()
-		url := s.url
+		url = s.url
 		s.l.RUnlock()
-		return url
 	default:
-		return s.url
+		url = s.url
 	}
+	return
 }
 
-func (s *Fileinfo) Time(lock bool) time.Time {
+func (s *Fileinfo) Time(lock bool) (t time.Time) {
 	switch lock {
 	case true:
 		s.l.RLock()
-		t := s.time
+		t = s.time
 		s.l.RUnlock()
-		return t
 	default:
-		return s.time
+		t = s.time
 	}
+	return
 }
 
-func (s *Fileinfo) HitTime(lock bool) time.Time {
+func (s *Fileinfo) HitTime(lock bool) (t time.Time) {
 	switch lock {
 	case true:
 		s.l.RLock()
-		t := s.hitTime
+		t = s.hitTime
 		s.l.RUnlock()
-		return t
 	default:
-		return s.hitTime
+		t = s.hitTime
 	}
+	return
 }
 
 func (s *Fileinfo) UpdateHitTime(time time.Time) {
@@ -359,11 +375,11 @@ func NewFileInfos() *FileInfos {
 	return &FileInfos{m: map[string]FileInfo{}, l: &sync.Mutex{}}
 }
 
-func (s *FileInfos) Len() int {
+func (s *FileInfos) Len() (c int) {
 	s.l.Lock()
-	c := len(s.m)
+	c = len(s.m)
 	s.l.Unlock()
-	return c
+	return
 }
 
 func (s *FileInfos) Get(md5 string) (info FileInfo) {

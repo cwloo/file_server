@@ -20,11 +20,11 @@ func NewSessionToHandler() *SessionToHandler {
 	return &SessionToHandler{m: map[string]Uploader{}, l: &sync.Mutex{}}
 }
 
-func (s *SessionToHandler) Len() int {
+func (s *SessionToHandler) Len() (c int) {
 	s.l.Lock()
-	c := len(s.m)
+	c = len(s.m)
 	s.l.Unlock()
-	return c
+	return
 }
 
 func (s *SessionToHandler) Get(uuid string) (handler Uploader) {
