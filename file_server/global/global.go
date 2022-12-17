@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/cwloo/gonet/core/base/cc"
 )
@@ -225,18 +224,18 @@ type Result struct {
 // FileDetailResp
 // <summary>
 type FileDetail struct {
-	Uuid     string        `json:"uuid" form:"uuid"`
-	Md5      string        `json:"md5" form:"md5"`
-	FileName string        `json:"filename" form:"filename"`
-	DstName  string        `json:"dstname" form:"dstname"`
-	YunName  string        `json:"yunname" form:"yunname"`
-	Now      int64         `json:"now" form:"now"`
-	Total    int64         `json:"total" form:"total"`
-	Url      string        `json:"url" form:"url"`
-	Create   string        `json:"create" form:"create"`
-	Time     string        `json:"time" form:"time"`
-	Elapsed  time.Duration `json:"elapsed" form:"elapsed"`
-	Percent  string        `json:"progress" form:"progress"`
+	Uuid     string `json:"uuid" form:"uuid"`
+	Md5      string `json:"md5" form:"md5"`
+	FileName string `json:"filename" form:"filename"`
+	DstName  string `json:"dstname" form:"dstname"`
+	YunName  string `json:"yunname" form:"yunname"`
+	Now      int64  `json:"now" form:"now"`
+	Total    int64  `json:"total" form:"total"`
+	Url      string `json:"url" form:"url"`
+	Create   string `json:"create" form:"create"`
+	Time     string `json:"time" form:"time"`
+	Elapsed  string `json:"elapsed" form:"elapsed"`
+	Percent  string `json:"progress" form:"progress"`
 }
 
 // <summary>

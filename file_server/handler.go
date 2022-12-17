@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -79,7 +80,7 @@ func QueryCacheFileDetail(md5 string) (*global.FileDetailResp, bool) {
 				Create:   info.DateTime().Format("20060102150405"),
 				Time:     info.Time(false).Format("20060102150405"),
 				Percent:  percent,
-				Elapsed:  info.Time(false).Sub(info.DateTime()),
+				Elapsed:  fmt.Sprintf("%v", info.Time(false).Sub(info.DateTime())),
 			}
 		default:
 			resp.File = &global.FileDetail{
@@ -138,7 +139,7 @@ func QueryCacheList() (*global.ListResp, bool) {
 				Create:   info.DateTime().Format("20060102150405"),
 				Time:     info.Time(false).Format("20060102150405"),
 				Percent:  percent,
-				Elapsed:  info.Time(false).Sub(info.DateTime()),
+				Elapsed:  fmt.Sprintf("%v", info.Time(false).Sub(info.DateTime())),
 			})
 		default:
 			resp.Files = append(resp.Files, &global.FileDetail{
