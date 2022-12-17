@@ -3,6 +3,7 @@ package main
 import (
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -54,20 +55,19 @@ func QueryCacheFile(md5 string) (*global.FileInfoResp, bool) {
 		ErrMsg:  "ok"}, true
 }
 
-func QueryCacheList() (*global.ListResp, bool) {
-	resp := &global.ListResp{
-		Uuids:   []string{},
-		Files:   []*global.Fileinfo{},
+func QueryCacheFileDetail(md5 string) (*global.FileDetailResp, bool) {
+	resp := &global.FileDetailResp{
 		ErrCode: 0,
 		ErrMsg:  "ok"}
-	uploaders.Range(func(uuid string, uploader Uploader) {
-		resp.Uuids = append(resp.Uuids, uuid)
-	})
-	fileInfos.Range(func(md5 string, info FileInfo) {
+	fileInfos.Do(md5, func(info FileInfo) {
+		progress := float64(info.Now(false)) / float64(info.Total(false))
+		// progress, _ := strconv.ParseFloat(fmt.Sprintf("%f", float64(info.Now(false))/float64(info.Total(false))), 64)
+		percent := strings.Join([]string{strconv.FormatFloat(progress*100, 'f', 2, 64), "%"}, "")
 		ok, _ := info.Ok(false)
 		switch ok {
 		case true:
-			resp.Files = append(resp.Files, &global.Fileinfo{
+			info.Time(false).Sub(info.DateTime())
+			resp.File = &global.FileDetail{
 				Uuid:     info.Uuid(),
 				Md5:      info.Md5(),
 				FileName: info.SrcName(),
@@ -76,11 +76,13 @@ func QueryCacheList() (*global.ListResp, bool) {
 				Now:      info.Now(false),
 				Total:    info.Total(false),
 				Url:      info.Url(false),
-				Create:   info.DateTime(),
+				Create:   info.DateTime().Format("20060102150405"),
 				Time:     info.Time(false).Format("20060102150405"),
-			})
+				Percent:  percent,
+				Elapsed:  info.Time(false).Sub(info.DateTime()),
+			}
 		default:
-			resp.Files = append(resp.Files, &global.Fileinfo{
+			resp.File = &global.FileDetail{
 				Uuid:     info.Uuid(),
 				Md5:      info.Md5(),
 				FileName: info.SrcName(),
@@ -88,7 +90,67 @@ func QueryCacheList() (*global.ListResp, bool) {
 				YunName:  info.YunName(),
 				Now:      info.Now(false),
 				Total:    info.Total(false),
-				Create:   info.DateTime(),
+				Create:   info.DateTime().Format("20060102150405"),
+				Percent:  percent,
+			}
+		}
+	})
+	return resp, true
+}
+
+func QueryCacheUuidList() (*global.UuidListResp, bool) {
+	resp := &global.UuidListResp{
+		Uuids:   []string{},
+		ErrCode: 0,
+		ErrMsg:  "ok"}
+	uploaders.Range(func(uuid string, uploader Uploader) {
+		resp.Uuids = append(resp.Uuids, uuid)
+	})
+	return resp, true
+}
+
+func QueryCacheList() (*global.ListResp, bool) {
+	resp := &global.ListResp{
+		Uuids:   []string{},
+		Files:   []*global.FileDetail{},
+		ErrCode: 0,
+		ErrMsg:  "ok"}
+	uploaders.Range(func(uuid string, uploader Uploader) {
+		resp.Uuids = append(resp.Uuids, uuid)
+	})
+	fileInfos.Range(func(md5 string, info FileInfo) {
+		progress := float64(info.Now(false)) / float64(info.Total(false))
+		// progress, _ := strconv.ParseFloat(fmt.Sprintf("%f", float64(info.Now(false))/float64(info.Total(false))), 64)
+		percent := strings.Join([]string{strconv.FormatFloat(progress*100, 'f', 2, 64), "%"}, "")
+		ok, _ := info.Ok(false)
+		switch ok {
+		case true:
+			info.Time(false).Sub(info.DateTime())
+			resp.Files = append(resp.Files, &global.FileDetail{
+				Uuid:     info.Uuid(),
+				Md5:      info.Md5(),
+				FileName: info.SrcName(),
+				DstName:  info.DstName(),
+				YunName:  info.YunName(),
+				Now:      info.Now(false),
+				Total:    info.Total(false),
+				Url:      info.Url(false),
+				Create:   info.DateTime().Format("20060102150405"),
+				Time:     info.Time(false).Format("20060102150405"),
+				Percent:  percent,
+				Elapsed:  info.Time(false).Sub(info.DateTime()),
+			})
+		default:
+			resp.Files = append(resp.Files, &global.FileDetail{
+				Uuid:     info.Uuid(),
+				Md5:      info.Md5(),
+				FileName: info.SrcName(),
+				DstName:  info.DstName(),
+				YunName:  info.YunName(),
+				Now:      info.Now(false),
+				Total:    info.Total(false),
+				Create:   info.DateTime().Format("20060102150405"),
+				Percent:  percent,
 			})
 		}
 	})

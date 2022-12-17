@@ -33,6 +33,8 @@ type IniConfig struct {
 	FileinfoPath           string
 	UpdateCfgPath          string
 	GetCfgPath             string
+	FileDetailPath         string
+	UuidListPath           string
 	ListPath               string
 	CheckMd5               int
 	WriteFile              int
@@ -91,6 +93,8 @@ func readIni(filename string) (c *IniConfig) {
 	c.FileinfoPath = ini.GetString("path", "fileinfo")
 	c.UpdateCfgPath = ini.GetString("path", "updateconfig")
 	c.GetCfgPath = ini.GetString("path", "getconfig")
+	c.FileDetailPath = ini.GetString("path", "filedetail")
+	c.UuidListPath = ini.GetString("path", "uuidlist")
 	c.ListPath = ini.GetString("path", "list")
 	c.CheckMd5 = ini.GetInt("upload", "checkMd5")
 	c.WriteFile = ini.GetInt("upload", "writeFile")

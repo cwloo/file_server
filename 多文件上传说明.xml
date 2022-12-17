@@ -70,6 +70,12 @@ form-data; name=\"c5459c3b484665d272116b2a53d2c922\"; filename=\"nox_setup_v7.0.
 
 <!-- 当 offset<total 时，一直for循环操作，当 offset>=total 时退出。-->
 
+<!-- 查看文件详情 -->
+http://192.168.0.113:8089/uploadapi/filedetail?md5=562a18c8d1554faa0aa61c3cb594993e
+
+<!-- 查看任务信息 -->
+http://192.168.0.113:8089/uploadapi/uuidlist
+
 <!-- 查看任务信息 -->
 http://192.168.0.113:8089/uploadapi/list
 

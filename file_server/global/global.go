@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/cwloo/gonet/core/base/cc"
 )
@@ -221,33 +222,66 @@ type Result struct {
 }
 
 // <summary>
+// FileDetailResp
+// <summary>
+type FileDetail struct {
+	Uuid     string        `json:"uuid" form:"uuid"`
+	Md5      string        `json:"md5" form:"md5"`
+	FileName string        `json:"filename" form:"filename"`
+	DstName  string        `json:"dstname" form:"dstname"`
+	YunName  string        `json:"yunname" form:"yunname"`
+	Now      int64         `json:"now" form:"now"`
+	Total    int64         `json:"total" form:"total"`
+	Url      string        `json:"url" form:"url"`
+	Create   string        `json:"create" form:"create"`
+	Time     string        `json:"time" form:"time"`
+	Elapsed  time.Duration `json:"elapsed" form:"elapsed"`
+	Percent  string        `json:"progress" form:"progress"`
+}
+
+// <summary>
+// FileDetailReq
+// <summary>
+type FileDetailReq struct {
+	Md5 string `json:"md5,omitempty"`
+}
+
+// <summary>
+// FileDetailResp
+// <summary>
+type FileDetailResp struct {
+	File    *FileDetail `json:"file" form:"file"`
+	ErrCode int         `json:"code" form:"code"`
+	ErrMsg  string      `json:"errmsg" form:"errmsg"`
+}
+
+// <summary>
+// UuidListReq
+// <summary>
+type UuidListReq struct {
+}
+
+// <summary>
+// UuidListResp
+// <summary>
+type UuidListResp struct {
+	Uuids   []string `json:"uuids" form:"uuids"`
+	ErrCode int      `json:"code" form:"code"`
+	ErrMsg  string   `json:"errmsg" form:"errmsg"`
+}
+
+// <summary>
 // ListReq
 // <summary>
 type ListReq struct {
 }
 
 // <summary>
-// Fileinfo
-// <summary>
-type Fileinfo struct {
-	Uuid     string `json:"uuid" form:"uuid"`
-	Md5      string `json:"md5" form:"md5"`
-	FileName string `json:"filename" form:"filename"`
-	DstName  string `json:"dstname" form:"dstname"`
-	YunName  string `json:"yunname" form:"yunname"`
-	Now      int64  `json:"now" form:"now"`
-	Total    int64  `json:"total" form:"total"`
-	Url      string `json:"url" form:"url"`
-	Create   string `json:"create" form:"create"`
-	Time     string `json:"time" form:"time"`
-}
-
-// <summary>
 // ListResp
 // <summary>
 type ListResp struct {
-	Uuids   []string    `json:"uuids" form:"uuids"`
-	Files   []*Fileinfo `json:"files" form:"files"`
-	ErrCode int         `json:"code" form:"code"`
-	ErrMsg  string      `json:"errmsg" form:"errmsg"`
+	Uuids   []string      `json:"uuids" form:"uuids"`
+	Files   []*FileDetail `json:"files" form:"files"`
+	ErrCode int           `json:"code" form:"code"`
+	ErrMsg  string        `json:"errmsg" form:"errmsg"`
 }
