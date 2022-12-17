@@ -70,43 +70,43 @@ form-data; name=\"c5459c3b484665d272116b2a53d2c922\"; filename=\"nox_setup_v7.0.
 
 <!-- 当 offset<total 时，一直for循环操作，当 offset>=total 时退出。-->
 
-<!-- 查看文件详情 -->
+<!-- 1.查看文件详情 -->
 http://192.168.0.113:8089/uploadapi/filedetail?md5=562a18c8d1554faa0aa61c3cb594993e
 
-<!-- 查看任务信息 -->
+<!-- 2.查看任务信息 -->
 http://192.168.0.113:8089/uploadapi/uuidlist
 
-<!-- 查看任务信息 -->
+<!-- 3.查看任务信息 -->
 http://192.168.0.113:8089/uploadapi/list
 
-<!-- 查看上传服务器配置 -->
+<!-- 4.查看上传服务器配置 -->
 http://192.168.0.113:8089/uploadapi/getconfig
 
-<!-- 服务器配置刷新间隔时间 -->
+<!-- 5.服务器配置刷新间隔时间 -->
 http://192.168.0.113:8089/uploadapi/updateconfig?interval=1* 5 * 60
 
-<!-- 单个文件分片上传限制 -->
+<!-- 6.单个文件分片上传限制 -->
 http://192.168.0.113:8089/uploadapi/updateconfig?maxSegmentSize=1024 * 1024 * 1024
 
-<!-- 单个文件上传大小限制 -->
+<!-- 7.单个文件上传大小限制 -->
 http://192.168.0.113:8089/uploadapi/updateconfig?maxSingleSize=1024 * 1024 * 1024
 
-<!-- 前端上传能暂停的最长时间 -->
+<!-- 8.前端上传能暂停的最长时间 -->
 http://192.168.0.113:8089/uploadapi/updateconfig?pendingTimeout=1 * 15 * 60
 
-<!-- 多久之后删除已上传文件记录 -->
+<!-- 9.多久之后删除已上传文件记录 -->
 http://192.168.0.113:8089/uploadapi/updateconfig?fileExpiredTimeout=1 * 30 * 60
 
-<!-- 上传完毕是否校验文件完整性 -->
+<!-- 10.上传完毕是否校验文件完整性 -->
 http://192.168.0.113:8089/uploadapi/updateconfig?checkMd5=0
 
-<!-- 上传文件是否缓存服务器本地 -->
+<!-- 11.上传文件是否缓存服务器本地 -->
 http://192.168.0.113:8089/uploadapi/updateconfig?writeFile=0
 
-<!-- 1-取消文件上传 2-删除已上传文件 -->
+<!-- 12.1-取消文件上传 2-删除已上传文件 -->
 https://192.168.0.113:8089/uploadapi/delfile?type=1&md5=562a18c8d1554faa0aa61c3cb594993e
 
-<!-- 查询文件信息，ErrRepeat.ErrCode 时，针对用户上传某个文件，然后一直暂停，其他用户上传不了该文件的情况，调用该接口继续上传 -->
+<!-- 13.查询文件信息，ErrRepeat.ErrCode 时，针对用户上传某个文件，然后一直暂停，其他用户上传不了该文件的情况，调用该接口继续上传 -->
 https://192.168.0.113:8089/uploadapi/getfileinfo?md5=562a18c8d1554faa0aa61c3cb594993e
 
 <!-- 上传错误码 -->
