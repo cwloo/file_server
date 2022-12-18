@@ -266,6 +266,17 @@ func updateConfig(req *global.UpdateCfgReq) {
 	if req.WriteFile != "" {
 		ini.SetString("upload", "writeFile", req.WriteFile)
 	}
+	if req.UseTgBot != "" {
+		v, _ := strconv.Atoi(req.UseTgBot)
+		ini.SetInt("upload", "useTgBot", v)
+	}
+	if req.TgBotChatId != "" {
+		v, _ := strconv.ParseInt(req.TgBotChatId, 10, 0)
+		ini.SetInt64("tg_bot", "chatId", v)
+	}
+	if req.TgBotToken != "" {
+		ini.SetString("tg_bot", "token", req.TgBotToken)
+	}
 	ini.SaveTo("conf.ini")
 }
 
@@ -308,6 +319,8 @@ func GetConfig(req *global.GetCfgReq) (*global.GetCfgResp, bool) {
 			OssType:            Config.OssType,
 			UseTgBot:           Config.UseTgBot,
 			Interval:           Config.Interval,
+			TgBotChatId:        Config.TgBot_ChatId,
+			TgBotToken:         Config.TgBot_Token,
 		},
 	}
 	lock.RUnlock()

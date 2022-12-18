@@ -141,6 +141,9 @@ type UpdateCfgReq struct {
 	FileExpiredTimeout string `json:"fileExpiredTimeout,omitempty"`     //定期清理长期未访问已上传文件记录
 	CheckMd5           string `json:"checkMd5,omitempty"`               //上传完毕是否校验文件完整性
 	WriteFile          string `json:"writeFile,omitempty"`              //上传文件是否缓存服务器本地
+	UseTgBot           string `json:"useTgBot" form:"useTgBot"`
+	TgBotChatId        string `json:"tg_chatId" form:"tg_chatId"`
+	TgBotToken         string `json:"tg_token" form:"tg_token"`
 }
 
 // <summary>
@@ -196,6 +199,8 @@ type CfgData struct {
 	OssType            string `json:"ossType" form:"ossType"`
 	UseTgBot           int    `json:"useTgBot" form:"useTgBot"`
 	Interval           int    `json:"interval" form:"interval"`
+	TgBotChatId        int64  `json:"tg_chatId,omitempty"`
+	TgBotToken         string `json:"tg_token,omitempty"`
 }
 
 // <summary>

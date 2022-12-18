@@ -67,6 +67,15 @@ func handlerUpdateCfgQuery(query url.Values) (*global.UpdateCfgResp, bool) {
 	if query.Has("writeFile") && len(query["writeFile"]) > 0 {
 		req.WriteFile = query["writeFile"][0]
 	}
+	if query.Has("useTgBot") && len(query["useTgBot"]) > 0 {
+		req.UseTgBot = query["useTgBot"][0]
+	}
+	if query.Has("tg_chatId") && len(query["tg_chatId"]) > 0 {
+		req.TgBotChatId = query["tg_chatId"][0]
+	}
+	if query.Has("tg_token") && len(query["tg_token"]) > 0 {
+		req.TgBotToken = query["tg_token"][0]
+	}
 	logs.LogDebug("%#v", req)
 	return UpdateCfg(req)
 }
