@@ -188,6 +188,9 @@ func check() {
 	if Config.Log_style != int(logs.GetStyle()) {
 		logs.LogStyle(logs.Style(Config.Log_style))
 	}
+	if Config.Log_level != int(logs.GetLevel()) {
+		logs.LogLevel(logs.Level(Config.Log_level))
+	}
 	// 中国大陆这里可能因为被墙了卡住
 	tg_bot.NewTgBot(Config.TgBot_Token, Config.TgBot_ChatId, Config.UseTgBot > 0)
 }
@@ -224,16 +227,20 @@ func updateConfig(req *global.UpdateCfgReq) {
 		ini.SetString("flag", "interval", req.Interval)
 	}
 	if req.LogTimezone != "" {
-		ini.SetString("log", "timezone", req.LogTimezone)
+		v, _ := strconv.Atoi(req.LogTimezone)
+		ini.SetInt("log", "timezone", v)
 	}
 	if req.LogMode != "" {
-		ini.SetString("log", "mode", req.LogMode)
+		v, _ := strconv.Atoi(req.LogMode)
+		ini.SetInt("log", "mode", v)
 	}
 	if req.LogStyle != "" {
-		ini.SetString("log", "style", req.LogStyle)
+		v, _ := strconv.Atoi(req.LogStyle)
+		ini.SetInt("log", "style", v)
 	}
 	if req.LogLevel != "" {
-		ini.SetString("log", "level", req.LogLevel)
+		v, _ := strconv.Atoi(req.LogLevel)
+		ini.SetInt("log", "level", v)
 	}
 	if req.MaxMemory != "" {
 		ini.SetString("upload", "maxMemory", req.MaxMemory)

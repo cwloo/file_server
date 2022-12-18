@@ -103,10 +103,22 @@ http://192.168.0.113:8089/uploadapi/updateconfig?checkMd5=0
 <!-- 11.上传文件是否缓存服务器本地 -->
 http://192.168.0.113:8089/uploadapi/updateconfig?writeFile=0
 
-<!-- 12.1-取消文件上传 2-删除已上传文件 -->
+<!-- 12.5-LVL_DEBUG 4-LVL_TRACE 3-LVL_INFO 2-LVL_WARN 1-LVL_ERROR 0-LVL_FATAL -->
+http://192.168.0.113:8089/uploadapi/updateconfig?log_level=0
+
+<!-- 13.0-M_STDOUT_ONLY 1-M_FILE_ONLY 2-M_STDOUT_FILE -->
+http://192.168.0.113:8089/uploadapi/updateconfig?log_mode=0
+
+<!-- 14.-8-MY_PST -7-MY_MST -5-MY_EST 1-MY_BST 0-MY_UTC 4-MY_GST 8-MY_CST 9-MY_JST -->
+http://192.168.0.113:8089/uploadapi/updateconfig?log_timezone=8
+
+<!-- 15.1-F_DETAIL 2-F_TMSTMP 4-F_FN 8-F_TMSTMP_FN 16-F_FL 32-F_TMSTMP_FL 64-F_FL_FN 128-F_TMSTMP_FL_FN 256-F_TEXT 512-F_PURE -->
+http://192.168.0.113:8089/uploadapi/updateconfig?log_style=0
+
+<!-- 16.1-取消文件上传 2-删除已上传文件 -->
 https://192.168.0.113:8089/uploadapi/delfile?type=1&md5=562a18c8d1554faa0aa61c3cb594993e
 
-<!-- 13.查询文件信息，ErrRepeat.ErrCode 时，针对用户上传某个文件，然后一直暂停，其他用户上传不了该文件的情况，调用该接口继续上传 -->
+<!-- 17.查询文件信息，ErrRepeat.ErrCode 时，针对用户上传某个文件，然后一直暂停，其他用户上传不了该文件的情况，调用该接口继续上传 -->
 https://192.168.0.113:8089/uploadapi/getfileinfo?md5=562a18c8d1554faa0aa61c3cb594993e
 
 <!-- 上传错误码 -->
