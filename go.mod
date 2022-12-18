@@ -3,7 +3,7 @@ module github.com/cwloo/uploader
 go 1.19
 
 require (
-	github.com/cwloo/gonet v0.1.29
+	github.com/cwloo/gonet v0.1.30
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 )
 
