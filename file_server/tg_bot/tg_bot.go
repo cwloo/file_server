@@ -69,11 +69,11 @@ func (s *TgBotApi) resetBotApi() {
 	s.l.Unlock()
 }
 
-func (s *TgBotApi) check(TgBot_Token string) bool {
+func (s *TgBotApi) check(TgBot_Token string) (need bool) {
 	s.l.RLock()
-	need := s.BotApi == nil || s.TgBot_Token != TgBot_Token
+	need = s.BotApi == nil || s.TgBot_Token != TgBot_Token
 	s.l.RUnlock()
-	return need
+	return
 }
 
 func (s *TgBotApi) newBotApi(TgBot_Token string) {

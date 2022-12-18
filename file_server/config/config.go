@@ -179,6 +179,15 @@ func check() {
 	if Config.Log_dir == "" {
 		Config.Log_dir = global.Dir + "logs"
 	}
+	if Config.Log_timezone != int64(logs.GetTimeZone()) {
+		logs.LogTimezone(logs.TimeZone(Config.Log_timezone))
+	}
+	if Config.Log_mode != int(logs.GetMode()) {
+		logs.LogMode(logs.Mode(Config.Log_mode))
+	}
+	if Config.Log_style != int(logs.GetStyle()) {
+		logs.LogStyle(logs.Style(Config.Log_style))
+	}
 	// 中国大陆这里可能因为被墙了卡住
 	tg_bot.NewTgBot(Config.TgBot_Token, Config.TgBot_ChatId, Config.UseTgBot > 0)
 }
@@ -196,18 +205,21 @@ func InitConfig() {
 	check()
 }
 
-func ReadConfig() {
-	lock.RLock()
+func readConfig() {
 	Config = readIni("conf.ini")
 	if Config == nil {
 		logs.LogFatal("error")
 	}
 	check()
+}
+
+func ReadConfig() {
+	lock.RLock()
+	readConfig()
 	lock.RUnlock()
 }
 
-func UpdateConfig(req *global.UpdateCfgReq) {
-	lock.Lock()
+func updateConfig(req *global.UpdateCfgReq) {
 	if req.Interval != "" {
 		ini.SetString("flag", "interval", req.Interval)
 	}
@@ -236,6 +248,12 @@ func UpdateConfig(req *global.UpdateCfgReq) {
 		ini.SetString("upload", "writeFile", req.WriteFile)
 	}
 	ini.SaveTo("conf.ini")
+}
+
+func UpdateConfig(req *global.UpdateCfgReq) {
+	lock.Lock()
+	updateConfig(req)
+	readConfig()
 	lock.Unlock()
 }
 

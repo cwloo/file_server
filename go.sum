@@ -1,7 +1,7 @@
 github.com/aliyun/aliyun-oss-go-sdk v2.2.6+incompatible h1:KXeJoM1wo9I/6xPTyt6qCxoSZnmASiAjlrr0dyTUKt8=
 github.com/aliyun/aliyun-oss-go-sdk v2.2.6+incompatible/go.mod h1:T/Aws4fEfogEE9v+HPhhw+CntffsBHJ8nXQCwKr0/g8=
-github.com/cwloo/gonet v0.1.27 h1:Gsitv2EJn/+/9G2sOoEen/vyYsGMLTvFQRmKRRzyWC0=
-github.com/cwloo/gonet v0.1.27/go.mod h1:IoLGUuzgs9dL1IHQbTzpTxPFfqMk0GpaMhCeVPmFnJ0=
+github.com/cwloo/gonet v0.1.28 h1:0gMXoeCi55VUnYn1nxZlwQo+MGwFu1XQyITacRvYrOI=
+github.com/cwloo/gonet v0.1.28/go.mod h1:IoLGUuzgs9dL1IHQbTzpTxPFfqMk0GpaMhCeVPmFnJ0=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

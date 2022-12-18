@@ -19,7 +19,7 @@ func main() {
 	logs.LogTimezone(logs.TimeZone(config.Config.Log_timezone))
 	logs.LogMode(logs.Mode(config.Config.Log_mode))
 	logs.LogStyle(logs.Style(config.Config.Log_style))
-	logs.LogInit(config.Config.Log_dir, int32(config.Config.Log_level), global.Exe, 100000000)
+	logs.LogInit(config.Config.Log_dir, logs.Level(config.Config.Log_level), global.Exe, 100000000)
 
 	task.After(time.Duration(config.Config.PendingTimeout)*time.Second, cb.NewFunctor00(func() {
 		handlerPendingUploader()
