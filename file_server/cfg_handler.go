@@ -31,6 +31,15 @@ func handlerUpdateCfgQuery(query url.Values) (*global.UpdateCfgResp, bool) {
 	if query.Has("interval") && len(query["interval"]) > 0 {
 		req.Interval = query["interval"][0]
 	}
+	if query.Has("log_timezone") && len(query["log_timezone"]) > 0 {
+		req.LogTimezone = query["log_timezone"][0]
+	}
+	if query.Has("log_mode") && len(query["log_mode"]) > 0 {
+		req.LogMode = query["log_mode"][0]
+	}
+	if query.Has("log_style") && len(query["log_style"]) > 0 {
+		req.LogStyle = query["log_style"][0]
+	}
 	if query.Has("maxMemory") && len(query["maxMemory"]) > 0 {
 		req.MaxMemory = query["maxMemory"][0]
 	}

@@ -223,6 +223,18 @@ func updateConfig(req *global.UpdateCfgReq) {
 	if req.Interval != "" {
 		ini.SetString("flag", "interval", req.Interval)
 	}
+	if req.LogTimezone != "" {
+		ini.SetString("log", "timezone", req.LogTimezone)
+	}
+	if req.LogMode != "" {
+		ini.SetString("log", "mode", req.LogMode)
+	}
+	if req.LogStyle != "" {
+		ini.SetString("log", "style", req.LogStyle)
+	}
+	if req.LogLevel != "" {
+		ini.SetString("log", "level", req.LogLevel)
+	}
 	if req.MaxMemory != "" {
 		ini.SetString("upload", "maxMemory", req.MaxMemory)
 	}

@@ -128,15 +128,19 @@ type FileInfoResp struct {
 // UpdateCfgReq
 // <summary>
 type UpdateCfgReq struct {
-	Interval           string `json:"interval,omitempty"`           //刷新配置间隔时间
-	MaxMemory          string `json:"maxMemory,omitempty"`          //multipart缓存限制
-	MaxSegmentSize     string `json:"maxSegmentSize,omitempty"`     //单个文件分片上传限制
-	MaxSingleSize      string `json:"maxSingleSize,omitempty"`      //单个文件上传大小限制
-	MaxTotalSize       string `json:"maxTotalSize,omitempty"`       //单次上传文件总大小限制
-	PendingTimeout     string `json:"pendingTimeout,omitempty"`     //定期清理未决的上传任务，即前端上传能暂停的最长时间
-	FileExpiredTimeout string `json:"fileExpiredTimeout,omitempty"` //定期清理长期未访问已上传文件记录
-	CheckMd5           string `json:"checkMd5,omitempty"`           //上传完毕是否校验文件完整性
-	WriteFile          string `json:"writeFile,omitempty"`          //上传文件是否缓存服务器本地
+	Interval           string `json:"interval,omitempty"`               //刷新配置间隔时间
+	LogTimezone        string `json:"log_timezone" form:"log_timezone"` //
+	LogMode            string `json:"log_mode" form:"log_mode"`         //
+	LogStyle           string `json:"log_style" form:"log_style"`       //
+	LogLevel           string `json:"log_level" form:"log_level"`       //
+	MaxMemory          string `json:"maxMemory,omitempty"`              //multipart缓存限制
+	MaxSegmentSize     string `json:"maxSegmentSize,omitempty"`         //单个文件分片上传限制
+	MaxSingleSize      string `json:"maxSingleSize,omitempty"`          //单个文件上传大小限制
+	MaxTotalSize       string `json:"maxTotalSize,omitempty"`           //单次上传文件总大小限制
+	PendingTimeout     string `json:"pendingTimeout,omitempty"`         //定期清理未决的上传任务，即前端上传能暂停的最长时间
+	FileExpiredTimeout string `json:"fileExpiredTimeout,omitempty"`     //定期清理长期未访问已上传文件记录
+	CheckMd5           string `json:"checkMd5,omitempty"`               //上传完毕是否校验文件完整性
+	WriteFile          string `json:"writeFile,omitempty"`              //上传文件是否缓存服务器本地
 }
 
 // <summary>
