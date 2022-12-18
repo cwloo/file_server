@@ -40,6 +40,9 @@ func handlerUpdateCfgQuery(query url.Values) (*global.UpdateCfgResp, bool) {
 	if query.Has("log_style") && len(query["log_style"]) > 0 {
 		req.LogStyle = query["log_style"][0]
 	}
+	if query.Has("log_level") && len(query["log_level"]) > 0 {
+		req.LogLevel = query["log_level"][0]
+	}
 	if query.Has("maxMemory") && len(query["maxMemory"]) > 0 {
 		req.MaxMemory = query["maxMemory"][0]
 	}
