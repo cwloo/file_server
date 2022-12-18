@@ -13,7 +13,7 @@ func main() {
 	logs.LogTimezone(logs.TimeZone(Config.Log_timezone))
 	logs.LogMode(logs.Mode(Config.Log_mode))
 	logs.LogStyle(logs.Style(Config.Log_style))
-	logs.LogInit(dir+"logs", int32(Config.Log_level), exe, 100000000)
+	logs.LogInit(dir+"logs", logs.Level(Config.Log_level), exe, 100000000)
 
 	switch MultiFile {
 	case true:
