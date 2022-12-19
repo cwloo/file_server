@@ -177,7 +177,7 @@ type CfgData struct {
 	Log_level          int    `json:"log_level" form:"log_level"`
 	Log_mode           int    `json:"log_mode" form:"log_mode"`
 	Log_style          int    `json:"log_style" form:"log_style"`
-	Log_timezone       int64  `json:"log_timezone" form:"log_timezone"`
+	Log_timezone       int    `json:"log_timezone" form:"log_timezone"`
 	HttpAddr           string `json:"http_addr" form:"http_addr"`
 	UploadPath         string `json:"upload_path" form:"upload_path"`
 	GetPath            string `json:"get_path" form:"get_path"`
