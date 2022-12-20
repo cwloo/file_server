@@ -13,6 +13,21 @@ import (
 	"github.com/cwloo/gonet/utils"
 )
 
+var (
+	cmd string
+	f   string
+)
+
+func monitor(id int, sta *os.ProcessState) {
+	if !sta.Success() {
+		args := []string{
+			cmd,
+			fmt.Sprintf("i=%v", id),
+		}
+		sub.Start(id, f, args, monitor)
+	}
+}
+
 func main() {
 	config.InitConfig()
 	logs.SetTimezone(logs.TimeZone(config.Config.Log.Timezone))
@@ -28,7 +43,7 @@ func main() {
 	// 	logs.Fatalf("%v", err)
 	// }
 	dir := global.Dir
-	var cmd string
+
 	if runtime.GOOS == "linux" {
 		dir += "../"
 		cmd = "./" + config.Config.Sub.Exec
@@ -36,7 +51,8 @@ func main() {
 		dir += "..\\"
 		cmd = config.Config.Sub.Exec + ".exe"
 	}
-	f, err := exec.LookPath(dir + config.Config.Sub.Exec)
+	var err error
+	f, err = exec.LookPath(dir + config.Config.Sub.Exec)
 	if err != nil {
 		logs.Errorf(err.Error())
 		return
@@ -51,11 +67,7 @@ func main() {
 			cmd,
 			fmt.Sprintf("i=%v", id),
 		}
-		if sub.Start(id, f, args, func(id int, sta *os.ProcessState) {
-			if !sta.Success() {
-
-			}
-		}) {
+		if sub.Start(id, f, args, monitor) {
 			id++
 		}
 	}
