@@ -16,6 +16,7 @@ import (
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/uploader/file_server/config"
 	"github.com/cwloo/uploader/file_server/global"
+	"github.com/cwloo/uploader/file_server/handler"
 	"github.com/cwloo/uploader/file_server/httpsrv"
 	"github.com/cwloo/uploader/file_server/tg_bot"
 )
@@ -136,17 +137,17 @@ func (s *AsyncUploader) Remove(md5 string) {
 func (s *AsyncUploader) Clear() {
 	msgs := []string{}
 	s.state.Range(func(md5 string, ok bool) {
-		// if !ok {
-		// 	////// 任务退出，移除未决的文件
-		// 	if msg, ok := RemovePendingFile(s.uuid, md5); ok {
-		// 		msgs = append(msgs, msg)
-		// 	}
-		// } else {
-		// 	////// 任务退出，移除校验失败的文件
-		// 	if msg, ok := RemoveCheckErrFile(s.uuid, md5); ok {
-		// 		msgs = append(msgs, msg)
-		// 	}
-		// }
+		if !ok {
+			////// 任务退出，移除未决的文件
+			if msg, ok := handler.RemovePendingFile(s.uuid, md5); ok {
+				msgs = append(msgs, msg)
+			}
+		} else {
+			////// 任务退出，移除校验失败的文件
+			if msg, ok := handler.RemoveCheckErrFile(s.uuid, md5); ok {
+				msgs = append(msgs, msg)
+			}
+		}
 	})
 	tg_bot.TgWarnMsg(msgs...)
 }
