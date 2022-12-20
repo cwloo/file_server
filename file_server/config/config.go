@@ -23,11 +23,11 @@ type IniConfig struct {
 	Flag     int `json:"flag" form:"flag"`
 	Interval int `json:"interval" form:"interval"`
 	Log      struct {
-		Dir      string `json:"dir" form:"log_dir"`
-		Level    int    `json:"level" form:"log_level"`
-		Mode     int    `json:"mode" form:"log_mode"`
-		Style    int    `json:"style" form:"log_style"`
-		Timezone int    `json:"timezone" form:"log_timezone"`
+		Dir      string `json:"dir" form:"dir"`
+		Level    int    `json:"level" form:"level"`
+		Mode     int    `json:"mode" form:"mode"`
+		Style    int    `json:"style" form:"style"`
+		Timezone int    `json:"timezone" form:"timezone"`
 	} `json:"log" form:"log"`
 	Sub struct {
 		Num  int    `json:"num" form:"num"`
