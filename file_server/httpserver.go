@@ -2,6 +2,8 @@ package main
 
 import (
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/cwloo/gonet/logs"
@@ -28,12 +30,12 @@ type httpserver struct {
 func NewHttpServer() HttpServer {
 	s := &httpserver{
 		server: &http.Server{
-			Addr:              config.Config.HttpAddr,
+			Addr:              strings.Join([]string{config.Config.Upload.Ip, strconv.Itoa(config.Config.Upload.Port[0])}, ":"),
 			Handler:           http.NewServeMux(),
-			ReadTimeout:       time.Duration(config.Config.PendingTimeout) * time.Second,
-			ReadHeaderTimeout: time.Duration(config.Config.PendingTimeout) * time.Second,
-			WriteTimeout:      time.Duration(config.Config.PendingTimeout) * time.Second,
-			IdleTimeout:       time.Duration(config.Config.PendingTimeout) * time.Second,
+			ReadTimeout:       time.Duration(config.Config.Upload.PendingTimeout) * time.Second,
+			ReadHeaderTimeout: time.Duration(config.Config.Upload.PendingTimeout) * time.Second,
+			WriteTimeout:      time.Duration(config.Config.Upload.PendingTimeout) * time.Second,
+			IdleTimeout:       time.Duration(config.Config.Upload.PendingTimeout) * time.Second,
 		},
 	}
 	return s
@@ -41,18 +43,18 @@ func NewHttpServer() HttpServer {
 
 func (s *httpserver) Router(pattern string, handler Handler) {
 	if !s.valid() {
-		logs.LogError("error")
+		logs.Errorf("error")
 		return
 	}
 	s.mux().HandleFunc(pattern, handler)
 }
 
 func (s *httpserver) Run() {
-	logs.LogInfo(s.server.Addr)
+	logs.Infof(s.server.Addr)
 	s.server.SetKeepAlivesEnabled(true)
 	err := s.server.ListenAndServe()
 	if err != nil {
-		logs.LogFatal(err.Error())
+		logs.Fatalf(err.Error())
 	}
 }
 

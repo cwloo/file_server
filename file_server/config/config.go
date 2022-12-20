@@ -20,88 +20,162 @@ var (
 )
 
 type IniConfig struct {
-	Flag                   int
-	Log_dir                string
-	Log_level              int
-	Log_mode               int
-	Log_style              int
-	Log_timezone           int
-	HttpAddr               string
-	UploadPath             string
-	GetPath                string
-	DelPath                string
-	FileinfoPath           string
-	UpdateCfgPath          string
-	GetCfgPath             string
-	FileDetailPath         string
-	UuidListPath           string
-	ListPath               string
-	CheckMd5               int
-	WriteFile              int
-	MultiFile              int
-	UseAsync               int
-	MaxMemory              int64
-	MaxSegmentSize         int64
-	MaxSingleSize          int64
-	MaxTotalSize           int64
-	PendingTimeout         int
-	FileExpiredTimeout     int
-	UploadDir              string
-	OssType                string
-	Aliyun_BasePath        string
-	Aliyun_BucketUrl       string
-	Aliyun_BucketName      string
-	Aliyun_Endpoint        string
-	Aliyun_AccessKeyId     string
-	Aliyun_AccessKeySecret string
-	Aliyun_Routines        int
-
-	TgBot_ChatId      int64
-	TgBot_Token       string
-	UseTgBot          int
-	Interval          int
-	UseOriginFilename int
+	Flag     int `json:"flag" form:"flag"`
+	Interval int `json:"interval" form:"interval"`
+	Log      struct {
+		Dir      string `json:"dir" form:"log_dir"`
+		Level    int    `json:"level" form:"log_level"`
+		Mode     int    `json:"mode" form:"log_mode"`
+		Style    int    `json:"style" form:"log_style"`
+		Timezone int    `json:"timezone" form:"log_timezone"`
+	} `json:"log" form:"log"`
+	Sub struct {
+		Num  int    `json:"num" form:"num"`
+		Exec string `json:"exec" form:"exec"`
+	} `json:"sub" form:"sub"`
+	TgBot struct {
+		Enable int    `json:"enable" form:"enable"`
+		ChatId int64  `json:"chatId" form:"chatId"`
+		Token  string `json:"token" form:"token"`
+	} `json:"tg_bot" form:"tg_bot"`
+	Upload struct {
+		Ip                 string `json:"ip" form:"ip"`
+		Port               []int  `json:"port" form:"port"`
+		Dir                string `json:"dir" form:"dir"`
+		CheckMd5           int    `json:"checkMd5" form:"checkMd5"`
+		WriteFile          int    `json:"writeFile" form:"writeFile"`
+		MultiFile          int    `json:"multiFile" form:"multiFile"`
+		UseAsync           int    `json:"useAsync" form:"useAsync"`
+		MaxMemory          int64  `json:"maxMemory" form:"maxMemory"`
+		MaxSegmentSize     int64  `json:"maxSegmentSize" form:"maxSegmentSize"`
+		MaxSingleSize      int64  `json:"maxSingleSize" form:"maxSingleSize"`
+		MaxTotalSize       int64  `json:"maxTotalSize" form:"maxTotalSize"`
+		PendingTimeout     int    `json:"pendingTimeout" form:"pendingTimeout"`
+		FileExpiredTimeout int    `json:"fileExpiredTimeout" form:"fileExpiredTimeout"`
+		UseOriginFilename  int    `json:"useOriginFilename" form:"useOriginFilename"`
+		Path               struct {
+			Upload     string `json:"upload" form:"upload"`
+			Get        string `json:"get" form:"get"`
+			Del        string `json:"del" form:"del"`
+			Fileinfo   string `json:"fileinfo" form:"fileinfo"`
+			UpdateCfg  string `json:"updatecfg" form:"updatecfg"`
+			GetCfg     string `json:"getcfg" form:"getcfg"`
+			FileDetail string `json:"filedetail" form:"filedetail"`
+			UuidList   string `json:"uuidlist" form:"uuidlist"`
+			List       string `json:"list" form:"list"`
+		} `json:"path" form:"path"`
+	} `json:"upload" form:"upload"`
+	Oss struct {
+		Type   string `json:"type" form:"type"`
+		Aliyun struct {
+			BasePath        string `json:"basepath" form:"basepath"`
+			BucketUrl       string `json:"bucketUrl" form:"bucketUrl"`
+			BucketName      string `json:"bucketName" form:"bucketName"`
+			EndPoint        string `json:"endpoint" form:"endpoint"`
+			AccessKeyId     string `json:"accessKeyId" form:"accessKeyId"`
+			AccessKeySecret string `json:"accessKeySecret" form:"accessKeySecret"`
+			Routines        int    `json:"routines" form:"routines"`
+		} `json:"aliyun" form:"aliyun"`
+		Aws_s3 struct {
+			Bucket           string `json:"bucket" form:"bucket"`
+			Region           string `json:"region" form:"region"`
+			EndPoint         string `json:"endpoint" form:"endpoint"`
+			Force_path_style int    `json:"force_path_style" form:"force_path_style"`
+			Disable_ssl      int    `json:"disable_ssl" form:"disable_ssl"`
+			Secret_id        string `json:"secret_id" form:"secret_id"`
+			Secret_key       string `json:"secret_key" form:"secret_key"`
+			Base_url         string `json:"base_url" form:"base_url"`
+			Path_prefix      string `json:"path_prefix" form:"path_prefix"`
+		} `json:"aws_s3" form:"aws_s3"`
+		Tencent_cos struct {
+			Bucket      string `json:"bucket" form:"bucket"`
+			Region      string `json:"region" form:"region"`
+			Secret_id   string `json:"secret_id" form:"secret_id"`
+			Secret_key  string `json:"secret_key" form:"secret_key"`
+			Base_url    string `json:"base_url" form:"base_url"`
+			Path_prefix string `json:"path_prefix" form:"path_prefix"`
+		} `json:"tencent_cos" form:"tencent_cos"`
+		Qiniu struct {
+			Zone            string `json:"zone" form:"zone"`
+			Bucket          string `json:"bucket" form:"bucket"`
+			ImgPath         string `json:"imgPath" form:"imgPath"`
+			UseHttps        string `json:"useHttps" form:"useHttps"`
+			Access_key      string `json:"access_key" form:"access_key"`
+			Secret_key      string `json:"secret_key" form:"secret_key"`
+			Base_url        string `json:"base_url" form:"base_url"`
+			Use_cdn_domains string `json:"use-cdn-domains" form:"use_cdn_domains"`
+		} `json:"qniu" form:"qniu"`
+		Huawei_obs struct {
+			Path       string `json:"path" form:"path"`
+			Bucket     string `json:"bucket" form:"bucket"`
+			EndPoint   string `json:"endpoint" form:"endpoint"`
+			Access_key string `json:"access_key" form:"access_key"`
+			Secret_key string `json:"secret_key" form:"secret_key"`
+			Base_url   string `json:"base_url" form:"base_url"`
+		} `json:"huawei_obs" form:"huawei_obs"`
+	} `json:"oss" form:"oss"`
+	Etcd struct {
+		Schema   string   `json:"schema" form:"schema"`
+		Addr     []string `json:"addr" form:"addr"`
+		UserName string   `json:"username" form:"username"`
+		Password string   `json:"password" form:"password"`
+	} `json:"etcd" form:"etcd"`
 }
 
 func readIni(filename string) (c *IniConfig) {
 	if err := ini.Load(filename); err != nil {
-		logs.LogFatal(err.Error())
+		logs.Fatalf(err.Error())
 	}
 	c = &IniConfig{}
-	c.TgBot_ChatId = ini.GetInt64("tg_bot", "chatId")
-	c.TgBot_Token = ini.GetString("tg_bot", "token")
-	c.UploadDir = ini.GetString("upload", "dir")
-	c.OssType = ini.GetString("upload", "ossType")
-	c.Aliyun_BasePath = ini.GetString("aliyun", "basePath")
-	c.Aliyun_BucketUrl = ini.GetString("aliyun", "bucketUrl")
-	c.Aliyun_BucketName = ini.GetString("aliyun", "bucketName")
-	c.Aliyun_Endpoint = ini.GetString("aliyun", "endpoint")
-	c.Aliyun_AccessKeyId = ini.GetString("aliyun", "accessKeyId")
-	c.Aliyun_AccessKeySecret = ini.GetString("aliyun", "accessKeySecret")
-	c.Aliyun_Routines = ini.GetInt("aliyun", "routines")
-
+	// Flag
 	c.Flag = ini.GetInt("flag", "flag")
-	c.Log_dir = ini.GetString("log", "dir")
-	c.Log_level = ini.GetInt("log", "level")
-	c.Log_mode = ini.GetInt("log", "mode")
-	c.Log_style = ini.GetInt("log", "style")
-	c.Log_timezone = ini.GetInt("log", "timezone")
-	c.HttpAddr = ini.GetString("httpserver", "addr")
-	c.UploadPath = ini.GetString("path", "upload")
-	c.GetPath = ini.GetString("path", "get")
-	c.DelPath = ini.GetString("path", "del")
-	c.FileinfoPath = ini.GetString("path", "fileinfo")
-	c.UpdateCfgPath = ini.GetString("path", "updateconfig")
-	c.GetCfgPath = ini.GetString("path", "getconfig")
-	c.FileDetailPath = ini.GetString("path", "filedetail")
-	c.UuidListPath = ini.GetString("path", "uuidlist")
-	c.ListPath = ini.GetString("path", "list")
-	c.CheckMd5 = ini.GetInt("upload", "checkMd5")
-	c.WriteFile = ini.GetInt("upload", "writeFile")
-	c.MultiFile = ini.GetInt("upload", "multiFile")
-	c.UseAsync = ini.GetInt("upload", "useAsync")
-	c.UseTgBot = ini.GetInt("upload", "useTgBot")
-	c.UseOriginFilename = ini.GetInt("upload", "useOriginFilename")
+	s := ini.GetString("flag", "interval")
+	sli := strings.Split(s, "*")
+	va := 1
+	for _, v := range sli {
+		v = strings.ReplaceAll(v, " ", "")
+		c, _ := strconv.Atoi(v)
+		va *= c
+	}
+	c.Interval = va
+	// Log
+	c.Log.Dir = ini.GetString("log", "dir")
+	c.Log.Level = ini.GetInt("log", "level")
+	c.Log.Mode = ini.GetInt("log", "mode")
+	c.Log.Style = ini.GetInt("log", "style")
+	c.Log.Timezone = ini.GetInt("log", "timezone")
+	// Sub
+	c.Sub.Num = ini.GetInt("sub", "num")
+	c.Sub.Exec = ini.GetString("sub", "execname")
+	// TgBot
+	c.TgBot.Enable = ini.GetInt("tg_bot", "enable")
+	c.TgBot.ChatId = ini.GetInt64("tg_bot", "chatId")
+	c.TgBot.Token = ini.GetString("tg_bot", "token")
+	// Path
+	c.Upload.Path.Upload = ini.GetString("path", "upload")
+	c.Upload.Path.Get = ini.GetString("path", "get")
+	c.Upload.Path.Del = ini.GetString("path", "del")
+	c.Upload.Path.Fileinfo = ini.GetString("path", "fileinfo")
+	c.Upload.Path.UpdateCfg = ini.GetString("path", "updateconfig")
+	c.Upload.Path.GetCfg = ini.GetString("path", "getconfig")
+	c.Upload.Path.FileDetail = ini.GetString("path", "filedetail")
+	c.Upload.Path.UuidList = ini.GetString("path", "uuidlist")
+	c.Upload.Path.List = ini.GetString("path", "list")
+	// Upload
+	c.Upload.Ip = ini.GetString("upload", "ip")
+	ports := strings.Split(ini.GetString("upload", "port"), ",")
+	for _, port := range ports {
+		switch port == "" {
+		case false:
+			c.Upload.Port = append(c.Upload.Port, utils.Atoi(port))
+		}
+	}
+	c.Upload.Dir = ini.GetString("upload", "dir")
+	c.Upload.CheckMd5 = ini.GetInt("upload", "checkMd5")
+	c.Upload.WriteFile = ini.GetInt("upload", "writeFile")
+	c.Upload.MultiFile = ini.GetInt("upload", "multiFile")
+	c.Upload.UseAsync = ini.GetInt("upload", "useAsync")
+	c.Upload.UseOriginFilename = ini.GetInt("upload", "useOriginFilename")
 	str := ini.GetString("upload", "maxMemory")
 	slice := strings.Split(str, "*")
 	val := int64(1)
@@ -110,7 +184,7 @@ func readIni(filename string) (c *IniConfig) {
 		c, _ := strconv.ParseInt(v, 10, 0)
 		val *= c
 	}
-	c.MaxMemory = val
+	c.Upload.MaxMemory = val
 	str = ini.GetString("upload", "maxSegmentSize")
 	slice = strings.Split(str, "*")
 	val = int64(1)
@@ -119,7 +193,7 @@ func readIni(filename string) (c *IniConfig) {
 		c, _ := strconv.ParseInt(v, 10, 0)
 		val *= c
 	}
-	c.MaxSegmentSize = val
+	c.Upload.MaxSegmentSize = val
 	str = ini.GetString("upload", "maxSingleSize")
 	slice = strings.Split(str, "*")
 	val = int64(1)
@@ -128,7 +202,7 @@ func readIni(filename string) (c *IniConfig) {
 		c, _ := strconv.ParseInt(v, 10, 0)
 		val *= c
 	}
-	c.MaxSingleSize = val
+	c.Upload.MaxSingleSize = val
 	str = ini.GetString("upload", "maxTotalSize")
 	slice = strings.Split(str, "*")
 	val = int64(1)
@@ -137,7 +211,7 @@ func readIni(filename string) (c *IniConfig) {
 		c, _ := strconv.ParseInt(v, 10, 0)
 		val *= c
 	}
-	c.MaxTotalSize = val
+	c.Upload.MaxTotalSize = val
 	str = ini.GetString("upload", "pendingTimeout")
 	slice = strings.Split(str, "*")
 	val1 := 1
@@ -146,7 +220,7 @@ func readIni(filename string) (c *IniConfig) {
 		c, _ := strconv.Atoi(v)
 		val1 *= c
 	}
-	c.PendingTimeout = val1
+	c.Upload.PendingTimeout = val1
 	str = ini.GetString("upload", "fileExpiredTimeout")
 	slice = strings.Split(str, "*")
 	val1 = 1
@@ -155,51 +229,66 @@ func readIni(filename string) (c *IniConfig) {
 		c, _ := strconv.Atoi(v)
 		val1 *= c
 	}
-	c.FileExpiredTimeout = val1
-	str = ini.GetString("flag", "interval")
-	slice = strings.Split(str, "*")
-	val1 = 1
-	for _, v := range slice {
-		v = strings.ReplaceAll(v, " ", "")
-		c, _ := strconv.Atoi(v)
-		val1 *= c
+	c.Upload.FileExpiredTimeout = val1
+	// Oss
+	c.Oss.Type = ini.GetString("oss", "type")
+	c.Oss.Aliyun.BasePath = ini.GetString("aliyun", "basePath")
+	c.Oss.Aliyun.BucketUrl = ini.GetString("aliyun", "bucketUrl")
+	c.Oss.Aliyun.BucketName = ini.GetString("aliyun", "bucketName")
+	c.Oss.Aliyun.EndPoint = ini.GetString("aliyun", "endpoint")
+	c.Oss.Aliyun.AccessKeyId = ini.GetString("aliyun", "accessKeyId")
+	c.Oss.Aliyun.AccessKeySecret = ini.GetString("aliyun", "accessKeySecret")
+	c.Oss.Aliyun.Routines = ini.GetInt("aliyun", "routines")
+	// Etcd
+	c.Etcd.Schema = ini.GetString("etcd", "schema")
+	addrs := strings.Split(ini.GetString("etcd", "addr"), ",")
+	for _, addr := range addrs {
+		switch addr == "" {
+		case false:
+			c.Etcd.Addr = append(c.Etcd.Addr, addr)
+		}
 	}
-	c.Interval = val1
+	c.Etcd.UserName = ini.GetString("etcd", "username")
+	c.Etcd.Password = ini.GetString("etcd", "password")
 	return
 }
 
 func check() {
-	if Config.UploadDir == "" {
-		Config.UploadDir = global.Dir_upload
+	if Config.Upload.Dir == "" {
+		Config.Upload.Dir = global.Dir_upload
 	}
-	_, err := os.Stat(Config.UploadDir)
+	_, err := os.Stat(Config.Upload.Dir)
 	if err != nil && os.IsNotExist(err) {
-		os.MkdirAll(Config.UploadDir, os.ModePerm)
+		os.MkdirAll(Config.Upload.Dir, os.ModePerm)
 	}
-	if Config.Log_dir == "" {
-		Config.Log_dir = global.Dir + "logs"
+	if Config.Log.Dir == "" {
+		Config.Log.Dir = global.Dir + "logs"
 	}
-	if Config.Log_timezone != int(logs.GetTimeZone()) {
-		logs.LogTimezone(logs.TimeZone(Config.Log_timezone))
+	if Config.Log.Timezone != int(logs.GetTimeZone()) {
+		logs.SetTimezone(logs.TimeZone(Config.Log.Timezone))
 	}
-	if Config.Log_mode != int(logs.GetMode()) {
-		logs.LogMode(logs.Mode(Config.Log_mode))
+	if Config.Log.Mode != int(logs.GetMode()) {
+		logs.SetMode(logs.Mode(Config.Log.Mode))
 	}
-	if Config.Log_style != int(logs.GetStyle()) {
-		logs.LogStyle(logs.Style(Config.Log_style))
+	if Config.Log.Style != int(logs.GetStyle()) {
+		logs.SetStyle(logs.Style(Config.Log.Style))
 	}
-	if Config.Log_level != int(logs.GetLevel()) {
-		logs.LogLevel(logs.Level(Config.Log_level))
+	if Config.Log.Level != int(logs.GetLevel()) {
+		logs.SetLevel(logs.Level(Config.Log.Level))
 	}
 	// 中国大陆这里可能因为被墙了卡住
-	tg_bot.NewTgBot(Config.TgBot_Token, Config.TgBot_ChatId, Config.UseTgBot > 0)
+	tg_bot.NewTgBot(Config.TgBot.Token, Config.TgBot.ChatId, Config.TgBot.Enable > 0)
+}
+
+func read() {
+	Config = readIni("conf.ini")
+	if Config == nil {
+		logs.Fatalf("error")
+	}
 }
 
 func InitConfig() {
-	Config = readIni("conf.ini")
-	if Config == nil {
-		logs.LogFatal("error")
-	}
+	read()
 	switch Config.Flag {
 	case 1:
 		flag.Parse()
@@ -209,10 +298,7 @@ func InitConfig() {
 }
 
 func readConfig() {
-	Config = readIni("conf.ini")
-	if Config == nil {
-		logs.LogFatal("error")
-	}
+	read()
 	check()
 }
 
@@ -268,7 +354,7 @@ func updateConfig(req *global.UpdateCfgReq) {
 	}
 	if req.UseTgBot != "" {
 		v, _ := strconv.Atoi(req.UseTgBot)
-		ini.SetInt("upload", "useTgBot", v)
+		ini.SetInt("tg_bot", "enable", v)
 	}
 	if req.TgBotChatId != "" {
 		v, _ := strconv.ParseInt(req.TgBotChatId, 10, 0)
@@ -293,34 +379,34 @@ func GetConfig(req *global.GetCfgReq) (*global.GetCfgResp, bool) {
 		ErrCode: 0,
 		ErrMsg:  "ok",
 		Data: &global.CfgData{
-			Log_dir:            Config.Log_dir,
-			Log_level:          Config.Log_level,
-			Log_mode:           Config.Log_mode,
-			Log_style:          Config.Log_style,
-			Log_timezone:       Config.Log_timezone,
-			HttpAddr:           Config.HttpAddr,
-			UploadPath:         Config.UploadPath,
-			GetPath:            Config.GetPath,
-			DelPath:            Config.DelPath,
-			FileinfoPath:       Config.FileinfoPath,
-			UpdateCfgPath:      Config.UpdateCfgPath,
-			GetCfgPath:         Config.GetCfgPath,
-			CheckMd5:           Config.CheckMd5,
-			WriteFile:          Config.WriteFile,
-			MultiFile:          Config.MultiFile,
-			UseAsync:           Config.UseAsync,
-			MaxMemory:          Config.MaxMemory,
-			MaxSegmentSize:     Config.MaxSegmentSize,
-			MaxSingleSize:      Config.MaxSingleSize,
-			MaxTotalSize:       Config.MaxTotalSize,
-			PendingTimeout:     Config.PendingTimeout,
-			FileExpiredTimeout: Config.FileExpiredTimeout,
-			UploadDir:          Config.UploadDir,
-			OssType:            Config.OssType,
-			UseTgBot:           Config.UseTgBot,
 			Interval:           Config.Interval,
-			TgBotChatId:        Config.TgBot_ChatId,
-			TgBotToken:         Config.TgBot_Token,
+			Log_dir:            Config.Log.Dir,
+			Log_level:          Config.Log.Level,
+			Log_mode:           Config.Log.Mode,
+			Log_style:          Config.Log.Style,
+			Log_timezone:       Config.Log.Timezone,
+			HttpAddr:           strings.Join([]string{Config.Upload.Ip, strconv.Itoa(Config.Upload.Port[0])}, ":"),
+			UploadPath:         Config.Upload.Path.Upload,
+			GetPath:            Config.Upload.Path.Get,
+			DelPath:            Config.Upload.Path.Del,
+			FileinfoPath:       Config.Upload.Path.Fileinfo,
+			UpdateCfgPath:      Config.Upload.Path.UpdateCfg,
+			GetCfgPath:         Config.Upload.Path.GetCfg,
+			CheckMd5:           Config.Upload.CheckMd5,
+			WriteFile:          Config.Upload.WriteFile,
+			MultiFile:          Config.Upload.MultiFile,
+			UseAsync:           Config.Upload.UseAsync,
+			MaxMemory:          Config.Upload.MaxMemory,
+			MaxSegmentSize:     Config.Upload.MaxSegmentSize,
+			MaxSingleSize:      Config.Upload.MaxSingleSize,
+			MaxTotalSize:       Config.Upload.MaxTotalSize,
+			PendingTimeout:     Config.Upload.PendingTimeout,
+			FileExpiredTimeout: Config.Upload.FileExpiredTimeout,
+			UploadDir:          Config.Upload.Dir,
+			OssType:            Config.Oss.Type,
+			UseTgBot:           Config.TgBot.Enable,
+			TgBotChatId:        Config.TgBot.ChatId,
+			TgBotToken:         Config.TgBot.Token,
 		},
 	}
 	lock.RUnlock()

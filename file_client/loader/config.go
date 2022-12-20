@@ -25,7 +25,7 @@ type IniConfig struct {
 func readIni(filename string) (c *IniConfig) {
 	ini := utils.Ini{}
 	if err := ini.Load(filename); err != nil {
-		logs.LogFatal(err.Error())
+		logs.Fatalf(err.Error())
 	}
 	c = &IniConfig{}
 	c.Flag = ini.GetInt("flag", "flag")
@@ -46,7 +46,7 @@ func readIni(filename string) (c *IniConfig) {
 func InitConfig() {
 	Config = readIni("conf.ini")
 	if Config == nil {
-		logs.LogFatal("error")
+		logs.Fatalf("error")
 	}
 	switch Config.Flag {
 	case 1:

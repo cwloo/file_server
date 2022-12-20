@@ -39,8 +39,8 @@ func writeResponse(w http.ResponseWriter, r *http.Request, v any) {
 	w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 	_, err := w.Write(j)
 	if err != nil {
-		logs.LogError(err.Error())
+		logs.Errorf(err.Error())
 		return
 	}
-	logs.LogDebug("%v", string(j))
+	logs.Debugf("%v", string(j))
 }

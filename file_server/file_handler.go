@@ -15,11 +15,11 @@ func handlerFileJsonReq(body []byte) (*global.FileInfoResp, bool) {
 	if len(body) == 0 {
 		return &global.FileInfoResp{ErrCode: 3, ErrMsg: "no body"}, false
 	}
-	logs.LogWarn("%v", string(body))
+	logs.Warnf("%v", string(body))
 	req := global.FileInfoReq{}
 	err := json.Unmarshal(body, &req)
 	if err != nil {
-		logs.LogError(err.Error())
+		logs.Errorf(err.Error())
 		return &global.FileInfoResp{ErrCode: 4, ErrMsg: "parse body error"}, false
 	}
 	if req.Md5 == "" && len(req.Md5) != 32 {
@@ -40,14 +40,14 @@ func handlerFileQuery(query url.Values) (*global.FileInfoResp, bool) {
 }
 
 func handlerFileinfo(w http.ResponseWriter, r *http.Request) {
-	logs.LogInfo("%v %v %#v", r.Method, r.URL.String(), r.Header)
+	logs.Infof("%v %v %#v", r.Method, r.URL.String(), r.Header)
 	switch strings.ToUpper(r.Method) {
 	case "POST":
 		switch r.Header.Get("Content-Type") {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.FileInfoResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return
@@ -63,7 +63,7 @@ func handlerFileinfo(w http.ResponseWriter, r *http.Request) {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.FileInfoResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return
@@ -79,7 +79,7 @@ func handlerFileinfo(w http.ResponseWriter, r *http.Request) {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.FileInfoResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return
@@ -97,11 +97,11 @@ func handlerFileDetailJsonReq(body []byte) (*global.FileDetailResp, bool) {
 	if len(body) == 0 {
 		return &global.FileDetailResp{ErrCode: 3, ErrMsg: "no body"}, false
 	}
-	logs.LogWarn("%v", string(body))
+	logs.Warnf("%v", string(body))
 	req := global.FileDetailReq{}
 	err := json.Unmarshal(body, &req)
 	if err != nil {
-		logs.LogError(err.Error())
+		logs.Errorf(err.Error())
 		return &global.FileDetailResp{ErrCode: 4, ErrMsg: "parse body error"}, false
 	}
 	if req.Md5 == "" && len(req.Md5) != 32 {
@@ -122,14 +122,14 @@ func handlerFileDetailQuery(query url.Values) (*global.FileDetailResp, bool) {
 }
 
 func handlerFileDetail(w http.ResponseWriter, r *http.Request) {
-	logs.LogInfo("%v %v %#v", r.Method, r.URL.String(), r.Header)
+	logs.Infof("%v %v %#v", r.Method, r.URL.String(), r.Header)
 	switch strings.ToUpper(r.Method) {
 	case "POST":
 		switch r.Header.Get("Content-Type") {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.FileDetailResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return
@@ -145,7 +145,7 @@ func handlerFileDetail(w http.ResponseWriter, r *http.Request) {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.FileDetailResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return
@@ -161,7 +161,7 @@ func handlerFileDetail(w http.ResponseWriter, r *http.Request) {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.FileDetailResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return

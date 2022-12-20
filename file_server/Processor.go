@@ -79,7 +79,7 @@ func (s *Processor) NewArgs(proc run.Proc) run.Args {
 }
 
 func (s *Processor) Run(proc run.Proc) {
-	// logs.LogDebug("%s started...", proc.Name())
+	// logs.Debugf("%s started...", proc.Name())
 	if s.mq == nil {
 		panic(errors.New("error: logs.Processor.mq is nil"))
 	}
@@ -120,13 +120,13 @@ EXIT:
 func (s *Processor) trace(name string, flag run.EndType) {
 	switch flag {
 	case run.QUIT:
-		// logs.LogDebug("*** QUIT *** %v mq.len:%v mq.size:%v goroutines.idles:%v goroutines.total:%v", name, s.mq.Length(), s.mq.Size(), s.IdleCount(), s.Count())
+		// logs.Debugf("*** QUIT *** %v mq.len:%v mq.size:%v goroutines.idles:%v goroutines.total:%v", name, s.mq.Length(), s.mq.Size(), s.IdleCount(), s.Count())
 		break
 	case run.GC:
-		// logs.LogDebug("*** GC *** %v mq.len:%v mq.size:%v goroutines.idles:%v goroutines.total:%v", name, s.mq.Length(), s.mq.Size(), s.IdleCount(), s.Count())
+		// logs.Debugf("*** GC *** %v mq.len:%v mq.size:%v goroutines.idles:%v goroutines.total:%v", name, s.mq.Length(), s.mq.Size(), s.IdleCount(), s.Count())
 		break
 	case run.STOP:
-		// logs.LogDebug("*** STOP *** %v mq.len:%v mq.size:%v goroutines.idles:%v goroutines.total:%v", name, s.mq.Length(), s.mq.Size(), s.IdleCount(), s.Count())
+		// logs.Debugf("*** STOP *** %v mq.len:%v mq.size:%v goroutines.idles:%v goroutines.total:%v", name, s.mq.Length(), s.mq.Size(), s.IdleCount(), s.Count())
 		break
 	default:
 		panic(errors.New(""))

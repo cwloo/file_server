@@ -15,14 +15,14 @@ func handlerUpdateCfgJsonReq(body []byte) (*global.UpdateCfgResp, bool) {
 	if len(body) == 0 {
 		return &global.UpdateCfgResp{ErrCode: 3, ErrMsg: "no body"}, false
 	}
-	logs.LogWarn("%v", string(body))
+	logs.Warnf("%v", string(body))
 	req := global.UpdateCfgReq{}
 	err := json.Unmarshal(body, &req)
 	if err != nil {
-		logs.LogError(err.Error())
+		logs.Errorf(err.Error())
 		return &global.UpdateCfgResp{ErrCode: 4, ErrMsg: "parse body error"}, false
 	}
-	logs.LogDebug("%#v", req)
+	logs.Debugf("%#v", req)
 	return UpdateCfg(&req)
 }
 
@@ -76,19 +76,19 @@ func handlerUpdateCfgQuery(query url.Values) (*global.UpdateCfgResp, bool) {
 	if query.Has("tg_token") && len(query["tg_token"]) > 0 {
 		req.TgBotToken = query["tg_token"][0]
 	}
-	logs.LogDebug("%#v", req)
+	logs.Debugf("%#v", req)
 	return UpdateCfg(req)
 }
 
 func handlerUpdateCfg(w http.ResponseWriter, r *http.Request) {
-	logs.LogInfo("%v %v %#v", r.Method, r.URL.String(), r.Header)
+	logs.Infof("%v %v %#v", r.Method, r.URL.String(), r.Header)
 	switch strings.ToUpper(r.Method) {
 	case "POST":
 		switch r.Header.Get("Content-Type") {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.UpdateCfgResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return
@@ -104,7 +104,7 @@ func handlerUpdateCfg(w http.ResponseWriter, r *http.Request) {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.UpdateCfgResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return
@@ -120,7 +120,7 @@ func handlerUpdateCfg(w http.ResponseWriter, r *http.Request) {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.UpdateCfgResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return
@@ -138,14 +138,14 @@ func handlerGetCfgJsonReq(body []byte) (*global.GetCfgResp, bool) {
 	if len(body) == 0 {
 		return &global.GetCfgResp{ErrCode: 3, ErrMsg: "no body"}, false
 	}
-	logs.LogWarn("%v", string(body))
+	logs.Warnf("%v", string(body))
 	req := global.GetCfgReq{}
 	err := json.Unmarshal(body, &req)
 	if err != nil {
-		logs.LogError(err.Error())
+		logs.Errorf(err.Error())
 		return &global.GetCfgResp{ErrCode: 4, ErrMsg: "parse body error"}, false
 	}
-	logs.LogDebug("%#v", req)
+	logs.Debugf("%#v", req)
 	return GetCfg(&req)
 }
 
@@ -178,19 +178,19 @@ func handlerGetCfgQuery(query url.Values) (*global.GetCfgResp, bool) {
 	// if query.Has("writeFile") && len(query["writeFile"]) > 0 {
 	// 	req.WriteFile = query["writeFile"][0]
 	// }
-	logs.LogDebug("%#v", req)
+	logs.Debugf("%#v", req)
 	return GetCfg(req)
 }
 
 func handlerGetCfg(w http.ResponseWriter, r *http.Request) {
-	logs.LogInfo("%v %v %#v", r.Method, r.URL.String(), r.Header)
+	logs.Infof("%v %v %#v", r.Method, r.URL.String(), r.Header)
 	switch strings.ToUpper(r.Method) {
 	case "POST":
 		switch r.Header.Get("Content-Type") {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.GetCfgResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return
@@ -206,7 +206,7 @@ func handlerGetCfg(w http.ResponseWriter, r *http.Request) {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.GetCfgResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return
@@ -222,7 +222,7 @@ func handlerGetCfg(w http.ResponseWriter, r *http.Request) {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.GetCfgResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return

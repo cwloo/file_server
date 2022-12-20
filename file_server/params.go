@@ -22,7 +22,7 @@ func checkSingle(total string) bool {
 		return false
 	}
 	size, _ := strconv.ParseInt(total, 10, 0)
-	if size <= 0 || size >= config.Config.MaxSingleSize {
+	if size <= 0 || size >= config.Config.Upload.MaxSingleSize {
 		return false
 	}
 	return true
@@ -41,7 +41,7 @@ func checkOffset(offset, total string) bool {
 }
 
 func checkTotal(total int64) bool {
-	return total < config.Config.MaxTotalSize
+	return total < config.Config.Upload.MaxTotalSize
 }
 
 func checkMultiPartSize(header *multipart.FileHeader) bool {
@@ -49,5 +49,5 @@ func checkMultiPartSize(header *multipart.FileHeader) bool {
 }
 
 func checkMultiPartSizeLimit(header *multipart.FileHeader) bool {
-	return header.Size < config.Config.MaxSegmentSize
+	return header.Size < config.Config.Upload.MaxSegmentSize
 }

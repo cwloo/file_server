@@ -17,7 +17,7 @@ type OSS interface {
 }
 
 func NewOss(info FileInfo) OSS {
-	switch config.Config.OssType {
+	switch config.Config.Oss.Type {
 	// case "local":
 	// 	return &Local{}
 	// case "qiniu":
@@ -38,7 +38,7 @@ func NewOss(info FileInfo) OSS {
 }
 
 func UploadDomain() string {
-	switch config.Config.OssType {
+	switch config.Config.Oss.Type {
 	// case "local":
 	// 	return ""
 	// case "qiniu":
@@ -46,7 +46,7 @@ func UploadDomain() string {
 	// case "tencent-cos":
 	// 	return config.Config.TencentCOS.BaseURL + "/"
 	case "aliyun-oss":
-		return config.Config.Aliyun_BucketUrl + "/"
+		return config.Config.Oss.Aliyun.BucketUrl + "/"
 	// case "huawei-obs":
 	// 	return config.Config.HuaWeiObs.Path + "/"
 	// case "aws-s3":

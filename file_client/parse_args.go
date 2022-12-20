@@ -28,6 +28,6 @@ func parseargs() (id int, filelist []string) {
 			filelist = append(filelist, v)
 		}
 	}
-	logs.LogWarn("%v", os.Args)
+	logs.Warnf("%v", os.Args)
 	return
 }

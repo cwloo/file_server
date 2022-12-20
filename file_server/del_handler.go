@@ -16,11 +16,11 @@ func handlerCacheFileJsonReq(body []byte) (*global.DelResp, bool) {
 	if len(body) == 0 {
 		return &global.DelResp{ErrCode: 3, ErrMsg: "no body"}, false
 	}
-	logs.LogWarn("%v", string(body))
+	logs.Warnf("%v", string(body))
 	req := global.DelReq{}
 	err := json.Unmarshal(body, &req)
 	if err != nil {
-		logs.LogError(err.Error())
+		logs.Errorf(err.Error())
 		return &global.DelResp{ErrCode: 4, ErrMsg: "parse body error"}, false
 	}
 	if req.Type != 1 && req.Type != 2 && req.Md5 == "" && len(req.Md5) != 32 {
@@ -47,14 +47,14 @@ func handlerCacheFileQuery(query url.Values) (*global.DelResp, bool) {
 }
 
 func handlerDelCacheFile(w http.ResponseWriter, r *http.Request) {
-	logs.LogInfo("%v %v %#v", r.Method, r.URL.String(), r.Header)
+	logs.Infof("%v %v %#v", r.Method, r.URL.String(), r.Header)
 	switch strings.ToUpper(r.Method) {
 	case "POST":
 		switch r.Header.Get("Content-Type") {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.DelResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return
@@ -70,7 +70,7 @@ func handlerDelCacheFile(w http.ResponseWriter, r *http.Request) {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.DelResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return
@@ -86,7 +86,7 @@ func handlerDelCacheFile(w http.ResponseWriter, r *http.Request) {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.DelResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return

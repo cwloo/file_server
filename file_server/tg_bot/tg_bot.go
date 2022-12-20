@@ -81,7 +81,7 @@ func (s *TgBotApi) newBotApi(TgBot_Token string) {
 		botApi, err := tgbotapi.NewBotAPI(TgBot_Token)
 		if err != nil {
 			errmsg := strings.Join([]string{"token:", TgBot_Token, "chatId:", strconv.FormatInt(s.TgBot_ChatId, 10), err.Error()}, " ")
-			logs.LogFatal(errmsg)
+			logs.Fatalf(errmsg)
 		}
 		s.l.Lock()
 		s.TgBot_Token = TgBot_Token

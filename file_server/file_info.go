@@ -84,7 +84,7 @@ func NewFileInfo(uuid, md5, Filename string, total int64) FileInfo {
 	s.create = now
 	s.srcName = Filename
 	s.dstName = dstName
-	switch config.Config.UseOriginFilename > 0 {
+	switch config.Config.Upload.UseOriginFilename > 0 {
 	case true:
 		suffix := strings.TrimSuffix(Filename, ext)
 		yunName := strings.Join([]string{suffix, "-", YMDHMS, ext}, "")
@@ -101,28 +101,28 @@ func NewFileInfo(uuid, md5, Filename string, total int64) FileInfo {
 
 func (s *Fileinfo) assert() {
 	if s.uuid == "" {
-		logs.LogFatal("error")
+		logs.Fatalf("error")
 	}
 	if s.md5 == "" {
-		logs.LogFatal("error")
+		logs.Fatalf("error")
 	}
 	if s.srcName == "" {
-		logs.LogFatal("error")
+		logs.Fatalf("error")
 	}
 	if s.now > int64(0) {
-		logs.LogFatal("error")
+		logs.Fatalf("error")
 	}
 	if s.total == int64(0) {
-		logs.LogFatal("error")
+		logs.Fatalf("error")
 	}
 	// if s.url != "" {
-	// 	logs.LogFatal("error")
+	// 	logs.Fatalf("error")
 	// }
 	// if s.time.Unix() > 0 {
-	// 	logs.LogFatal("error")
+	// 	logs.Fatalf("error")
 	// }
 	// if s.hitTime.Unix() > 0 {
-	// 	logs.LogFatal("error")
+	// 	logs.Fatalf("error")
 	// }
 }
 
@@ -213,34 +213,34 @@ func (s *Fileinfo) DateTime() time.Time {
 
 func (s *Fileinfo) Assert() {
 	if s.uuid == "" {
-		logs.LogFatal("error")
+		logs.Fatalf("error")
 	}
 	if s.md5 == "" {
-		logs.LogFatal("error")
+		logs.Fatalf("error")
 	}
 	if s.srcName == "" {
-		logs.LogFatal("error")
+		logs.Fatalf("error")
 	}
 	if s.dstName == "" {
-		logs.LogFatal("error")
+		logs.Fatalf("error")
 	}
 	if s.yunName == "" {
-		logs.LogFatal("error")
+		logs.Fatalf("error")
 	}
 	// if s.now == int64(0) {
-	// 	logs.LogFatal("error")
+	// 	logs.Fatalf("error")
 	// }
 	if s.total == int64(0) {
-		logs.LogFatal("error")
+		logs.Fatalf("error")
 	}
 	if s.date == "" {
-		logs.LogFatal("error")
+		logs.Fatalf("error")
 	}
 }
 
 func (s *Fileinfo) Update(size int64, onSeg SegmentCallback, onCheck CheckCallback) (done, ok bool, url string, err *global.ErrorMsg, start time.Time) {
 	if size <= 0 {
-		logs.LogFatal("error")
+		logs.Fatalf("error")
 	}
 	s.l.Lock()
 	switch s.cancel {
@@ -280,7 +280,7 @@ func (s *Fileinfo) Update(size int64, onSeg SegmentCallback, onCheck CheckCallba
 	s.l.Unlock()
 	return
 ERR:
-	logs.LogFatal("error")
+	logs.Fatalf("error")
 	return
 }
 
@@ -302,7 +302,7 @@ func (s *Fileinfo) Last(lock bool, size int64) (ok bool) {
 	}
 	return
 ERR:
-	logs.LogFatal("error")
+	logs.Fatalf("error")
 	return
 }
 
@@ -328,7 +328,7 @@ func (s *Fileinfo) Done(lock bool) (done bool) {
 	}
 	return
 ERR:
-	logs.LogFatal("error")
+	logs.Fatalf("error")
 	return
 }
 
@@ -356,7 +356,7 @@ func (s *Fileinfo) Ok(lock bool) (ok bool, url string) {
 	}
 	return
 ERR:
-	logs.LogFatal("error")
+	logs.Fatalf("error")
 	return
 }
 
@@ -459,7 +459,7 @@ func (s *FileInfos) GetAdd(md5 string, uuid, Filename, total string) (info FileI
 	s.l.Unlock()
 	return
 OK:
-	logs.LogError("md5:%v size=%v", md5, n)
+	logs.Errorf("md5:%v size=%v", md5, n)
 	return
 }
 
@@ -476,7 +476,7 @@ func (s *FileInfos) Remove(md5 string) (info FileInfo) {
 	s.l.Unlock()
 	return
 OK:
-	logs.LogError("md5:%v size=%v", md5, n)
+	logs.Errorf("md5:%v size=%v", md5, n)
 	return
 }
 
@@ -496,7 +496,7 @@ func (s *FileInfos) RemoveWithCond(md5 string, cond func(FileInfo) bool, cb func
 	s.l.Unlock()
 	return
 OK:
-	logs.LogError("md5:%v size=%v", md5, n)
+	logs.Errorf("md5:%v size=%v", md5, n)
 	return
 }
 
@@ -522,6 +522,6 @@ func (s *FileInfos) RangeRemoveWithCond(cond func(FileInfo) bool, cb func(FileIn
 	}
 	s.l.Unlock()
 	if len(list) > 0 {
-		logs.LogError("removed:%v size=%v", len(list), n)
+		logs.Errorf("removed:%v size=%v", len(list), n)
 	}
 }

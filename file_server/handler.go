@@ -17,15 +17,15 @@ import (
 func CalcFileMd5(f string) string {
 	fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 	if err != nil {
-		logs.LogFatal(err.Error())
+		logs.Fatalf(err.Error())
 	}
 	b, err := ioutil.ReadAll(fd)
 	if err != nil {
-		logs.LogFatal(err.Error())
+		logs.Fatalf(err.Error())
 	}
 	err = fd.Close()
 	if err != nil {
-		logs.LogFatal(err.Error())
+		logs.Fatalf(err.Error())
 	}
 	return utils.MD5Byte(b, false)
 }
@@ -165,7 +165,7 @@ func DelCacheFile(delType int, md5 string) {
 		fileInfos.RemoveWithCond(md5, func(info FileInfo) bool {
 			return !info.Done(false)
 		}, func(info FileInfo) {
-			os.Remove(config.Config.UploadDir + info.DstName())
+			os.Remove(config.Config.Upload.Dir + info.DstName())
 			uploaders.Get(info.Uuid()).Remove(md5)
 			info.Put()
 		})
@@ -177,7 +177,7 @@ func DelCacheFile(delType int, md5 string) {
 			}
 			return false
 		}, func(info FileInfo) {
-			os.Remove(config.Config.UploadDir + info.DstName())
+			os.Remove(config.Config.Upload.Dir + info.DstName())
 			info.Put()
 		})
 	}
@@ -186,15 +186,15 @@ func DelCacheFile(delType int, md5 string) {
 func RemovePendingFile(uuid, md5 string) (msg string, ok bool) {
 	fileInfos.RemoveWithCond(md5, func(info FileInfo) bool {
 		if info.Uuid() != uuid {
-			logs.LogFatal("error")
+			logs.Fatalf("error")
 		}
 		if info.Done(false) {
-			logs.LogFatal("error")
+			logs.Fatalf("error")
 		}
 		return true
 	}, func(info FileInfo) {
 		msg = strings.Join([]string{"RemovePendingFile\n", info.Uuid(), "\n", info.SrcName(), "[", md5, "]\n", info.DstName(), "\n", info.YunName()}, "")
-		os.Remove(config.Config.UploadDir + info.DstName())
+		os.Remove(config.Config.Upload.Dir + info.DstName())
 		info.Put()
 	})
 	ok = msg != ""
@@ -204,16 +204,16 @@ func RemovePendingFile(uuid, md5 string) (msg string, ok bool) {
 func RemoveCheckErrFile(uuid, md5 string) (msg string, ok bool) {
 	fileInfos.RemoveWithCond(md5, func(info FileInfo) bool {
 		if info.Uuid() != uuid {
-			logs.LogFatal("error")
+			logs.Fatalf("error")
 		}
 		if !info.Done(false) {
-			logs.LogFatal("error")
+			logs.Fatalf("error")
 		}
 		ok, _ := info.Ok(false)
 		return !ok
 	}, func(info FileInfo) {
 		msg = strings.Join([]string{"RemoveCheckErrFile\n", info.Uuid(), "\n", info.SrcName(), "[", md5, "]\n", info.DstName(), "\n", info.YunName()}, "")
-		os.Remove(config.Config.UploadDir + info.DstName())
+		os.Remove(config.Config.Upload.Dir + info.DstName())
 		info.Put()
 	})
 	ok = msg != ""
@@ -223,7 +223,7 @@ func RemoveCheckErrFile(uuid, md5 string) (msg string, ok bool) {
 func CheckExpiredFile() {
 	fileInfos.RangeRemoveWithCond(func(info FileInfo) bool {
 		if ok, _ := info.Ok(false); ok {
-			return time.Since(info.HitTime(false)) >= time.Duration(config.Config.FileExpiredTimeout)*time.Second
+			return time.Since(info.HitTime(false)) >= time.Duration(config.Config.Upload.FileExpiredTimeout)*time.Second
 		}
 		return false
 	}, func(info FileInfo) {
@@ -233,18 +233,18 @@ func CheckExpiredFile() {
 }
 
 func CheckPendingUploader() {
-	switch config.Config.UseAsync > 0 {
+	switch config.Config.Upload.UseAsync > 0 {
 	case true:
 		////// 异步
 		uploaders.Range(func(_ string, uploader Uploader) {
-			if time.Since(uploader.Get()) >= time.Duration(config.Config.PendingTimeout)*time.Second {
+			if time.Since(uploader.Get()) >= time.Duration(config.Config.Upload.PendingTimeout)*time.Second {
 				uploader.NotifyClose()
 			}
 		})
 	default:
 		////// 同步
 		uploaders.RangeRemoveWithCond(func(uploader Uploader) bool {
-			return time.Since(uploader.Get()) >= time.Duration(config.Config.PendingTimeout)*time.Second
+			return time.Since(uploader.Get()) >= time.Duration(config.Config.Upload.PendingTimeout)*time.Second
 		}, func(uploader Uploader) {
 			uploader.Clear()
 			uploader.Put()

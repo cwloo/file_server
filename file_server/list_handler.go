@@ -15,11 +15,11 @@ func handlerUuidListJsonReq(body []byte) (*global.UuidListResp, bool) {
 	if len(body) == 0 {
 		return &global.UuidListResp{ErrCode: 3, ErrMsg: "no body"}, false
 	}
-	logs.LogWarn("%v", string(body))
+	logs.Warnf("%v", string(body))
 	req := global.UuidListReq{}
 	err := json.Unmarshal(body, &req)
 	if err != nil {
-		logs.LogError(err.Error())
+		logs.Errorf(err.Error())
 		return &global.UuidListResp{ErrCode: 4, ErrMsg: "parse body error"}, false
 	}
 	// if req.Md5 == "" && len(req.Md5) != 32 {
@@ -40,14 +40,14 @@ func handlerUuidListQuery(query url.Values) (*global.UuidListResp, bool) {
 }
 
 func handlerUuidList(w http.ResponseWriter, r *http.Request) {
-	logs.LogInfo("%v %v %#v", r.Method, r.URL.String(), r.Header)
+	logs.Infof("%v %v %#v", r.Method, r.URL.String(), r.Header)
 	switch strings.ToUpper(r.Method) {
 	case "POST":
 		switch r.Header.Get("Content-Type") {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.UuidListResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return
@@ -63,7 +63,7 @@ func handlerUuidList(w http.ResponseWriter, r *http.Request) {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.UuidListResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return
@@ -79,7 +79,7 @@ func handlerUuidList(w http.ResponseWriter, r *http.Request) {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.ListResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return
@@ -97,11 +97,11 @@ func handlerListJsonReq(body []byte) (*global.ListResp, bool) {
 	if len(body) == 0 {
 		return &global.ListResp{ErrCode: 3, ErrMsg: "no body"}, false
 	}
-	logs.LogWarn("%v", string(body))
+	logs.Warnf("%v", string(body))
 	req := global.ListReq{}
 	err := json.Unmarshal(body, &req)
 	if err != nil {
-		logs.LogError(err.Error())
+		logs.Errorf(err.Error())
 		return &global.ListResp{ErrCode: 4, ErrMsg: "parse body error"}, false
 	}
 	// if req.Md5 == "" && len(req.Md5) != 32 {
@@ -122,14 +122,14 @@ func handlerListQuery(query url.Values) (*global.ListResp, bool) {
 }
 
 func handlerList(w http.ResponseWriter, r *http.Request) {
-	logs.LogInfo("%v %v %#v", r.Method, r.URL.String(), r.Header)
+	logs.Infof("%v %v %#v", r.Method, r.URL.String(), r.Header)
 	switch strings.ToUpper(r.Method) {
 	case "POST":
 		switch r.Header.Get("Content-Type") {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.ListResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return
@@ -145,7 +145,7 @@ func handlerList(w http.ResponseWriter, r *http.Request) {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.ListResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return
@@ -161,7 +161,7 @@ func handlerList(w http.ResponseWriter, r *http.Request) {
 		case "application/json":
 			body, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				logs.LogError(err.Error())
+				logs.Errorf(err.Error())
 				resp := &global.ListResp{ErrCode: 2, ErrMsg: "read body error"}
 				writeResponse(w, r, resp)
 				return

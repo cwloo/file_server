@@ -69,17 +69,17 @@ func (s *SessionToHandler) GetAdd(uuid string, async bool) (handler Uploader, ok
 	s.l.Unlock()
 	return
 OK:
-	logs.LogError("%v size=%v", uuid, n)
+	logs.Errorf("%v size=%v", uuid, n)
 	return
 }
 
 func (s *SessionToHandler) List() {
 	s.l.Lock()
-	logs.LogDebug("---------------------------------------------------------------------------------")
+	logs.Debugf("---------------------------------------------------------------------------------")
 	for uuid := range s.m {
-		logs.LogError("%v", uuid)
+		logs.Errorf("%v", uuid)
 	}
-	logs.LogDebug("---------------------------------------------------------------------------------")
+	logs.Debugf("---------------------------------------------------------------------------------")
 	s.l.Unlock()
 }
 
@@ -97,7 +97,7 @@ func (s *SessionToHandler) Remove(uuid string) (handler Uploader) {
 	s.l.Unlock()
 	return
 OK:
-	logs.LogError("%v size=%v", uuid, n)
+	logs.Errorf("%v size=%v", uuid, n)
 	return
 }
 
@@ -117,7 +117,7 @@ func (s *SessionToHandler) RemoveWithCond(uuid string, cond func(Uploader) bool,
 	s.l.Unlock()
 	return
 OK:
-	logs.LogError("%v size=%v", uuid, n)
+	logs.Errorf("%v size=%v", uuid, n)
 	return
 }
 
@@ -143,6 +143,6 @@ func (s *SessionToHandler) RangeRemoveWithCond(cond func(Uploader) bool, cb func
 	}
 	s.l.Unlock()
 	if len(list) > 0 {
-		logs.LogError("removed:%v size=%v", len(list), n)
+		logs.Errorf("removed:%v size=%v", len(list), n)
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 
+	process "github.com/cwloo/gonet/core/base/sub"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
 )
@@ -18,21 +19,21 @@ var (
 
 func main() {
 	InitConfig()
-	// logs.LogTimezone(logs.MY_CST)
-	// logs.LogMode(logs.M_STDOUT_FILE)
-	// logs.LogStyle(logs.F_DETAIL)
-	// logs.LogInit(dir+"logs", logs.LVL_DEBUG, exe, 100000000)
-	logs.LogTimezone(logs.TimeZone(Config.Log_timezone))
-	logs.LogMode(logs.Mode(Config.Log_mode))
-	logs.LogStyle(logs.Style(Config.Log_style))
-	logs.LogInit(dir+"logs", logs.Level(Config.Log_level), exe, 100000000)
+	// logs.SetTimezone(logs.MY_CST)
+	// logs.SetMode(logs.M_STDOUT_FILE)
+	// logs.SetStyle(logs.F_DETAIL)
+	// logs.Init(dir+"logs", logs.LVL_DEBUG, exe, 100000000)
+	logs.SetTimezone(logs.TimeZone(Config.Log_timezone))
+	logs.SetMode(logs.Mode(Config.Log_mode))
+	logs.SetStyle(logs.Style(Config.Log_style))
+	logs.Init(dir+"logs", logs.Level(Config.Log_level), exe, 100000000)
 
 	go func() {
 		utils.ReadConsole(onInput)
 	}()
 	// dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	// if err != nil {
-	// 	logs.LogFatal("%v", err)
+	// 	logs.Fatalf("%v", err)
 	// }
 	var cmd string
 	if runtime.GOOS == "linux" {
@@ -44,7 +45,7 @@ func main() {
 	}
 	f, err := exec.LookPath(dir + Config.Exec)
 	if err != nil {
-		logs.LogError(err.Error())
+		logs.Errorf(err.Error())
 		return
 	}
 	//子进程数量
@@ -83,12 +84,14 @@ func main() {
 		}
 		args = append(args, file...)
 		// 启动子进程
-		if startProcess(f, args) {
+		if process.Start(id, f, args, func(id int, sta *os.ProcessState) {
+
+		}) {
 			id++
 		}
 	}
-	logs.LogDebug("Children = Succ[%03d]", n)
-	waitAll()
-	logs.LogDebug("exit...")
-	logs.LogClose()
+	logs.Debugf("Children = Succ[%03d]", n)
+	process.WaitAll()
+	logs.Debugf("exit...")
+	logs.Close()
 }

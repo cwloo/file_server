@@ -38,15 +38,15 @@ func NewAliyun(info FileInfo) OSS {
 	bucket, err := NewBucket()
 	if err != nil {
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "NewBucket:", err.Error()}, "")
-		logs.LogError(errMsg)
+		logs.Errorf(errMsg)
 		tg_bot.TgErrMsg(errMsg)
 		return aliyums.Get().(*Aliyun)
 	}
-	yunPath := strings.Join([]string{config.Config.Aliyun_BasePath, "/uploads/", info.Date(), "/", info.YunName()}, "")
+	yunPath := strings.Join([]string{config.Config.Oss.Aliyun.BasePath, "/uploads/", info.Date(), "/", info.YunName()}, "")
 	imur, err := bucket.InitiateMultipartUpload(yunPath)
 	if err != nil {
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "InitiateMultipartUpload:", err.Error()}, "")
-		logs.LogError(errMsg)
+		logs.Errorf(errMsg)
 		tg_bot.TgErrMsg(errMsg)
 		return aliyums.Get().(*Aliyun)
 	}
@@ -67,7 +67,7 @@ func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader) (string
 	case true:
 		switch uploadFromFile {
 		case true:
-			switch config.Config.WriteFile > 0 {
+			switch config.Config.Upload.WriteFile > 0 {
 			case true:
 				return s.uploadFromFile(info, header)
 			default:
@@ -86,28 +86,28 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader) (
 	part, err := header.Open()
 	if err != nil {
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "Open:", err.Error()}, "")
-		logs.LogError(errMsg)
+		logs.Errorf(errMsg)
 		tg_bot.TgErrMsg(errMsg)
 		return "", "", &global.ErrorMsg{ErrCode: global.ErrRetry.ErrCode, ErrMsg: errMsg}
 	}
 	start := time.Now()
-	part_oss, err := s.bucket.UploadPart(*s.imur, part, header.Size, len(s.parts)+1, oss.Routines(config.Config.Aliyun_Routines))
+	part_oss, err := s.bucket.UploadPart(*s.imur, part, header.Size, len(s.parts)+1, oss.Routines(config.Config.Oss.Aliyun.Routines))
 	if err != nil {
 		_ = part.Close()
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "UploadPart:", err.Error()}, "")
-		logs.LogError(errMsg)
+		logs.Errorf(errMsg)
 		tg_bot.TgErrMsg(errMsg)
 		return "", "", &global.ErrorMsg{ErrCode: global.ErrRetry.ErrCode, ErrMsg: errMsg}
 	}
 	_ = part.Close()
 	s.parts = append(s.parts, part_oss)
-	logs.LogWarn("%v %v[%v] %v elapsed:%v", info.Uuid(), info.SrcName(), info.Md5(), info.YunName(), time.Since(start))
+	logs.Warnf("%v %v[%v] %v elapsed:%v", info.Uuid(), info.SrcName(), info.Md5(), info.YunName(), time.Since(start))
 	switch info.Last(false, header.Size) {
 	case true:
 		_, err := s.bucket.CompleteMultipartUpload(*s.imur, s.parts)
 		if err != nil {
 			errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "CompleteMultipartUpload:", err.Error()}, "")
-			logs.LogError(errMsg)
+			logs.Errorf(errMsg)
 			tg_bot.TgErrMsg(errMsg)
 			s.reset()
 			return "", "", &global.ErrorMsg{ErrCode: global.ErrFatal.ErrCode, ErrMsg: errMsg}
@@ -117,16 +117,16 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader) (
 	default:
 		return "", "", nil
 	}
-	return strings.Join([]string{config.Config.Aliyun_BucketUrl, "/", yunPath}, ""), yunPath, nil
+	return strings.Join([]string{config.Config.Oss.Aliyun.BucketUrl, "/", yunPath}, ""), yunPath, nil
 }
 
 func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader) (string, string, *global.ErrorMsg) {
 	yunPath := ""
-	f := config.Config.UploadDir + info.DstName()
+	f := config.Config.Upload.Dir + info.DstName()
 	fd, err := os.OpenFile(f, os.O_RDONLY, 0)
 	if err != nil {
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "OpenFile:", err.Error()}, "")
-		logs.LogError(errMsg)
+		logs.Errorf(errMsg)
 		tg_bot.TgErrMsg(errMsg)
 		return "", "", &global.ErrorMsg{ErrCode: global.ErrRetry.ErrCode, ErrMsg: errMsg}
 	}
@@ -135,29 +135,29 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader) (st
 	if err != nil {
 		_ = fd.Close()
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "Seek:", err.Error()}, "")
-		logs.LogError(errMsg)
+		logs.Errorf(errMsg)
 		tg_bot.TgErrMsg(errMsg)
 		return "", "", &global.ErrorMsg{ErrCode: global.ErrRetry.ErrCode, ErrMsg: errMsg}
 	}
 	start := time.Now()
 	// part_oss, err := s.bucket.UploadPartFromFile(*s.imur, f, info.Now(false), header.Size, len(s.parts)+1, oss.Routines(config.Config.Aliyun_Routines))
-	part_oss, err := s.bucket.UploadPart(*s.imur, fd, header.Size, len(s.parts)+1, oss.Routines(config.Config.Aliyun_Routines))
+	part_oss, err := s.bucket.UploadPart(*s.imur, fd, header.Size, len(s.parts)+1, oss.Routines(config.Config.Oss.Aliyun.Routines))
 	if err != nil {
 		_ = fd.Close()
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "UploadPart:", err.Error()}, "")
-		logs.LogError(errMsg)
+		logs.Errorf(errMsg)
 		tg_bot.TgErrMsg(errMsg)
 		return "", "", &global.ErrorMsg{ErrCode: global.ErrRetry.ErrCode, ErrMsg: errMsg}
 	}
 	_ = fd.Close()
 	s.parts = append(s.parts, part_oss)
-	logs.LogWarn("%v %v[%v] %v elapsed:%v", info.Uuid(), info.SrcName(), info.Md5(), info.YunName(), time.Since(start))
+	logs.Warnf("%v %v[%v] %v elapsed:%v", info.Uuid(), info.SrcName(), info.Md5(), info.YunName(), time.Since(start))
 	switch info.Last(false, header.Size) {
 	case true:
 		_, err := s.bucket.CompleteMultipartUpload(*s.imur, s.parts)
 		if err != nil {
 			errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "CompleteMultipartUpload:", err.Error()}, "")
-			logs.LogError(errMsg)
+			logs.Errorf(errMsg)
 			tg_bot.TgErrMsg(errMsg)
 			s.reset()
 			return "", "", &global.ErrorMsg{ErrCode: global.ErrFatal.ErrCode, ErrMsg: errMsg}
@@ -167,7 +167,7 @@ func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader) (st
 	default:
 		return "", "", nil
 	}
-	return strings.Join([]string{config.Config.Aliyun_BucketUrl, "/", yunPath}, ""), yunPath, nil
+	return strings.Join([]string{config.Config.Oss.Aliyun.BucketUrl, "/", yunPath}, ""), yunPath, nil
 }
 
 func (s *Aliyun) reset() {
@@ -183,13 +183,13 @@ func (s *Aliyun) Put() {
 }
 
 func NewBucket() (*oss.Bucket, error) {
-	client, err := oss.New(config.Config.Aliyun_Endpoint,
-		config.Config.Aliyun_AccessKeyId,
-		config.Config.Aliyun_AccessKeySecret, oss.Timeout(120000, 120000))
+	client, err := oss.New(config.Config.Oss.Aliyun.EndPoint,
+		config.Config.Oss.Aliyun.AccessKeyId,
+		config.Config.Oss.Aliyun.AccessKeySecret, oss.Timeout(120000, 120000))
 	if err != nil {
 		return nil, err
 	}
-	bucket, err := client.Bucket(config.Config.Aliyun_BucketName)
+	bucket, err := client.Bucket(config.Config.Oss.Aliyun.BucketName)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +199,7 @@ func NewBucket() (*oss.Bucket, error) {
 func (s *Aliyun) DeleteFile(key string) error {
 	err := s.bucket.DeleteObject(key)
 	if err != nil {
-		logs.LogError(err.Error())
+		logs.Errorf(err.Error())
 		return err
 	}
 	return nil

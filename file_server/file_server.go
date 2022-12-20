@@ -12,20 +12,16 @@ import (
 
 func main() {
 	config.InitConfig()
-	// logs.LogTimezone(logs.MY_CST)
-	// logs.LogMode(logs.M_STDOUT_FILE)
-	// logs.LogStyle(logs.F_DETAIL)
-	// logs.LogInit(global.Dir+"logs", logs.LVL_DEBUG, global.Exe, 100000000)
-	logs.LogTimezone(logs.TimeZone(config.Config.Log_timezone))
-	logs.LogMode(logs.Mode(config.Config.Log_mode))
-	logs.LogStyle(logs.Style(config.Config.Log_style))
-	logs.LogInit(config.Config.Log_dir, logs.Level(config.Config.Log_level), global.Exe, 100000000)
+	logs.SetTimezone(logs.TimeZone(config.Config.Log.Timezone))
+	logs.SetMode(logs.Mode(config.Config.Log.Mode))
+	logs.SetStyle(logs.Style(config.Config.Log.Style))
+	logs.Init(config.Config.Log.Dir, logs.Level(config.Config.Log.Level), global.Exe, 100000000)
 
-	task.After(time.Duration(config.Config.PendingTimeout)*time.Second, cb.NewFunctor00(func() {
+	task.After(time.Duration(config.Config.Upload.PendingTimeout)*time.Second, cb.NewFunctor00(func() {
 		handlerPendingUploader()
 	}))
 
-	task.After(time.Duration(config.Config.FileExpiredTimeout)*time.Second, cb.NewFunctor00(func() {
+	task.After(time.Duration(config.Config.Upload.FileExpiredTimeout)*time.Second, cb.NewFunctor00(func() {
 		handlerExpiredFile()
 	}))
 
@@ -36,5 +32,5 @@ func main() {
 	router := NewRouter()
 	router.Run()
 
-	logs.LogClose()
+	logs.Close()
 }
