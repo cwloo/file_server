@@ -29,8 +29,14 @@ type IniConfig struct {
 		Timezone int    `json:"timezone" form:"timezone"`
 	} `json:"log" form:"log"`
 	Sub struct {
-		Num  int    `json:"num" form:"num"`
-		Exec string `json:"exec" form:"exec"`
+		Gate struct {
+			Num  int    `json:"num" form:"num"`
+			Exec string `json:"exec" form:"exec"`
+		} `json:"gate" form:"gate"`
+		File struct {
+			Num  int    `json:"num" form:"num"`
+			Exec string `json:"exec" form:"exec"`
+		} `json:"file" form:"file"`
 	} `json:"sub" form:"sub"`
 	TgBot struct {
 		Enable int    `json:"enable" form:"enable"`
@@ -78,8 +84,10 @@ func readIni(filename string) (c *IniConfig) {
 	c.Log.Style = ini.GetInt("log", "style")
 	c.Log.Timezone = ini.GetInt("log", "timezone")
 	// Sub
-	c.Sub.Num = ini.GetInt("sub", "num")
-	c.Sub.Exec = ini.GetString("sub", "execname")
+	c.Sub.Gate.Num = ini.GetInt("sub", "gate.num")
+	c.Sub.Gate.Exec = ini.GetString("sub", "gate.execname")
+	c.Sub.File.Num = ini.GetInt("sub", "file.num")
+	c.Sub.File.Exec = ini.GetString("sub", "file.execname")
 	// TgBot
 	c.TgBot.Enable = ini.GetInt("tg_bot", "enable")
 	c.TgBot.ChatId = ini.GetInt64("tg_bot", "chatId")
