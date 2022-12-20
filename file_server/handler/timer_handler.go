@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"time"
@@ -8,25 +8,25 @@ import (
 	"github.com/cwloo/uploader/file_server/config"
 )
 
-func handlerReadConfig() {
+func ReadConfig() {
 	config.ReadConfig()
 	task.After(time.Duration(config.Config.Interval)*time.Second, cb.NewFunctor00(func() {
-		handlerReadConfig()
+		ReadConfig()
 	}))
 }
 
-func handlerPendingUploader() {
+func PendingUploader() {
 	// 清理未决的任务，对应移除未决或校验失败的文件
 	CheckPendingUploader()
 	task.After(time.Duration(config.Config.Upload.PendingTimeout)*time.Second, cb.NewFunctor00(func() {
-		handlerPendingUploader()
+		PendingUploader()
 	}))
 }
 
-func handlerExpiredFile() {
+func ExpiredFile() {
 	// 清理长期未访问的已上传文件记录
 	CheckExpiredFile()
 	task.After(time.Duration(config.Config.Upload.FileExpiredTimeout)*time.Second, cb.NewFunctor00(func() {
-		handlerExpiredFile()
+		ExpiredFile()
 	}))
 }

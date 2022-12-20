@@ -1,4 +1,4 @@
-package main
+package uploader
 
 import (
 	"encoding/json"
@@ -11,9 +11,10 @@ import (
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/uploader/file_server/config"
 	"github.com/cwloo/uploader/file_server/global"
+	"github.com/cwloo/uploader/file_server/httpsrv"
 )
 
-func handlerUpload(w http.ResponseWriter, r *http.Request) {
+func UploadReq(w http.ResponseWriter, r *http.Request) {
 	// w.WriteHeader(http.StatusOK)
 	err := r.ParseMultipartForm(config.Config.Upload.MaxMemory)
 	if err != nil {
@@ -22,7 +23,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 			ErrCode: global.ErrParsePartData.ErrCode,
 			ErrMsg:  global.ErrParsePartData.ErrMsg,
 		}
-		writeResponse(w, r, resp)
+		httpsrv.WriteResponse(w, r, resp)
 		return
 	}
 	uuid := ""
@@ -48,7 +49,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 			ErrCode: global.ErrParamsUUID.ErrCode,
 			ErrMsg:  global.ErrParamsUUID.ErrMsg,
 		}
-		writeResponse(w, r, resp)
+		httpsrv.WriteResponse(w, r, resp)
 		logs.Errorf("uuid=%v", uuid)
 		return
 	}
@@ -61,7 +62,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 			ErrCode: global.ErrMultiFileNotSupport.ErrCode,
 			ErrMsg:  global.ErrMultiFileNotSupport.ErrMsg,
 		}
-		writeResponse(w, r, resp)
+		httpsrv.WriteResponse(w, r, resp)
 		return
 	}
 	for k := range form.File {
@@ -144,7 +145,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 			logs.Errorf("%v %v[%v] %v seg_size[%v]", uuid, header.Filename, md5, total, header.Size)
 			continue
 		}
-		fi := fileInfos.Get(md5)
+		fi := global.FileInfos.Get(md5)
 		if fi == nil {
 			/// 没有上传，判断能否上传
 			size, _ := strconv.ParseInt(total, 10, 0)
@@ -168,7 +169,16 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 				allTotal += size
 			}
 		}
-		info, ok := fileInfos.GetAdd(md5, uuid, header.Filename, total)
+		info, ok := global.FileInfos.GetAdd(md5, uuid, header.Filename, total,
+			config.Config.Upload.UseOriginFilename > 0,
+			func(info global.FileInfo, ossType string) global.Oss {
+				switch ossType {
+				case "aliyun-oss":
+					return NewAliyun(info)
+				default:
+					return NewAliyun(info)
+				}
+			})
 		if !ok {
 			/// 没有上传，等待上传
 			keys = append(keys, &global.File{Md5: md5, Filename: header.Filename, Headersize: header.Size, Offset: offset, Total: total, Key: k})
@@ -189,7 +199,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 				if info.Done(true) {
 					if ok, url := info.Ok(true); ok {
 						info.UpdateHitTime(time.Now())
-						// fileInfos.Remove(info.Md5()).Put()
+						// global.FileInfos.Remove(info.Md5()).Put()
 						result = append(result,
 							global.Result{
 								Uuid:    uuid,
@@ -203,7 +213,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 								Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10) + "/" + total + " 上传成功!"}, "")})
 						logs.Warnf("%v %v[%v] %v chkmd5 [ok] %v", uuid, header.Filename, info.Md5(), info.DstName(), url)
 					} else {
-						fileInfos.Remove(info.Md5()).Put()
+						global.FileInfos.Remove(info.Md5()).Put()
 						os.Remove(config.Config.Upload.Dir + info.DstName())
 						result = append(result,
 							global.Result{
@@ -226,7 +236,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 				if info.Done(true) {
 					if ok, url := info.Ok(true); ok {
 						info.UpdateHitTime(time.Now())
-						// fileInfos.Remove(info.Md5).Put()
+						// global.FileInfos.Remove(info.Md5).Put()
 						result = append(result,
 							global.Result{
 								Uuid:    uuid,
@@ -240,7 +250,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 								Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10) + "/" + total + " 别人上传成功!"}, "")})
 						logs.Warnf("%v %v[%v] %v chkmd5 [ok] %v", uuid, header.Filename, info.Md5(), info.DstName(), url)
 					} else {
-						fileInfos.Remove(info.Md5()).Put()
+						global.FileInfos.Remove(info.Md5()).Put()
 						os.Remove(config.Config.Upload.Dir + info.DstName())
 						result = append(result,
 							global.Result{
@@ -271,7 +281,16 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 	} /// {{{ end for range form.File
 	var exist bool
 	if len(keys) > 0 {
-		uploader, ok := uploaders.GetAdd(uuid, config.Config.Upload.UseAsync > 0)
+		uploader, ok := global.Uploaders.GetAdd(uuid,
+			config.Config.Upload.UseAsync > 0,
+			func(async bool, uuid string) global.Uploader {
+				switch async {
+				case true:
+					return NewAsyncUploader(uuid)
+				default:
+					return NewSyncUploader(uuid)
+				}
+			})
 		if !ok {
 			///////////////////////////// 新的上传任务 /////////////////////////////
 			/// 有待上传文件，启动新任务
@@ -300,10 +319,10 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if resp != nil {
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 			// logs.Errorf("%v %v", uuid, string(j))
 		} else {
-			writeResponse(w, r, &global.Resp{})
+			httpsrv.WriteResponse(w, r, &global.Resp{})
 			if exist {
 				logs.Tracef("--------------------- ****** 无待上传文件，当前任务 %v ...", uuid)
 			} else {
@@ -313,7 +332,7 @@ func handlerUpload(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
+func MultiUploadReq(w http.ResponseWriter, r *http.Request) {
 	// w.WriteHeader(http.StatusOK)
 	err := r.ParseMultipartForm(config.Config.Upload.MaxMemory)
 	if err != nil {
@@ -322,7 +341,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 			ErrCode: global.ErrParsePartData.ErrCode,
 			ErrMsg:  global.ErrParsePartData.ErrMsg,
 		}
-		writeResponse(w, r, resp)
+		httpsrv.WriteResponse(w, r, resp)
 		return
 	}
 	uuid := ""
@@ -339,7 +358,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 			ErrCode: global.ErrParamsUUID.ErrCode,
 			ErrMsg:  global.ErrParamsUUID.ErrMsg,
 		}
-		writeResponse(w, r, resp)
+		httpsrv.WriteResponse(w, r, resp)
 		logs.Errorf("uuid=%v", uuid)
 		return
 	}
@@ -430,7 +449,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 			logs.Errorf("%v %v[%v] %v seg_size[%v]", uuid, header.Filename, md5, total, header.Size)
 			continue
 		}
-		fi := fileInfos.Get(md5)
+		fi := global.FileInfos.Get(md5)
 		if fi == nil {
 			/// 没有上传，判断能否上传
 			size, _ := strconv.ParseInt(total, 10, 0)
@@ -454,7 +473,16 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 				allTotal += size
 			}
 		}
-		info, ok := fileInfos.GetAdd(md5, uuid, header.Filename, total)
+		info, ok := global.FileInfos.GetAdd(md5, uuid, header.Filename, total,
+			config.Config.Upload.UseOriginFilename > 0,
+			func(info global.FileInfo, ossType string) global.Oss {
+				switch ossType {
+				case "aliyun-oss":
+					return NewAliyun(info)
+				default:
+					return NewAliyun(info)
+				}
+			})
 		if !ok {
 			/// 没有上传，等待上传
 			keys = append(keys, &global.File{Md5: md5, Filename: header.Filename, Headersize: header.Size, Offset: offset, Total: total, Key: k})
@@ -475,7 +503,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 				if info.Done(true) {
 					if ok, url := info.Ok(true); ok {
 						info.UpdateHitTime(time.Now())
-						// fileInfos.Remove(info.Md5()).Put()
+						// global.FileInfos.Remove(info.Md5()).Put()
 						result = append(result,
 							global.Result{
 								Uuid:    uuid,
@@ -489,7 +517,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 								Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10) + "/" + total + " 上传成功!"}, "")})
 						logs.Warnf("%v %v[%v] %v chkmd5 [ok] %v", uuid, header.Filename, info.Md5(), info.DstName(), url)
 					} else {
-						fileInfos.Remove(info.Md5()).Put()
+						global.FileInfos.Remove(info.Md5()).Put()
 						os.Remove(config.Config.Upload.Dir + info.DstName())
 						result = append(result,
 							global.Result{
@@ -512,7 +540,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 				if info.Done(true) {
 					if ok, url := info.Ok(true); ok {
 						info.UpdateHitTime(time.Now())
-						// fileInfos.Remove(info.Md5).Put()
+						// global.FileInfos.Remove(info.Md5).Put()
 						result = append(result,
 							global.Result{
 								Uuid:    uuid,
@@ -526,7 +554,7 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 								Message: strings.Join([]string{info.Uuid(), " uploading ", info.DstName(), " progress:", strconv.FormatInt(info.Now(true), 10) + "/" + total + " 别人上传成功!"}, "")})
 						logs.Warnf("%v %v[%v] %v chkmd5 [ok] %v", uuid, header.Filename, info.Md5(), info.DstName(), url)
 					} else {
-						fileInfos.Remove(info.Md5()).Put()
+						global.FileInfos.Remove(info.Md5()).Put()
 						os.Remove(config.Config.Upload.Dir + info.DstName())
 						result = append(result,
 							global.Result{
@@ -557,7 +585,16 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 	} /// {{{ end for range form.File
 	var exist bool
 	if len(keys) > 0 {
-		uploader, ok := uploaders.GetAdd(uuid, config.Config.Upload.UseAsync > 0)
+		uploader, ok := global.Uploaders.GetAdd(uuid,
+			config.Config.Upload.UseAsync > 0,
+			func(async bool, uuid string) global.Uploader {
+				switch async {
+				case true:
+					return NewAsyncUploader(uuid)
+				default:
+					return NewSyncUploader(uuid)
+				}
+			})
 		if !ok {
 			///////////////////////////// 新的上传任务 /////////////////////////////
 			/// 有待上传文件，启动新任务
@@ -586,10 +623,10 @@ func handlerMultiUpload(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if resp != nil {
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 			// logs.Errorf("%v %v", uuid, string(j))
 		} else {
-			writeResponse(w, r, &global.Resp{})
+			httpsrv.WriteResponse(w, r, &global.Resp{})
 			if exist {
 				logs.Tracef("--------------------- ****** 无待上传文件，当前任务 %v ...", uuid)
 			} else {

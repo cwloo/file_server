@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"encoding/json"
@@ -10,6 +10,7 @@ import (
 
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/uploader/file_server/global"
+	"github.com/cwloo/uploader/file_server/httpsrv"
 )
 
 func handlerCacheFileJsonReq(body []byte) (*global.DelResp, bool) {
@@ -46,7 +47,7 @@ func handlerCacheFileQuery(query url.Values) (*global.DelResp, bool) {
 	return &global.DelResp{Type: delType, Md5: md5, ErrCode: 0, ErrMsg: "ok"}, true
 }
 
-func handlerDelCacheFile(w http.ResponseWriter, r *http.Request) {
+func DelCacheFileReq(w http.ResponseWriter, r *http.Request) {
 	logs.Infof("%v %v %#v", r.Method, r.URL.String(), r.Header)
 	switch strings.ToUpper(r.Method) {
 	case "POST":
@@ -56,14 +57,14 @@ func handlerDelCacheFile(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				logs.Errorf(err.Error())
 				resp := &global.DelResp{ErrCode: 2, ErrMsg: "read body error"}
-				writeResponse(w, r, resp)
+				httpsrv.WriteResponse(w, r, resp)
 				return
 			}
 			resp, _ := handlerCacheFileJsonReq(body)
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		default:
 			resp, _ := handlerCacheFileQuery(r.URL.Query())
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		}
 	case "GET":
 		switch r.Header.Get("Content-Type") {
@@ -72,14 +73,14 @@ func handlerDelCacheFile(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				logs.Errorf(err.Error())
 				resp := &global.DelResp{ErrCode: 2, ErrMsg: "read body error"}
-				writeResponse(w, r, resp)
+				httpsrv.WriteResponse(w, r, resp)
 				return
 			}
 			resp, _ := handlerCacheFileJsonReq(body)
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		default:
 			resp, _ := handlerCacheFileQuery(r.URL.Query())
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		}
 	case "OPTIONS":
 		switch r.Header.Get("Content-Type") {
@@ -88,14 +89,14 @@ func handlerDelCacheFile(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				logs.Errorf(err.Error())
 				resp := &global.DelResp{ErrCode: 2, ErrMsg: "read body error"}
-				writeResponse(w, r, resp)
+				httpsrv.WriteResponse(w, r, resp)
 				return
 			}
 			resp, _ := handlerCacheFileJsonReq(body)
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		default:
 			resp, _ := handlerCacheFileQuery(r.URL.Query())
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		}
 	}
 }

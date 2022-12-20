@@ -1,4 +1,4 @@
-package main
+package httpsrv
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"github.com/cwloo/gonet/logs"
 )
 
-func setResponseHeader(w http.ResponseWriter, r *http.Request) {
+func SetResponseHeader(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token,Authorization,Token,X-Token,X-User-Id,C-Token,cz-sdk-key,cz-sdk-sign")
 	w.Header().Set("Access-Control-Allow-Methods", "POST,GET,HEAD,TRACE,OPTIONS,DELETE,PUT")
@@ -32,9 +32,9 @@ func setResponseHeader(w http.ResponseWriter, r *http.Request) {
 	// w.Header().Set("Accept-Language", r.Header.Get("Accept-Language"))
 }
 
-func writeResponse(w http.ResponseWriter, r *http.Request, v any) {
+func WriteResponse(w http.ResponseWriter, r *http.Request, v any) {
 	j, _ := json.Marshal(v)
-	setResponseHeader(w, r)
+	SetResponseHeader(w, r)
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 	_, err := w.Write(j)

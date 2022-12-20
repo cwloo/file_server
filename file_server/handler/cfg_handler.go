@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"encoding/json"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/uploader/file_server/global"
+	"github.com/cwloo/uploader/file_server/httpsrv"
 )
 
 func handlerUpdateCfgJsonReq(body []byte) (*global.UpdateCfgResp, bool) {
@@ -80,7 +81,7 @@ func handlerUpdateCfgQuery(query url.Values) (*global.UpdateCfgResp, bool) {
 	return UpdateCfg(req)
 }
 
-func handlerUpdateCfg(w http.ResponseWriter, r *http.Request) {
+func UpdateCfgReq(w http.ResponseWriter, r *http.Request) {
 	logs.Infof("%v %v %#v", r.Method, r.URL.String(), r.Header)
 	switch strings.ToUpper(r.Method) {
 	case "POST":
@@ -90,14 +91,14 @@ func handlerUpdateCfg(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				logs.Errorf(err.Error())
 				resp := &global.UpdateCfgResp{ErrCode: 2, ErrMsg: "read body error"}
-				writeResponse(w, r, resp)
+				httpsrv.WriteResponse(w, r, resp)
 				return
 			}
 			resp, _ := handlerUpdateCfgJsonReq(body)
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		default:
 			resp, _ := handlerUpdateCfgQuery(r.URL.Query())
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		}
 	case "GET":
 		switch r.Header.Get("Content-Type") {
@@ -106,14 +107,14 @@ func handlerUpdateCfg(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				logs.Errorf(err.Error())
 				resp := &global.UpdateCfgResp{ErrCode: 2, ErrMsg: "read body error"}
-				writeResponse(w, r, resp)
+				httpsrv.WriteResponse(w, r, resp)
 				return
 			}
 			resp, _ := handlerUpdateCfgJsonReq(body)
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		default:
 			resp, _ := handlerUpdateCfgQuery(r.URL.Query())
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		}
 	case "OPTIONS":
 		switch r.Header.Get("Content-Type") {
@@ -122,14 +123,14 @@ func handlerUpdateCfg(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				logs.Errorf(err.Error())
 				resp := &global.UpdateCfgResp{ErrCode: 2, ErrMsg: "read body error"}
-				writeResponse(w, r, resp)
+				httpsrv.WriteResponse(w, r, resp)
 				return
 			}
 			resp, _ := handlerUpdateCfgJsonReq(body)
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		default:
 			resp, _ := handlerUpdateCfgQuery(r.URL.Query())
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		}
 	}
 }
@@ -182,7 +183,7 @@ func handlerGetCfgQuery(query url.Values) (*global.GetCfgResp, bool) {
 	return GetCfg(req)
 }
 
-func handlerGetCfg(w http.ResponseWriter, r *http.Request) {
+func GetCfgReq(w http.ResponseWriter, r *http.Request) {
 	logs.Infof("%v %v %#v", r.Method, r.URL.String(), r.Header)
 	switch strings.ToUpper(r.Method) {
 	case "POST":
@@ -192,14 +193,14 @@ func handlerGetCfg(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				logs.Errorf(err.Error())
 				resp := &global.GetCfgResp{ErrCode: 2, ErrMsg: "read body error"}
-				writeResponse(w, r, resp)
+				httpsrv.WriteResponse(w, r, resp)
 				return
 			}
 			resp, _ := handlerGetCfgJsonReq(body)
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		default:
 			resp, _ := handlerGetCfgQuery(r.URL.Query())
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		}
 	case "GET":
 		switch r.Header.Get("Content-Type") {
@@ -208,14 +209,14 @@ func handlerGetCfg(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				logs.Errorf(err.Error())
 				resp := &global.GetCfgResp{ErrCode: 2, ErrMsg: "read body error"}
-				writeResponse(w, r, resp)
+				httpsrv.WriteResponse(w, r, resp)
 				return
 			}
 			resp, _ := handlerGetCfgJsonReq(body)
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		default:
 			resp, _ := handlerGetCfgQuery(r.URL.Query())
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		}
 	case "OPTIONS":
 		switch r.Header.Get("Content-Type") {
@@ -224,14 +225,14 @@ func handlerGetCfg(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				logs.Errorf(err.Error())
 				resp := &global.GetCfgResp{ErrCode: 2, ErrMsg: "read body error"}
-				writeResponse(w, r, resp)
+				httpsrv.WriteResponse(w, r, resp)
 				return
 			}
 			resp, _ := handlerGetCfgJsonReq(body)
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		default:
 			resp, _ := handlerGetCfgQuery(r.URL.Query())
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		}
 	}
 }

@@ -1,4 +1,4 @@
-package main
+package global
 
 import (
 	"sync"
@@ -6,7 +6,7 @@ import (
 	"github.com/cwloo/gonet/logs"
 )
 
-var uploaders = NewSessionToHandler()
+var Uploaders = NewSessionToHandler()
 
 // <summary>
 // SessionToHandler [uuid]=handler
@@ -50,23 +50,25 @@ OK:
 	cb(handler)
 }
 
-func (s *SessionToHandler) GetAdd(uuid string, async bool) (handler Uploader, ok bool) {
+func (s *SessionToHandler) GetAdd(uuid string, async bool, new func(bool, string) Uploader) (handler Uploader, ok bool) {
 	n := 0
 	s.l.Lock()
 	handler, ok = s.m[uuid]
 	if !ok {
-		switch async {
-		case true:
-			handler = NewAsyncUploader(uuid)
-		default:
-			handler = NewSyncUploader(uuid)
+		if new == nil {
+			s.l.Unlock()
+			goto ERR
 		}
+		handler = new(async, uuid)
 		s.m[uuid] = handler
 		n = len(s.m)
 		s.l.Unlock()
 		goto OK
 	}
 	s.l.Unlock()
+	return
+ERR:
+	logs.Fatalf("error")
 	return
 OK:
 	logs.Errorf("%v size=%v", uuid, n)

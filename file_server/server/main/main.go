@@ -8,6 +8,8 @@ import (
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/uploader/file_server/config"
 	"github.com/cwloo/uploader/file_server/global"
+	"github.com/cwloo/uploader/file_server/handler"
+	file_server "github.com/cwloo/uploader/file_server/server"
 )
 
 func main() {
@@ -18,19 +20,18 @@ func main() {
 	logs.Init(config.Config.Log.Dir, logs.Level(config.Config.Log.Level), global.Exe, 100000000)
 
 	task.After(time.Duration(config.Config.Upload.PendingTimeout)*time.Second, cb.NewFunctor00(func() {
-		handlerPendingUploader()
+		handler.PendingUploader()
 	}))
 
 	task.After(time.Duration(config.Config.Upload.FileExpiredTimeout)*time.Second, cb.NewFunctor00(func() {
-		handlerExpiredFile()
+		handler.ExpiredFile()
 	}))
 
 	task.After(time.Duration(config.Config.Interval)*time.Second, cb.NewFunctor00(func() {
-		handlerReadConfig()
+		handler.ReadConfig()
 	}))
 
-	router := NewRouter()
-	router.Run()
+	file_server.Run()
 
 	logs.Close()
 }

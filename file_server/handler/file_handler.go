@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"encoding/json"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/uploader/file_server/global"
+	"github.com/cwloo/uploader/file_server/httpsrv"
 )
 
 func handlerFileJsonReq(body []byte) (*global.FileInfoResp, bool) {
@@ -39,7 +40,7 @@ func handlerFileQuery(query url.Values) (*global.FileInfoResp, bool) {
 	return QueryCacheFile(md5)
 }
 
-func handlerFileinfo(w http.ResponseWriter, r *http.Request) {
+func FileinfoReq(w http.ResponseWriter, r *http.Request) {
 	logs.Infof("%v %v %#v", r.Method, r.URL.String(), r.Header)
 	switch strings.ToUpper(r.Method) {
 	case "POST":
@@ -49,14 +50,14 @@ func handlerFileinfo(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				logs.Errorf(err.Error())
 				resp := &global.FileInfoResp{ErrCode: 2, ErrMsg: "read body error"}
-				writeResponse(w, r, resp)
+				httpsrv.WriteResponse(w, r, resp)
 				return
 			}
 			resp, _ := handlerFileJsonReq(body)
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		default:
 			resp, _ := handlerFileQuery(r.URL.Query())
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		}
 	case "GET":
 		switch r.Header.Get("Content-Type") {
@@ -65,14 +66,14 @@ func handlerFileinfo(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				logs.Errorf(err.Error())
 				resp := &global.FileInfoResp{ErrCode: 2, ErrMsg: "read body error"}
-				writeResponse(w, r, resp)
+				httpsrv.WriteResponse(w, r, resp)
 				return
 			}
 			resp, _ := handlerFileJsonReq(body)
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		default:
 			resp, _ := handlerFileQuery(r.URL.Query())
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		}
 	case "OPTIONS":
 		switch r.Header.Get("Content-Type") {
@@ -81,14 +82,14 @@ func handlerFileinfo(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				logs.Errorf(err.Error())
 				resp := &global.FileInfoResp{ErrCode: 2, ErrMsg: "read body error"}
-				writeResponse(w, r, resp)
+				httpsrv.WriteResponse(w, r, resp)
 				return
 			}
 			resp, _ := handlerFileJsonReq(body)
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		default:
 			resp, _ := handlerFileQuery(r.URL.Query())
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		}
 	}
 }
@@ -121,7 +122,7 @@ func handlerFileDetailQuery(query url.Values) (*global.FileDetailResp, bool) {
 	return QueryCacheFileDetail(md5)
 }
 
-func handlerFileDetail(w http.ResponseWriter, r *http.Request) {
+func FileDetailReq(w http.ResponseWriter, r *http.Request) {
 	logs.Infof("%v %v %#v", r.Method, r.URL.String(), r.Header)
 	switch strings.ToUpper(r.Method) {
 	case "POST":
@@ -131,14 +132,14 @@ func handlerFileDetail(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				logs.Errorf(err.Error())
 				resp := &global.FileDetailResp{ErrCode: 2, ErrMsg: "read body error"}
-				writeResponse(w, r, resp)
+				httpsrv.WriteResponse(w, r, resp)
 				return
 			}
 			resp, _ := handlerFileDetailJsonReq(body)
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		default:
 			resp, _ := handlerFileDetailQuery(r.URL.Query())
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		}
 	case "GET":
 		switch r.Header.Get("Content-Type") {
@@ -147,14 +148,14 @@ func handlerFileDetail(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				logs.Errorf(err.Error())
 				resp := &global.FileDetailResp{ErrCode: 2, ErrMsg: "read body error"}
-				writeResponse(w, r, resp)
+				httpsrv.WriteResponse(w, r, resp)
 				return
 			}
 			resp, _ := handlerFileDetailJsonReq(body)
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		default:
 			resp, _ := handlerFileDetailQuery(r.URL.Query())
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		}
 	case "OPTIONS":
 		switch r.Header.Get("Content-Type") {
@@ -163,14 +164,14 @@ func handlerFileDetail(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				logs.Errorf(err.Error())
 				resp := &global.FileDetailResp{ErrCode: 2, ErrMsg: "read body error"}
-				writeResponse(w, r, resp)
+				httpsrv.WriteResponse(w, r, resp)
 				return
 			}
 			resp, _ := handlerFileDetailJsonReq(body)
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		default:
 			resp, _ := handlerFileDetailQuery(r.URL.Query())
-			writeResponse(w, r, resp)
+			httpsrv.WriteResponse(w, r, resp)
 		}
 	}
 }

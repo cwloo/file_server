@@ -1,4 +1,4 @@
-package main
+package global
 
 import (
 	"path/filepath"
@@ -8,11 +8,9 @@ import (
 	"time"
 
 	"github.com/cwloo/gonet/logs"
-	"github.com/cwloo/uploader/file_server/config"
-	"github.com/cwloo/uploader/file_server/global"
 )
 
-var fileInfos = NewFileInfos()
+var FileInfos = NewMd5ToFileInfo()
 
 var (
 	fileinfos = sync.Pool{
@@ -22,7 +20,7 @@ var (
 	}
 )
 
-type SegmentCallback func(FileInfo, OSS) (string, *global.ErrorMsg)
+type SegmentCallback func(FileInfo, Oss) (string, *ErrorMsg)
 type CheckCallback func(FileInfo) (time.Time, bool)
 
 // <summary>
@@ -37,7 +35,7 @@ type FileInfo interface {
 	Date() string
 	DateTime() time.Time
 	Assert()
-	Update(int64, SegmentCallback, CheckCallback) (done, ok bool, url string, err *global.ErrorMsg, start time.Time)
+	Update(int64, string, SegmentCallback, CheckCallback) (done, ok bool, url string, err *ErrorMsg, start time.Time)
 	Now(lock bool) int64
 	Total(lock bool) int64
 	Last(lock bool, size int64) bool
@@ -67,11 +65,12 @@ type Fileinfo struct {
 	time    time.Time
 	hitTime time.Time
 	l       *sync.RWMutex
-	oss     OSS
+	oss     Oss
+	new     NewOss
 	cancel  bool
 }
 
-func NewFileInfo(uuid, md5, Filename string, total int64) FileInfo {
+func NewFileInfo(uuid, md5, Filename string, total int64, useOriginFilename bool, new NewOss) FileInfo {
 	now := time.Now()
 	YMD := now.Format("2006-01-02")
 	YMDHMS := now.Format("20060102150405")
@@ -84,7 +83,7 @@ func NewFileInfo(uuid, md5, Filename string, total int64) FileInfo {
 	s.create = now
 	s.srcName = Filename
 	s.dstName = dstName
-	switch config.Config.Upload.UseOriginFilename > 0 {
+	switch useOriginFilename {
 	case true:
 		suffix := strings.TrimSuffix(Filename, ext)
 		yunName := strings.Join([]string{suffix, "-", YMDHMS, ext}, "")
@@ -95,6 +94,7 @@ func NewFileInfo(uuid, md5, Filename string, total int64) FileInfo {
 	s.now = 0
 	s.total = total
 	s.l = &sync.RWMutex{}
+	s.new = new
 	s.assert()
 	return s
 }
@@ -124,6 +124,19 @@ func (s *Fileinfo) assert() {
 	// if s.hitTime.Unix() > 0 {
 	// 	logs.Fatalf("error")
 	// }
+	s.assertNew()
+}
+
+func (s *Fileinfo) assertNew() {
+	if s.new == nil {
+		logs.Fatalf("error")
+	}
+}
+
+func (s *Fileinfo) assertOss() {
+	if s.oss == nil {
+		logs.Fatalf("error")
+	}
 }
 
 func (s *Fileinfo) reset() {
@@ -238,7 +251,7 @@ func (s *Fileinfo) Assert() {
 	}
 }
 
-func (s *Fileinfo) Update(size int64, onSeg SegmentCallback, onCheck CheckCallback) (done, ok bool, url string, err *global.ErrorMsg, start time.Time) {
+func (s *Fileinfo) Update(size int64, ossType string, onSeg SegmentCallback, onCheck CheckCallback) (done, ok bool, url string, err *ErrorMsg, start time.Time) {
 	if size <= 0 {
 		logs.Fatalf("error")
 	}
@@ -246,10 +259,12 @@ func (s *Fileinfo) Update(size int64, onSeg SegmentCallback, onCheck CheckCallba
 	switch s.cancel {
 	case true:
 		errMsg := strings.Join([]string{s.uuid, " ", s.srcName, "[", s.md5, "] ", s.yunName, "\n", "Cancel"}, "")
-		err = &global.ErrorMsg{ErrCode: global.ErrCancel.ErrCode, ErrMsg: errMsg}
+		err = &ErrorMsg{ErrCode: ErrCancel.ErrCode, ErrMsg: errMsg}
 	default:
 		if s.now == 0 {
-			s.oss = NewOss(s)
+			s.assertNew()
+			s.oss = s.new(s, ossType)
+			s.assertOss()
 		}
 		if s.now+size > s.total {
 			s.l.Unlock()
@@ -272,7 +287,7 @@ func (s *Fileinfo) Update(size int64, onSeg SegmentCallback, onCheck CheckCallba
 			}
 		default:
 			switch err.ErrCode {
-			case global.ErrFatal.ErrCode:
+			case ErrFatal.ErrCode:
 				s.resetOss(false)
 			}
 		}
@@ -403,25 +418,25 @@ func (s *Fileinfo) UpdateHitTime(time time.Time) {
 }
 
 // <summary>
-// FileInfos [md5]=FileInfo
+// Md5ToFileInfo [md5]=FileInfo
 // <summary>
-type FileInfos struct {
+type Md5ToFileInfo struct {
 	l *sync.Mutex
 	m map[string]FileInfo
 }
 
-func NewFileInfos() *FileInfos {
-	return &FileInfos{m: map[string]FileInfo{}, l: &sync.Mutex{}}
+func NewMd5ToFileInfo() *Md5ToFileInfo {
+	return &Md5ToFileInfo{m: map[string]FileInfo{}, l: &sync.Mutex{}}
 }
 
-func (s *FileInfos) Len() (c int) {
+func (s *Md5ToFileInfo) Len() (c int) {
 	s.l.Lock()
 	c = len(s.m)
 	s.l.Unlock()
 	return
 }
 
-func (s *FileInfos) Get(md5 string) (info FileInfo) {
+func (s *Md5ToFileInfo) Get(md5 string) (info FileInfo) {
 	s.l.Lock()
 	if c, ok := s.m[md5]; ok {
 		info = c
@@ -430,7 +445,7 @@ func (s *FileInfos) Get(md5 string) (info FileInfo) {
 	return
 }
 
-func (s *FileInfos) Do(md5 string, cb func(FileInfo)) {
+func (s *Md5ToFileInfo) Do(md5 string, cb func(FileInfo)) {
 	var info FileInfo
 	s.l.Lock()
 	if c, ok := s.m[md5]; ok {
@@ -444,13 +459,13 @@ OK:
 	cb(info)
 }
 
-func (s *FileInfos) GetAdd(md5 string, uuid, Filename, total string) (info FileInfo, ok bool) {
+func (s *Md5ToFileInfo) GetAdd(md5 string, uuid, Filename, total string, useOriginFilename bool, new NewOss) (info FileInfo, ok bool) {
 	n := 0
 	s.l.Lock()
 	info, ok = s.m[md5]
 	if !ok {
 		size, _ := strconv.ParseInt(total, 10, 0)
-		info = NewFileInfo(uuid, md5, Filename, size)
+		info = NewFileInfo(uuid, md5, Filename, size, useOriginFilename, new)
 		s.m[md5] = info
 		n = len(s.m)
 		s.l.Unlock()
@@ -463,7 +478,7 @@ OK:
 	return
 }
 
-func (s *FileInfos) Remove(md5 string) (info FileInfo) {
+func (s *Md5ToFileInfo) Remove(md5 string) (info FileInfo) {
 	n := 0
 	s.l.Lock()
 	if c, ok := s.m[md5]; ok {
@@ -480,7 +495,7 @@ OK:
 	return
 }
 
-func (s *FileInfos) RemoveWithCond(md5 string, cond func(FileInfo) bool, cb func(FileInfo)) (info FileInfo) {
+func (s *Md5ToFileInfo) RemoveWithCond(md5 string, cond func(FileInfo) bool, cb func(FileInfo)) (info FileInfo) {
 	n := 0
 	s.l.Lock()
 	if c, ok := s.m[md5]; ok {
@@ -500,7 +515,7 @@ OK:
 	return
 }
 
-func (s *FileInfos) Range(cb func(string, FileInfo)) {
+func (s *Md5ToFileInfo) Range(cb func(string, FileInfo)) {
 	s.l.Lock()
 	for md5, info := range s.m {
 		cb(md5, info)
@@ -508,7 +523,7 @@ func (s *FileInfos) Range(cb func(string, FileInfo)) {
 	s.l.Unlock()
 }
 
-func (s *FileInfos) RangeRemoveWithCond(cond func(FileInfo) bool, cb func(FileInfo)) {
+func (s *Md5ToFileInfo) RangeRemoveWithCond(cond func(FileInfo) bool, cb func(FileInfo)) {
 	n := 0
 	list := []string{}
 	s.l.Lock()

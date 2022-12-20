@@ -9,6 +9,7 @@ import (
 
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
+
 	"github.com/cwloo/uploader/file_server/global"
 	"github.com/cwloo/uploader/file_server/tg_bot"
 )
@@ -120,6 +121,32 @@ type IniConfig struct {
 		UserName string   `json:"username" form:"username"`
 		Password string   `json:"password" form:"password"`
 	} `json:"etcd" form:"etcd"`
+	Gate struct {
+		Proto string `json:"proto" form:"proto"`
+		Ip    string `json:"ip" form:"ip"`
+		Port  []int  `json:"port" form:"port"`
+		Path  struct {
+			Gate       string `json:"gate" form:"gate"`
+			Fileserver string `json:"fileserver" form:"fileserver"`
+		} `json:"path" form:"path"`
+		MaxConn          int `json:"maxConn" form:"maxConn"`
+		UsePool          int `json:"usePool" form:"usePool"`
+		HandshakeTimeout int `json:"handshakeTimeout" form:"handshakeTimeout"`
+		IdleTimeout      int `json:"idleTimeout" form:"idleTimeout"`
+		ReadBufferSize   int `json:"readBufferSize" form:"readBufferSize"`
+		PrintInterval    int `json:"printInterval" form:"printInterval"`
+	} `json:"gate" form:"gate"`
+	Rpc struct {
+		Ip   string `json:"ip" form:"ip"`
+		Gate struct {
+			Port []int  `json:"port" form:"port"`
+			Node string `json:"node" form:"node"`
+		} `json:"gate" form:"gate"`
+		File struct {
+			Port []int  `json:"port" form:"port"`
+			Node string `json:"node" form:"node"`
+		} `json:"file" form:"file"`
+	} `json:"rpc" form:"rpc"`
 }
 
 func readIni(filename string) (c *IniConfig) {
@@ -250,6 +277,42 @@ func readIni(filename string) (c *IniConfig) {
 	}
 	c.Etcd.UserName = ini.GetString("etcd", "username")
 	c.Etcd.Password = ini.GetString("etcd", "password")
+	// Gate
+	c.Gate.Proto = ini.GetString("gate", "proto")
+	c.Gate.Ip = ini.GetString("gate", "ip")
+	ports = strings.Split(ini.GetString("gate", "port"), ",")
+	for _, port := range ports {
+		switch port == "" {
+		case false:
+			c.Gate.Port = append(c.Gate.Port, utils.Atoi(port))
+		}
+	}
+	c.Gate.Path.Gate = ini.GetString("path", "gate")
+	c.Gate.Path.Fileserver = ini.GetString("path", "fileserver")
+	c.Gate.MaxConn = ini.GetInt("gate", "maxConn")
+	c.Gate.UsePool = ini.GetInt("gate", "usePool")
+	c.Gate.HandshakeTimeout = ini.GetInt("gate", "handshakeTimeout")
+	c.Gate.IdleTimeout = ini.GetInt("gate", "idleTimeout")
+	c.Gate.ReadBufferSize = ini.GetInt("gate", "readBufferSize")
+	c.Gate.PrintInterval = ini.GetInt("gate", "printInterval")
+	// Rpc
+	c.Rpc.Ip = ini.GetString("rpc", "ip")
+	c.Rpc.Gate.Node = ini.GetString("rpc", "gate.node")
+	ports = strings.Split(ini.GetString("rpc", "gate.port"), ",")
+	for _, port := range ports {
+		switch port == "" {
+		case false:
+			c.Rpc.Gate.Port = append(c.Rpc.Gate.Port, utils.Atoi(port))
+		}
+	}
+	c.Rpc.File.Node = ini.GetString("rpc", "file.node")
+	ports = strings.Split(ini.GetString("rpc", "file.port"), ",")
+	for _, port := range ports {
+		switch port == "" {
+		case false:
+			c.Rpc.File.Port = append(c.Rpc.File.Port, utils.Atoi(port))
+		}
+	}
 	return
 }
 

@@ -1,0 +1,17 @@
+syntax = "proto3";
+option go_package = "uploader/proto/file;pb_file";
+package file;
+
+message FileServerReq {
+  string md5 = 1;
+}
+
+message FileServerResp {
+  string md5 = 1;
+  string serverAddr = 2;
+}
+
+service File {
+  rpc GetFileServer(FileServerReq) returns(FileServerResp);
+}
+

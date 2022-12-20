@@ -1,4 +1,4 @@
-package main
+package uploader
 
 import (
 	"io"
@@ -34,7 +34,7 @@ type Aliyun struct {
 	yunPath string
 }
 
-func NewAliyun(info FileInfo) OSS {
+func NewAliyun(info global.FileInfo) global.Oss {
 	bucket, err := NewBucket()
 	if err != nil {
 		errMsg := strings.Join([]string{info.Uuid(), " ", info.SrcName(), "[", info.Md5(), "] ", info.YunName(), "\n", "NewBucket:", err.Error()}, "")
@@ -62,7 +62,7 @@ func (s *Aliyun) valid() bool {
 	return s.imur != nil
 }
 
-func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader) (string, string, *global.ErrorMsg) {
+func (s *Aliyun) UploadFile(info global.FileInfo, header *multipart.FileHeader) (string, string, *global.ErrorMsg) {
 	switch s.valid() {
 	case true:
 		switch uploadFromFile {
@@ -81,7 +81,7 @@ func (s *Aliyun) UploadFile(info FileInfo, header *multipart.FileHeader) (string
 	}
 }
 
-func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader) (string, string, *global.ErrorMsg) {
+func (s *Aliyun) uploadFromHeader(info global.FileInfo, header *multipart.FileHeader) (string, string, *global.ErrorMsg) {
 	yunPath := ""
 	part, err := header.Open()
 	if err != nil {
@@ -120,7 +120,7 @@ func (s *Aliyun) uploadFromHeader(info FileInfo, header *multipart.FileHeader) (
 	return strings.Join([]string{config.Config.Oss.Aliyun.BucketUrl, "/", yunPath}, ""), yunPath, nil
 }
 
-func (s *Aliyun) uploadFromFile(info FileInfo, header *multipart.FileHeader) (string, string, *global.ErrorMsg) {
+func (s *Aliyun) uploadFromFile(info global.FileInfo, header *multipart.FileHeader) (string, string, *global.ErrorMsg) {
 	yunPath := ""
 	f := config.Config.Upload.Dir + info.DstName()
 	fd, err := os.OpenFile(f, os.O_RDONLY, 0)

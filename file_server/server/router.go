@@ -1,21 +1,24 @@
-package main
+package file_server
 
 import (
 	"net/http"
 
 	"github.com/cwloo/uploader/file_server/config"
+	"github.com/cwloo/uploader/file_server/handler"
+	"github.com/cwloo/uploader/file_server/httpsrv"
+	"github.com/cwloo/uploader/file_server/server/uploader"
 )
 
 // <summary>
 // Router
 // <summary>
 type Router struct {
-	server HttpServer
+	server httpsrv.HttpServer
 }
 
 func NewRouter() *Router {
 	s := &Router{
-		server: NewHttpServer(),
+		server: httpsrv.NewHttpServer(),
 	}
 	return s
 }
@@ -36,9 +39,9 @@ func (s *Router) Run() {
 func (s *Router) UploadReq(w http.ResponseWriter, r *http.Request) {
 	switch config.Config.Upload.MultiFile > 0 {
 	case true:
-		handlerMultiUpload(w, r)
+		uploader.MultiUploadReq(w, r)
 	default:
-		handlerUpload(w, r)
+		uploader.UploadReq(w, r)
 	}
 }
 
@@ -48,33 +51,33 @@ func (s *Router) GetReq(w http.ResponseWriter, r *http.Request) {
 	// 	ErrMsg:  "OK",
 	// }
 	// writeResponse(w, r, resp)
-	handlerFileinfo(w, r)
+	handler.FileinfoReq(w, r)
 }
 
 func (s *Router) DelCacheFileReq(w http.ResponseWriter, r *http.Request) {
-	handlerDelCacheFile(w, r)
+	handler.DelCacheFileReq(w, r)
 }
 
 func (s *Router) GetFileinfoReq(w http.ResponseWriter, r *http.Request) {
-	handlerFileinfo(w, r)
+	handler.FileinfoReq(w, r)
 }
 
 func (s *Router) UpdateConfigReq(w http.ResponseWriter, r *http.Request) {
-	handlerUpdateCfg(w, r)
+	handler.UpdateCfgReq(w, r)
 }
 
 func (s *Router) GetConfigReq(w http.ResponseWriter, r *http.Request) {
-	handlerGetCfg(w, r)
+	handler.GetCfgReq(w, r)
 }
 
 func (s *Router) FileDetailReq(w http.ResponseWriter, r *http.Request) {
-	handlerFileDetail(w, r)
+	handler.FileDetailReq(w, r)
 }
 
 func (s *Router) UuidListReq(w http.ResponseWriter, r *http.Request) {
-	handlerUuidList(w, r)
+	handler.UuidListReq(w, r)
 }
 
 func (s *Router) ListReq(w http.ResponseWriter, r *http.Request) {
-	handlerList(w, r)
+	handler.ListReq(w, r)
 }

@@ -1,4 +1,4 @@
-package main
+package uploader
 
 import (
 	"fmt"
@@ -12,6 +12,7 @@ import (
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/uploader/file_server/config"
 	"github.com/cwloo/uploader/file_server/global"
+	"github.com/cwloo/uploader/file_server/httpsrv"
 	"github.com/cwloo/uploader/file_server/tg_bot"
 )
 
@@ -33,7 +34,7 @@ type SyncUploader struct {
 	l_tm  *sync.RWMutex
 }
 
-func NewSyncUploader(uuid string) Uploader {
+func NewSyncUploader(uuid string) global.Uploader {
 	s := syncUploaders.Get().(*SyncUploader)
 	s.uuid = uuid
 	s.state = NewUploaderState()
@@ -66,7 +67,7 @@ func (s *SyncUploader) Get() time.Time {
 
 func (s *SyncUploader) Close() {
 	s.Clear()
-	uploaders.Remove(s.uuid).Put()
+	global.Uploaders.Remove(s.uuid).Put()
 }
 
 func (s *SyncUploader) NotifyClose() {
@@ -75,24 +76,24 @@ func (s *SyncUploader) NotifyClose() {
 func (s *SyncUploader) Remove(md5 string) {
 	if s.state.Remove(md5) && s.state.AllDone() {
 		s.Clear()
-		uploaders.Remove(s.uuid).Put()
+		global.Uploaders.Remove(s.uuid).Put()
 	}
 }
 
 func (s *SyncUploader) Clear() {
 	msgs := []string{}
 	s.state.Range(func(md5 string, ok bool) {
-		if !ok {
-			////// 任务退出，移除未决的文件
-			if msg, ok := RemovePendingFile(s.uuid, md5); ok {
-				msgs = append(msgs, msg)
-			}
-		} else {
-			////// 任务退出，移除校验失败的文件
-			if msg, ok := RemoveCheckErrFile(s.uuid, md5); ok {
-				msgs = append(msgs, msg)
-			}
-		}
+		// if !ok {
+		// 	////// 任务退出，移除未决的文件
+		// 	if msg, ok := RemovePendingFile(s.uuid, md5); ok {
+		// 		msgs = append(msgs, msg)
+		// 	}
+		// } else {
+		// 	////// 任务退出，移除校验失败的文件
+		// 	if msg, ok := RemoveCheckErrFile(s.uuid, md5); ok {
+		// 		msgs = append(msgs, msg)
+		// 	}
+		// }
 	})
 	tg_bot.TgWarnMsg(msgs...)
 }
@@ -105,7 +106,7 @@ func (s *SyncUploader) Upload(req *global.Req) {
 	exit := s.state.AllDone()
 	if exit {
 		logs.Tracef("--------------------- ****** 无待上传文件，结束任务 %v ...", s.uuid)
-		uploaders.Remove(s.uuid).Put()
+		global.Uploaders.Remove(s.uuid).Put()
 	}
 }
 
@@ -135,7 +136,7 @@ func (s *SyncUploader) uploading(req *global.Req) {
 			logs.Debugf("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", req.Uuid, k.Filename, k.Md5, 0, k.Total, offset_n, k.Headersize)
 			continue
 		}
-		info := fileInfos.Get(k.Md5)
+		info := global.FileInfos.Get(k.Md5)
 		if info == nil {
 			size, _ := strconv.ParseInt(k.Total, 10, 0)
 			result = append(result,
@@ -260,35 +261,37 @@ func (s *SyncUploader) uploading(req *global.Req) {
 		}
 		retry_c := 0
 	retry:
-		done, ok, url, errMsg, start := info.Update(header.Size, func(info FileInfo, oss OSS) (url string, err *global.ErrorMsg) {
-			url, _, err = oss.UploadFile(info, header)
-			if err != nil {
-				logs.Errorf(err.Error())
-			}
-			return
-		}, func(info FileInfo) (time.Time, bool) {
-			start := time.Now()
-			switch config.Config.Upload.WriteFile > 0 {
-			case true:
-				switch config.Config.Upload.CheckMd5 > 0 {
+		done, ok, url, errMsg, start := info.Update(header.Size,
+			config.Config.Oss.Type,
+			func(info global.FileInfo, oss global.Oss) (url string, err *global.ErrorMsg) {
+				url, _, err = oss.UploadFile(info, header)
+				if err != nil {
+					logs.Errorf(err.Error())
+				}
+				return
+			}, func(info global.FileInfo) (time.Time, bool) {
+				start := time.Now()
+				switch config.Config.Upload.WriteFile > 0 {
 				case true:
-					md5 := CalcFileMd5(f)
-					ok := md5 == info.Md5()
-					return start, ok
+					switch config.Config.Upload.CheckMd5 > 0 {
+					case true:
+						md5 := global.CalcFileMd5(f)
+						ok := md5 == info.Md5()
+						return start, ok
+					default:
+						return start, true
+					}
 				default:
 					return start, true
 				}
-			default:
-				return start, true
-			}
-		})
+			})
 		switch errMsg {
 		case nil:
 			if done {
 				s.state.SetDone(info.Md5())
 				logs.Debugf("%v %v[%v] %v ==>>> %v/%v +%v last_segment[finished] checking md5 ...", s.uuid, header.Filename, k.Md5, info.DstName(), info.Now(true), k.Total, header.Size)
 				if ok {
-					// fileInfos.Remove(info.Md5()).Put()
+					// global.FileInfos.Remove(info.Md5()).Put()
 					result = append(result,
 						global.Result{
 							Uuid:    req.Uuid,
@@ -303,7 +306,7 @@ func (s *SyncUploader) uploading(req *global.Req) {
 					logs.Warnf("%v %v[%v] %v chkmd5 [ok] %v elapsed:%vms", req.Uuid, header.Filename, k.Md5, info.DstName(), url, time.Since(start).Milliseconds())
 					tg_bot.TgSuccMsg(fmt.Sprintf("%v\n%v[%v]\n%v chkmd5 [ok]\n%v elapsed:%vms", req.Uuid, header.Filename, k.Md5, info.DstName(), url, time.Since(start).Milliseconds()))
 				} else {
-					fileInfos.Remove(info.Md5()).Put()
+					global.FileInfos.Remove(info.Md5()).Put()
 					os.Remove(f)
 					result = append(result,
 						global.Result{
@@ -339,7 +342,7 @@ func (s *SyncUploader) uploading(req *global.Req) {
 		default:
 			switch errMsg.ErrCode {
 			case global.ErrCancel.ErrCode:
-				fileInfos.Remove(info.Md5()).Put()
+				global.FileInfos.Remove(info.Md5()).Put()
 				os.Remove(f)
 				size, _ := strconv.ParseInt(k.Total, 10, 0)
 				result = append(result,
@@ -361,7 +364,7 @@ func (s *SyncUploader) uploading(req *global.Req) {
 				case true:
 					goto retry
 				default:
-					fileInfos.Remove(info.Md5()).Put()
+					global.FileInfos.Remove(info.Md5()).Put()
 					os.Remove(f)
 					result = append(result,
 						global.Result{
@@ -376,7 +379,7 @@ func (s *SyncUploader) uploading(req *global.Req) {
 					logs.Errorf("%v %v[%v] %v chkmd5 [Err] elapsed:%vms", req.Uuid, header.Filename, k.Md5, info.DstName(), time.Since(start).Milliseconds())
 				}
 			case global.ErrFatal.ErrCode:
-				fileInfos.Remove(info.Md5()).Put()
+				global.FileInfos.Remove(info.Md5()).Put()
 				os.Remove(f)
 				result = append(result,
 					global.Result{
@@ -404,13 +407,13 @@ func (s *SyncUploader) uploading(req *global.Req) {
 		}
 	}
 	if resp != nil {
-		logs.Tracef("writeResponse")
+		logs.Tracef("httpsrv.WriteResponse")
 		/// http.ResponseWriter 生命周期原因，不支持异步
-		writeResponse(req.W, req.R, resp)
+		httpsrv.WriteResponse(req.W, req.R, resp)
 		// logs.Errorf("%v %v", req.Uuid, string(j))
 	} else {
 		/// http.ResponseWriter 生命周期原因，不支持异步
-		writeResponse(req.W, req.R, &global.Resp{})
+		httpsrv.WriteResponse(req.W, req.R, &global.Resp{})
 		logs.Fatalf("%v", req.Uuid)
 	}
 }
