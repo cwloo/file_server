@@ -19,6 +19,7 @@ import (
 func QueryFileServer(md5 string) (*global.FileServerResp, bool) {
 	grpcCons := getcdv3.GetDefaultConn4Unique(config.Config.Etcd.Schema, strings.Join(config.Config.Etcd.Addr, ","),
 		config.Config.Rpc.File.Node, config.Config.Rpc.File.Port)
+	logs.Infof("%v grpcCons.size=%v", md5, len(grpcCons))
 	for _, v := range grpcCons {
 		// if v.Target() == global.RpcServer.Target() {
 		// 	continue

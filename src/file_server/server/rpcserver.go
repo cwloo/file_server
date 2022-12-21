@@ -10,8 +10,8 @@ import (
 	"github.com/cwloo/uploader/src/file_server/handler"
 
 	"github.com/cwloo/gonet/logs"
-	getcdv3 "github.com/cwloo/gonet/server/pkg/grpc-etcdv3/getcdv3"
 	pb_file "github.com/cwloo/uploader/proto/file"
+	getcdv3 "github.com/cwloo/uploader/src/global/pkg/grpc-etcdv3/getcdv3"
 
 	"google.golang.org/grpc"
 )
