@@ -17,6 +17,10 @@ type Router struct {
 	server httpsrv.HttpServer
 }
 
+func (s *Router) Server() httpsrv.HttpServer {
+	return s.server
+}
+
 func (s *Router) Run(id int) {
 	if id >= len(config.Config.File.Port) {
 		logs.Fatalf("error")

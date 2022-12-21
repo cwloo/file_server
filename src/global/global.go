@@ -56,6 +56,8 @@ var (
 		Conf_Dir string
 		Log_Dir  string
 	}
+	Server    Router
+	RpcServer RPCServer
 )
 
 // <summary>

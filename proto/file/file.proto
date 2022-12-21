@@ -8,7 +8,9 @@ message FileServerReq {
 
 message FileServerResp {
   string md5 = 1;
-  string serverAddr = 2;
+  string dns = 2;
+  int32  errCode = 3;
+  string errMsg = 4;
 }
 
 service File {

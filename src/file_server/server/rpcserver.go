@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	config "github.com/cwloo/uploader/src/config"
+	"github.com/cwloo/uploader/src/file_server/handler"
 
 	"github.com/cwloo/gonet/logs"
 	getcdv3 "github.com/cwloo/gonet/server/pkg/grpc-etcdv3/getcdv3"
@@ -25,6 +26,30 @@ type RPCServer struct {
 	etcdSchema string
 	etcdAddr   []string
 	target     string
+}
+
+func (s *RPCServer) Addr() string {
+	return s.addr
+}
+
+func (s *RPCServer) Port() int {
+	return s.port
+}
+
+func (s *RPCServer) Node() string {
+	return s.node
+}
+
+func (s *RPCServer) EtcdSchema() string {
+	return s.etcdSchema
+}
+
+func (s *RPCServer) EtcdAddr() []string {
+	return s.etcdAddr
+}
+
+func (s *RPCServer) Target() string {
+	return s.target
 }
 
 func (s *RPCServer) Run(id int) {
@@ -61,7 +86,7 @@ func (s *RPCServer) Run(id int) {
 	}
 }
 
-func (r *RPCServer) GetFileServer(_ context.Context, in *pb_file.FileServerReq) (*pb_file.FileServerResp, error) {
+func (r *RPCServer) GetFileServer(_ context.Context, req *pb_file.FileServerReq) (*pb_file.FileServerResp, error) {
 	logs.Debugf("")
-	return nil, nil
+	return handler.QueryFileServer(req.Md5)
 }

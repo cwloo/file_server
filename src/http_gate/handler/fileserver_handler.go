@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -8,17 +9,47 @@ import (
 	"strings"
 
 	"github.com/cwloo/gonet/logs"
+	pb_file "github.com/cwloo/uploader/proto/file"
+	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/global"
 	"github.com/cwloo/uploader/src/global/httpsrv"
+	"github.com/cwloo/uploader/src/global/pkg/grpc-etcdv3/getcdv3"
 )
 
 func QueryFileServer(md5 string) (*global.FileServerResp, bool) {
-	
+	grpcCons := getcdv3.GetDefaultConn4Unique(config.Config.Etcd.Schema, strings.Join(config.Config.Etcd.Addr, ","),
+		config.Config.Rpc.File.Node, config.Config.Rpc.File.Port)
+	for _, v := range grpcCons {
+		// if v.Target() == global.RpcServer.Target() {
+		// 	continue
+		// }
+		logs.Warnf("%v", v.Target())
+		client := pb_file.NewFileClient(v)
+		req := &pb_file.FileServerReq{
+			Md5: "",
+		}
+		resp, err := client.GetFileServer(context.Background(), req)
+		if err != nil {
+			logs.Errorf(err.Error())
+			continue
+		}
+		if resp.ErrCode != 0 {
+			logs.Errorf("%v %v", resp.ErrCode, resp.ErrMsg)
+			continue
+		}
+		if resp.Dns != "" {
+			return &global.FileServerResp{
+				Md5:     md5,
+				Dns:     resp.Dns,
+				ErrCode: 0,
+				ErrMsg:  "ok"}, true
+		}
+		logs.Debugf("%v", resp.String())
+	}
 	return &global.FileServerResp{
 		Md5:     md5,
-		Dns:     "",
-		ErrCode: 0,
-		ErrMsg:  "ok"}, true
+		ErrCode: 6,
+		ErrMsg:  "not founded"}, false
 }
 
 func handlerFileServerJsonReq(body []byte) (*global.FileServerResp, bool) {
