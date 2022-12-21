@@ -2,18 +2,20 @@ package main
 
 import (
 	"github.com/cwloo/gonet/logs"
+	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/global"
-	"github.com/cwloo/uploader/src/http_gate/config"
 	"github.com/cwloo/uploader/src/http_gate/gate"
 )
 
 func main() {
-	id, _, conf := global.ParseArgs()
-	config.InitConfig(conf)
-	logs.SetTimezone(logs.TimeZone(config.Config.Log.Timezone))
-	logs.SetMode(logs.Mode(config.Config.Log.Mode))
-	logs.SetStyle(logs.Style(config.Config.Log.Style))
-	logs.Init(config.Config.Log.Dir, logs.Level(config.Config.Log.Level), global.Exe, 100000000)
-	gate.Run(id)
+	global.Name = "gate.http"
+	global.Cmd.ID, global.Cmd.Dir, global.Cmd.Conf_Dir, global.Cmd.Log_Dir = global.ParseArgs()
+	config.InitConfig(global.Name, global.Cmd.Conf_Dir)
+	logs.Errorf("%v log_dir=%v", global.Name, config.Config.Log.Gate.Http.Dir)
+	logs.SetTimezone(logs.TimeZone(config.Config.Log.Gate.Http.Timezone))
+	logs.SetMode(logs.Mode(config.Config.Log.Gate.Http.Mode))
+	logs.SetStyle(logs.Style(config.Config.Log.Gate.Http.Style))
+	logs.Init(config.Config.Log.Gate.Http.Dir, logs.Level(config.Config.Log.Gate.Http.Level), global.Exe, 100000000)
+	gate.Run(global.Cmd.ID)
 	logs.Close()
 }

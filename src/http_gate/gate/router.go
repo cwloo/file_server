@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/cwloo/gonet/logs"
-	"github.com/cwloo/uploader/src/global/handler"
+	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/global/httpsrv"
-	"github.com/cwloo/uploader/src/http_gate/config"
+	"github.com/cwloo/uploader/src/http_gate/handler"
 )
 
 // <summary>
@@ -40,4 +40,29 @@ func (s *Router) GetConfigReq(w http.ResponseWriter, r *http.Request) {
 
 func (s *Router) FileServerReq(w http.ResponseWriter, r *http.Request) {
 
+	// grpcCons := getcdv3.GetDefaultGatewayConn4Unique(config.Config.Etcd.Schema, strings.Join(config.Config.Etcd.Addr, ","), operationID)
+	// for _, v := range grpcCons {
+	// 	if v.Target() == rpcSvr.target {
+	// 		logs.LogDebug("Filter self=%v out", rpcSvr.target)
+	// 		continue
+	// 	}
+	// 	client := pbRelay.NewRelayClient(v)
+	// 	req := &pbRelay.MultiTerminalLoginCheckReq{
+	// 		OperationID: operationID,
+	// 		PlatformID:  int32(ctx.GetPlatformId()),
+	// 		UserID:      ctx.GetUserId(),
+	// 		SessionID:   ctx.GetSession(),
+	// 		Token:       ctx.GetToken()}
+	// 	resp, err := client.MultiTerminalLoginCheck(context.Background(), req)
+	// 	if err != nil {
+	// 		logs.LogError("%v", err.Error())
+	// 		continue
+	// 	}
+	// 	if resp.ErrCode != 0 {
+	// 		logs.LogError("%v %v", resp.ErrCode, resp.ErrMsg)
+	// 		continue
+	// 	}
+	// 	logs.LogDebug("%v", resp.String())
+	// }
+	handler.FileServerReq(w, r)
 }

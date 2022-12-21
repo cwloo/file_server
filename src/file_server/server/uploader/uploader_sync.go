@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/cwloo/gonet/logs"
-	"github.com/cwloo/uploader/src/file_server/config"
+	"github.com/cwloo/uploader/src/config"
+	"github.com/cwloo/uploader/src/file_server/handler"
 	"github.com/cwloo/uploader/src/global"
-	"github.com/cwloo/uploader/src/global/handler"
 	"github.com/cwloo/uploader/src/global/httpsrv"
 	"github.com/cwloo/uploader/src/global/tg_bot"
 )

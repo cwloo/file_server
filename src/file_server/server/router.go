@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/cwloo/gonet/logs"
-	"github.com/cwloo/uploader/src/file_server/config"
+	"github.com/cwloo/uploader/src/config"
+	"github.com/cwloo/uploader/src/file_server/handler"
 	"github.com/cwloo/uploader/src/file_server/server/uploader"
-	"github.com/cwloo/uploader/src/global/handler"
 	"github.com/cwloo/uploader/src/global/httpsrv"
 )
 

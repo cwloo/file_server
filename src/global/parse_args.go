@@ -9,30 +9,47 @@ import (
 	"github.com/cwloo/gonet/utils"
 )
 
-func ParseArgs() (id int, parentDir, conf string) {
+func ParseArgs() (id int, dir, conf, log_dir string) {
+	logs.Warnf("%v", os.Args)
 	d := map[string]string{}
 	for _, v := range os.Args {
 		m := strings.Split(v, "=")
 		if len(m) == 2 {
-			m[0] = strings.ReplaceAll(m[0], "-", "")
+			m[0] = strings.ToLower(strings.ReplaceAll(m[0], "-", ""))
 			d[m[0]] = m[1]
 		}
 	}
-	if v, ok := d["id"]; ok {
+	dir = filepath.Dir(Dir)
+	dir = filepath.Dir(dir)
+	v, ok := d["id"]
+	switch ok {
+	case true:
 		id = utils.Atoi(v)
 	}
-	if v, ok := d["config"]; ok {
+	v, ok = d["config"]
+	switch ok {
+	case true:
 		conf = v
 	}
-	if v, ok := d["c"]; ok {
+	v, ok = d["c"]
+	switch ok {
+	case true:
 		conf = v
 	}
-	if conf == "" {
+	v, ok = d["log_dir"]
+	switch ok {
+	case true:
+		log_dir = v
+	}
+	switch conf == "" {
+	case true:
 		p, _, _ := utils.G()
-		dir := filepath.Dir(Dir)
-		conf = strings.Join([]string{filepath.Dir(dir), p, "config", p, "conf.ini"}, "")
-		parentDir = filepath.Dir(dir)
+		conf = strings.Join([]string{dir, p, "config", p, "conf.ini"}, "")
 	}
-	logs.Warnf("%v", os.Args)
+	// switch log_dir == "" {
+	// case true:
+	// 	p, _, _ := utils.G()
+	// 	log_dir = strings.Join([]string{dir, p, "log"}, "")
+	// }
 	return
 }

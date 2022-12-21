@@ -14,9 +14,9 @@ import (
 	"github.com/cwloo/gonet/core/base/pipe"
 	"github.com/cwloo/gonet/core/base/run"
 	"github.com/cwloo/gonet/logs"
-	"github.com/cwloo/uploader/src/file_server/config"
+	"github.com/cwloo/uploader/src/config"
+	"github.com/cwloo/uploader/src/file_server/handler"
 	"github.com/cwloo/uploader/src/global"
-	"github.com/cwloo/uploader/src/global/handler"
 	"github.com/cwloo/uploader/src/global/httpsrv"
 	"github.com/cwloo/uploader/src/global/tg_bot"
 )

@@ -8,19 +8,19 @@ import (
 	"time"
 
 	"github.com/cwloo/gonet/logs"
-	"github.com/cwloo/uploader/src/file_server/config"
+	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/global"
 )
 
 func UpdateCfg(req *global.UpdateCfgReq) (*global.UpdateCfgResp, bool) {
-	// config.UpdateConfig(req)
+	config.UpdateConfig(global.Name, global.Cmd.Conf_Dir, req)
 	return &global.UpdateCfgResp{
 		ErrCode: 0,
 		ErrMsg:  "ok"}, true
 }
 
 func GetCfg(req *global.GetCfgReq) (*global.GetCfgResp, bool) {
-	return config.GetConfig(req)
+	return config.GetConfig("file", req)
 }
 
 func QueryCacheFile(md5 string) (*global.FileInfoResp, bool) {

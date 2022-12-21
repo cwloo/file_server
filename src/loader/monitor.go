@@ -9,8 +9,8 @@ import (
 	"github.com/cwloo/gonet/logs"
 )
 
-func Restart(id int, cmd, dir, Exec, conf string) {
-	logs.Warnf("%v %v %v %v %v", id, cmd, dir, Exec, conf)
+func Restart(id int, cmd, dir, Exec, conf, log_dir string) {
+	logs.Warnf("%v %v %v %v %v", id, cmd, dir, Exec, conf, log_dir)
 	f, err := exec.LookPath(dir + Exec)
 	if err != nil {
 		logs.Fatalf(err.Error())
@@ -20,8 +20,9 @@ func Restart(id int, cmd, dir, Exec, conf string) {
 		cmd,
 		fmt.Sprintf("--id=%v", id),
 		fmt.Sprintf("--config=%v", conf),
+		fmt.Sprintf("--log_dir=%v", log_dir),
 	}
-	sub.Start(f, args, Monitor, id, cmd, dir, Exec, conf)
+	sub.Start(f, args, Monitor, id, cmd, dir, Exec, conf, log_dir)
 }
 
 func Monitor(sta *os.ProcessState, v ...any) {
@@ -38,7 +39,8 @@ func Monitor(sta *os.ProcessState, v ...any) {
 			dir := v[2].(string)
 			Exec := v[3].(string)
 			conf := v[4].(string)
-			Restart(id, cmd, dir, Exec, conf)
+			log_dir := v[5].(string)
+			Restart(id, cmd, dir, Exec, conf, log_dir)
 		}
 	}
 }

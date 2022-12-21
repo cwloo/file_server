@@ -10,7 +10,7 @@ import (
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/cwloo/gonet/logs"
-	"github.com/cwloo/uploader/src/file_server/config"
+	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/global"
 	"github.com/cwloo/uploader/src/global/tg_bot"
 )

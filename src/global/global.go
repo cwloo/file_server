@@ -48,6 +48,16 @@ var (
 	I32                    = cc.NewI32()
 )
 
+var (
+	Name string
+	Cmd  struct {
+		ID       int
+		Dir      string
+		Conf_Dir string
+		Log_Dir  string
+	}
+)
+
 // <summary>
 // ErrorMsg
 // <summary>
@@ -100,6 +110,23 @@ type DelReq struct {
 type DelResp struct {
 	Type    int    `json:"type,omitempty"`
 	Md5     string `json:"md5,omitempty"`
+	ErrCode int    `json:"code" form:"code"`
+	ErrMsg  string `json:"errmsg" form:"errmsg"`
+}
+
+// <summary>
+// FileServerReq
+// <summary>
+type FileServerReq struct {
+	Md5 string `json:"md5,omitempty"`
+}
+
+// <summary>
+// FileServerResp
+// <summary>
+type FileServerResp struct {
+	Md5     string `json:"md5,omitempty"`
+	Dns     string `json:"dns,omitempty"`
 	ErrCode int    `json:"code" form:"code"`
 	ErrMsg  string `json:"errmsg" form:"errmsg"`
 }

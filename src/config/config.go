@@ -28,11 +28,34 @@ type IniConfig struct {
 		GetCfg    string `json:"getcfg" form:"getcfg"`
 	} `json:"path" form:"path"`
 	Log struct {
-		Dir      string `json:"dir" form:"dir"`
-		Level    int    `json:"level" form:"level"`
-		Mode     int    `json:"mode" form:"mode"`
-		Style    int    `json:"style" form:"style"`
-		Timezone int    `json:"timezone" form:"timezone"`
+		Monitor struct {
+			Dir      string `json:"dir" form:"dir"`
+			Level    int    `json:"level" form:"level"`
+			Mode     int    `json:"mode" form:"mode"`
+			Style    int    `json:"style" form:"style"`
+			Timezone int    `json:"timezone" form:"timezone"`
+		} `json:"monitor" form:"monitor"`
+		Gate struct {
+			Dir      string `json:"dir" form:"dir"`
+			Level    int    `json:"level" form:"level"`
+			Mode     int    `json:"mode" form:"mode"`
+			Style    int    `json:"style" form:"style"`
+			Timezone int    `json:"timezone" form:"timezone"`
+			Http     struct {
+				Dir      string `json:"dir" form:"dir"`
+				Level    int    `json:"level" form:"level"`
+				Mode     int    `json:"mode" form:"mode"`
+				Style    int    `json:"style" form:"style"`
+				Timezone int    `json:"timezone" form:"timezone"`
+			} `json:"http" form:"http"`
+		} `json:"gate" form:"gate"`
+		File struct {
+			Dir      string `json:"dir" form:"dir"`
+			Level    int    `json:"level" form:"level"`
+			Mode     int    `json:"mode" form:"mode"`
+			Style    int    `json:"style" form:"style"`
+			Timezone int    `json:"timezone" form:"timezone"`
+		} `json:"file" form:"file"`
 	} `json:"log" form:"log"`
 	Sub struct {
 		Gate struct {
@@ -56,6 +79,16 @@ type IniConfig struct {
 		ChatId int64  `json:"chatId" form:"chatId"`
 		Token  string `json:"token" form:"token"`
 	} `json:"tg_bot" form:"tg_bot"`
+	Monitor struct {
+		Ip   string `json:"ip" form:"ip"`
+		Port []int  `json:"port" form:"port"`
+		Path struct {
+			Start   string `json:"start" form:"start"`
+			Kill    string `json:"kill" form:"kill"`
+			KillAll string `json:"killall" form:"killall"`
+			SubList string `json:"sublist" form:"sublist"`
+		} `json:"path" form:"path"`
+	} `json:"monitor" form:"monitor"`
 	File struct {
 		Ip          string `json:"ip" form:"ip"`
 		Port        []int  `json:"port" form:"port"`
@@ -197,18 +230,56 @@ func readIni(filename string) (c *IniConfig) {
 	}
 	c.Interval = va
 	// Log
-	c.Log.Dir = ini.GetString("log", "file.dir")
-	c.Log.Level = ini.GetInt("log", "file.level")
-	c.Log.Mode = ini.GetInt("log", "file.mode")
-	c.Log.Style = ini.GetInt("log", "file.style")
-	c.Log.Timezone = ini.GetInt("log", "file.timezone")
+	c.Log.Monitor.Dir = ini.GetString("log", "monitor.dir")
+	c.Log.Monitor.Level = ini.GetInt("log", "monitor.level")
+	c.Log.Monitor.Mode = ini.GetInt("log", "monitor.mode")
+	c.Log.Monitor.Style = ini.GetInt("log", "monitor.style")
+	c.Log.Monitor.Timezone = ini.GetInt("log", "monitor.timezone")
+	c.Log.Gate.Dir = ini.GetString("log", "gate.dir")
+	c.Log.Gate.Level = ini.GetInt("log", "gate.level")
+	c.Log.Gate.Mode = ini.GetInt("log", "gate.mode")
+	c.Log.Gate.Style = ini.GetInt("log", "gate.style")
+	c.Log.Gate.Timezone = ini.GetInt("log", "gate.timezone")
+	c.Log.Gate.Http.Dir = ini.GetString("log", "gate.http.dir")
+	c.Log.Gate.Http.Level = ini.GetInt("log", "gate.http.level")
+	c.Log.Gate.Http.Mode = ini.GetInt("log", "gate.http.mode")
+	c.Log.Gate.Http.Style = ini.GetInt("log", "gate.http.style")
+	c.Log.Gate.Http.Timezone = ini.GetInt("log", "gate.http.timezone")
+	c.Log.File.Dir = ini.GetString("log", "file.dir")
+	c.Log.File.Level = ini.GetInt("log", "file.level")
+	c.Log.File.Mode = ini.GetInt("log", "file.mode")
+	c.Log.File.Style = ini.GetInt("log", "file.style")
+	c.Log.File.Timezone = ini.GetInt("log", "file.timezone")
+	// Sub
+	c.Sub.Gate.Num = ini.GetInt("sub", "gate.num")
+	c.Sub.Gate.Dir = ini.GetString("sub", "gate.dir")
+	c.Sub.Gate.Exec = ini.GetString("sub", "gate.execname")
+	c.Sub.Gate.Http.Num = ini.GetInt("sub", "gate.http.num")
+	c.Sub.Gate.Http.Dir = ini.GetString("sub", "gate.http.dir")
+	c.Sub.Gate.Http.Exec = ini.GetString("sub", "gate.http.execname")
+	c.Sub.File.Num = ini.GetInt("sub", "file.num")
+	c.Sub.File.Dir = ini.GetString("sub", "file.dir")
+	c.Sub.File.Exec = ini.GetString("sub", "file.execname")
 	// TgBot
 	c.TgBot.Enable = ini.GetInt("tg_bot", "enable")
 	c.TgBot.ChatId = ini.GetInt64("tg_bot", "chatId")
 	c.TgBot.Token = ini.GetString("tg_bot", "token")
+	// Monitor
+	c.Monitor.Ip = ini.GetString("monitor", "ip")
+	ports := strings.Split(ini.GetString("monitor", "port"), ",")
+	for _, port := range ports {
+		switch port == "" {
+		case false:
+			c.Monitor.Port = append(c.Monitor.Port, utils.Atoi(port))
+		}
+	}
 	// Path
 	c.Path.UpdateCfg = ini.GetString("path", "updateconfig")
 	c.Path.GetCfg = ini.GetString("path", "getconfig")
+	c.Monitor.Path.Start = ini.GetString("path", "monitor.start")
+	c.Monitor.Path.Kill = ini.GetString("path", "monitor.kill")
+	c.Monitor.Path.KillAll = ini.GetString("path", "monitor.killall")
+	c.Monitor.Path.SubList = ini.GetString("path", "monitor.sublist")
 	c.File.Path.Upload = ini.GetString("path", "file.upload")
 	c.File.Path.Get = ini.GetString("path", "file.get")
 	c.File.Path.Del = ini.GetString("path", "file.del")
@@ -218,7 +289,7 @@ func readIni(filename string) (c *IniConfig) {
 	c.File.Path.List = ini.GetString("path", "file.list")
 	// File
 	c.File.Ip = ini.GetString("file", "ip")
-	ports := strings.Split(ini.GetString("file", "port"), ",")
+	ports = strings.Split(ini.GetString("file", "port"), ",")
 	for _, port := range ports {
 		switch port == "" {
 		case false:
@@ -364,30 +435,127 @@ func readIni(filename string) (c *IniConfig) {
 	return
 }
 
-func check() {
-	if Config.File.Upload.Dir == "" {
-		Config.File.Upload.Dir = global.Dir_upload
-	}
-	if Config.File.Upload.WriteFile > 0 {
-		_, err := os.Stat(Config.File.Upload.Dir)
-		if err != nil && os.IsNotExist(err) {
-			os.MkdirAll(Config.File.Upload.Dir, os.ModePerm)
+func check(name string) {
+	switch name {
+	case "monitor":
+		switch global.Cmd.Log_Dir == "" {
+		case true:
+			switch Config.Log.Monitor.Dir == "" {
+			case true:
+				Config.Log.Monitor.Dir = global.Dir + "log"
+			default:
+			}
+		default:
+			Config.Log.Monitor.Dir = global.Cmd.Log_Dir
 		}
-	}
-	if Config.Log.Dir == "" {
-		Config.Log.Dir = global.Dir + "logs"
-	}
-	if Config.Log.Timezone != int(logs.GetTimeZone()) {
-		logs.SetTimezone(logs.TimeZone(Config.Log.Timezone))
-	}
-	if Config.Log.Mode != int(logs.GetMode()) {
-		logs.SetMode(logs.Mode(Config.Log.Mode))
-	}
-	if Config.Log.Style != int(logs.GetStyle()) {
-		logs.SetStyle(logs.Style(Config.Log.Style))
-	}
-	if Config.Log.Level != int(logs.GetLevel()) {
-		logs.SetLevel(logs.Level(Config.Log.Level))
+		switch Config.Log.Monitor.Timezone != int(logs.GetTimeZone()) {
+		case true:
+			logs.SetTimezone(logs.TimeZone(Config.Log.Monitor.Timezone))
+		}
+		switch Config.Log.Monitor.Mode != int(logs.GetMode()) {
+		case true:
+			logs.SetMode(logs.Mode(Config.Log.Monitor.Mode))
+		}
+		switch Config.Log.Monitor.Style != int(logs.GetStyle()) {
+		case true:
+			logs.SetStyle(logs.Style(Config.Log.Monitor.Style))
+		}
+		switch Config.Log.Monitor.Level != int(logs.GetLevel()) {
+		case true:
+			logs.SetLevel(logs.Level(Config.Log.Monitor.Level))
+		}
+	case "gate":
+		switch global.Cmd.Log_Dir == "" {
+		case true:
+			switch Config.Log.Gate.Dir == "" {
+			case true:
+				Config.Log.Gate.Dir = global.Dir + "log"
+			default:
+			}
+		default:
+			Config.Log.Gate.Dir = global.Cmd.Log_Dir
+		}
+		switch Config.Log.Gate.Timezone != int(logs.GetTimeZone()) {
+		case true:
+			logs.SetTimezone(logs.TimeZone(Config.Log.Gate.Timezone))
+		}
+		switch Config.Log.Gate.Mode != int(logs.GetMode()) {
+		case true:
+			logs.SetMode(logs.Mode(Config.Log.Gate.Mode))
+		}
+		switch Config.Log.Gate.Style != int(logs.GetStyle()) {
+		case true:
+			logs.SetStyle(logs.Style(Config.Log.Gate.Style))
+		}
+		switch Config.Log.Gate.Level != int(logs.GetLevel()) {
+		case true:
+			logs.SetLevel(logs.Level(Config.Log.Gate.Level))
+		}
+	case "gate.http":
+		switch global.Cmd.Log_Dir == "" {
+		case true:
+			switch Config.Log.Gate.Http.Dir == "" {
+			case true:
+				Config.Log.Gate.Http.Dir = global.Dir + "log"
+			default:
+			}
+		default:
+			Config.Log.Gate.Http.Dir = global.Cmd.Log_Dir
+		}
+		switch Config.Log.Gate.Http.Timezone != int(logs.GetTimeZone()) {
+		case true:
+			logs.SetTimezone(logs.TimeZone(Config.Log.Gate.Http.Timezone))
+		}
+		switch Config.Log.Gate.Http.Mode != int(logs.GetMode()) {
+		case true:
+			logs.SetMode(logs.Mode(Config.Log.Gate.Http.Mode))
+		}
+		switch Config.Log.Gate.Http.Style != int(logs.GetStyle()) {
+		case true:
+			logs.SetStyle(logs.Style(Config.Log.Gate.Http.Style))
+		}
+		switch Config.Log.Gate.Http.Level != int(logs.GetLevel()) {
+		case true:
+			logs.SetLevel(logs.Level(Config.Log.Gate.Http.Level))
+		}
+	case "file":
+		switch global.Cmd.Log_Dir == "" {
+		case true:
+			switch Config.Log.File.Dir == "" {
+			case true:
+				Config.Log.File.Dir = global.Dir + "log"
+			default:
+			}
+		default:
+			Config.Log.File.Dir = global.Cmd.Log_Dir
+		}
+		switch Config.Log.File.Timezone != int(logs.GetTimeZone()) {
+		case true:
+			logs.SetTimezone(logs.TimeZone(Config.Log.File.Timezone))
+		}
+		switch Config.Log.File.Mode != int(logs.GetMode()) {
+		case true:
+			logs.SetMode(logs.Mode(Config.Log.File.Mode))
+		}
+		switch Config.Log.File.Style != int(logs.GetStyle()) {
+		case true:
+			logs.SetStyle(logs.Style(Config.Log.File.Style))
+		}
+		switch Config.Log.File.Level != int(logs.GetLevel()) {
+		case true:
+			logs.SetLevel(logs.Level(Config.Log.File.Level))
+		}
+		switch Config.File.Upload.Dir == "" {
+		case true:
+			Config.File.Upload.Dir = global.Dir_upload
+		}
+		switch Config.File.Upload.WriteFile > 0 {
+		case true:
+			_, err := os.Stat(Config.File.Upload.Dir)
+			if err != nil && os.IsNotExist(err) {
+				os.MkdirAll(Config.File.Upload.Dir, os.ModePerm)
+			}
+		}
 	}
 	// 中国大陆这里可能因为被墙了卡住
 	tg_bot.NewTgBot(Config.TgBot.Token, Config.TgBot.ChatId, Config.TgBot.Enable > 0)
@@ -400,24 +568,24 @@ func read(conf string) {
 	}
 }
 
-func InitConfig(conf string) {
+func InitConfig(name, conf string) {
 	read(conf)
 	switch Config.Flag {
 	case 1:
 		flag.Parse()
 	default:
 	}
-	check()
+	check(name)
 }
 
-func readConfig(conf string) {
+func readConfig(name, conf string) {
 	read(conf)
-	check()
+	check(name)
 }
 
-func ReadConfig(conf string) {
+func ReadConfig(name, conf string) {
 	lock.RLock()
-	readConfig(conf)
+	readConfig(name, conf)
 	lock.RUnlock()
 }
 
@@ -479,25 +647,52 @@ func updateConfig(conf string, req *global.UpdateCfgReq) {
 	ini.SaveTo(conf)
 }
 
-func UpdateConfig(conf string, req *global.UpdateCfgReq) {
+func UpdateConfig(name, conf string, req *global.UpdateCfgReq) {
 	lock.Lock()
 	updateConfig(conf, req)
-	readConfig(conf)
+	readConfig(name, conf)
 	lock.Unlock()
 }
 
-func GetConfig(req *global.GetCfgReq) (*global.GetCfgResp, bool) {
+func GetConfig(name string, req *global.GetCfgReq) (*global.GetCfgResp, bool) {
+	dir, level, mode, style, timezone := "", 0, 0, 0, 0
 	lock.RLock()
+	switch name {
+	case "monitor":
+		dir = Config.Log.Monitor.Dir
+		level = Config.Log.Monitor.Level
+		mode = Config.Log.Monitor.Mode
+		style = Config.Log.Monitor.Style
+		timezone = Config.Log.Monitor.Timezone
+	case "gate":
+		dir = Config.Log.Monitor.Dir
+		level = Config.Log.Monitor.Level
+		mode = Config.Log.Monitor.Mode
+		style = Config.Log.Monitor.Style
+		timezone = Config.Log.Monitor.Timezone
+	case "gate.http":
+		dir = Config.Log.Monitor.Dir
+		level = Config.Log.Monitor.Level
+		mode = Config.Log.Monitor.Mode
+		style = Config.Log.Monitor.Style
+		timezone = Config.Log.Monitor.Timezone
+	case "file":
+		dir = Config.Log.Monitor.Dir
+		level = Config.Log.Monitor.Level
+		mode = Config.Log.Monitor.Mode
+		style = Config.Log.Monitor.Style
+		timezone = Config.Log.Monitor.Timezone
+	}
 	resp := &global.GetCfgResp{
 		ErrCode: 0,
 		ErrMsg:  "ok",
 		Data: &global.CfgData{
 			Interval:           Config.Interval,
-			Log_dir:            Config.Log.Dir,
-			Log_level:          Config.Log.Level,
-			Log_mode:           Config.Log.Mode,
-			Log_style:          Config.Log.Style,
-			Log_timezone:       Config.Log.Timezone,
+			Log_dir:            dir,
+			Log_level:          level,
+			Log_mode:           mode,
+			Log_style:          style,
+			Log_timezone:       timezone,
 			HttpAddr:           strings.Join([]string{Config.File.Ip, strconv.Itoa(Config.File.Port[0])}, ":"),
 			UploadPath:         Config.File.Path.Upload,
 			GetPath:            Config.File.Path.Get,

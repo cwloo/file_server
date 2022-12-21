@@ -4,7 +4,7 @@ import (
 	"mime/multipart"
 	"strconv"
 
-	"github.com/cwloo/uploader/src/file_server/config"
+	"github.com/cwloo/uploader/src/config"
 )
 
 func checkUUID(uuid string) bool {

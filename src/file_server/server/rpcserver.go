@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	config "github.com/cwloo/uploader/src/file_server/config"
+	config "github.com/cwloo/uploader/src/config"
 
 	"github.com/cwloo/gonet/logs"
 	getcdv3 "github.com/cwloo/gonet/server/pkg/grpc-etcdv3/getcdv3"
