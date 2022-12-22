@@ -11,7 +11,7 @@ import (
 
 func List() {
 	sub.Range(func(pid int, args ...any) {
-		logs.Tracef("%v %v", pid, args)
+		logs.DebugfP("%v %v", pid, args)
 	})
 }
 
