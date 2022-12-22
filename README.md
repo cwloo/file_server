@@ -9,7 +9,16 @@
 * 3.file_server 文件上传节点(子进程，多进程模型)
 
 * file_server         测试服务端(必须 ./loader 父进程启动)
-* file_client         测试客户端(必须 ./loader 父进程启动)
+
+* file_server 服务端启动
+
+* $ cd file_server/loader
+* $ ./loader --config=/mnt/hgfs/uploader/deploy/config/conf.ini
+
+* file_client 启动
+
+* $ cd file_client/loader
+* $ ./loader
 
 * $ SET GOOS=linux
 * $ SET GOARCH=amd64
