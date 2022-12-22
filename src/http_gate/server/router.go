@@ -20,7 +20,7 @@ func (s *Router) Server() httpsrv.HttpServer {
 	return s.server
 }
 
-func (s *Router) Run(id int) {
+func (s *Router) Run(id int, name string) {
 	if id >= len(config.Config.Gate.Http.Port) {
 		logs.Fatalf("error id=%v Gate.Http.Port.size=%v", id, len(config.Config.Gate.Http.Port))
 	}
@@ -31,7 +31,7 @@ func (s *Router) Run(id int) {
 	s.server.Router(config.Config.Path.UpdateCfg, s.UpdateConfigReq)
 	s.server.Router(config.Config.Path.GetCfg, s.GetConfigReq)
 	s.server.Router(config.Config.Gate.Http.Path.Fileserver, s.FileServerReq)
-	s.server.Run()
+	s.server.Run(id, name)
 }
 
 func (s *Router) UpdateConfigReq(w http.ResponseWriter, r *http.Request) {

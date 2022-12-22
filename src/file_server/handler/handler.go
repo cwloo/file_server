@@ -13,14 +13,14 @@ import (
 )
 
 func UpdateCfg(req *global.UpdateCfgReq) (*global.UpdateCfgResp, bool) {
-	config.UpdateConfig(global.Name, global.Cmd.Conf_Dir, req)
+	config.UpdateConfig(global.Cmd.Conf_Dir, req)
 	return &global.UpdateCfgResp{
 		ErrCode: 0,
 		ErrMsg:  "ok"}, true
 }
 
 func GetCfg(req *global.GetCfgReq) (*global.GetCfgResp, bool) {
-	return config.GetConfig("file", req)
+	return config.GetConfig(req)
 }
 
 func QueryCacheFile(md5 string) (*global.FileInfoResp, bool) {

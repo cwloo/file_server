@@ -10,7 +10,7 @@ import (
 )
 
 func ReadConfig() {
-	config.ReadConfig(global.Name, global.Cmd.Conf_Dir)
+	config.ReadConfig(global.Cmd.Conf_Dir)
 	task.After(time.Duration(config.Config.Interval)*time.Second, cb.NewFunctor00(func() {
 		ReadConfig()
 	}))

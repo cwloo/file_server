@@ -10,5 +10,5 @@ type RPCServer interface {
 	EtcdSchema() string
 	EtcdAddr() []string
 	Target() string
-	Run(id int)
+	Run(id int, name string)
 }

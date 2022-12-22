@@ -16,7 +16,7 @@ type Handler func(http.ResponseWriter, *http.Request)
 // <summary>
 type HttpServer interface {
 	Router(pattern string, handler Handler)
-	Run()
+	Run(id int, name string)
 }
 
 // <summary>
@@ -48,8 +48,8 @@ func (s *httpserver) Router(pattern string, handler Handler) {
 	s.mux().HandleFunc(pattern, handler)
 }
 
-func (s *httpserver) Run() {
-	logs.Infof(s.server.Addr)
+func (s *httpserver) Run(id int, name string) {
+	logs.Infof("%v:%v %v", name, id, s.server.Addr)
 	s.server.SetKeepAlivesEnabled(true)
 	err := s.server.ListenAndServe()
 	if err != nil {

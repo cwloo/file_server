@@ -80,6 +80,7 @@ type IniConfig struct {
 		Token  string `json:"token" form:"token"`
 	} `json:"tg_bot" form:"tg_bot"`
 	Monitor struct {
+		Name        string `json:"name" form:"name"`
 		Ip          string `json:"ip" form:"ip"`
 		Port        []int  `json:"port" form:"port"`
 		MaxConn     int    `json:"maxConn" form:"maxConn"`
@@ -92,6 +93,7 @@ type IniConfig struct {
 		} `json:"path" form:"path"`
 	} `json:"monitor" form:"monitor"`
 	File struct {
+		Name        string `json:"name" form:"name"`
 		Ip          string `json:"ip" form:"ip"`
 		Port        []int  `json:"port" form:"port"`
 		MaxConn     int    `json:"maxConn" form:"maxConn"`
@@ -176,6 +178,7 @@ type IniConfig struct {
 		Password string   `json:"password" form:"password"`
 	} `json:"etcd" form:"etcd"`
 	Gate struct {
+		Name  string `json:"name" form:"name"`
 		Proto string `json:"proto" form:"proto"`
 		Ip    string `json:"ip" form:"ip"`
 		Port  []int  `json:"port" form:"port"`
@@ -189,6 +192,7 @@ type IniConfig struct {
 		ReadBufferSize   int `json:"readBufferSize" form:"readBufferSize"`
 		PrintInterval    int `json:"printInterval" form:"printInterval"`
 		Http             struct {
+			Name        string `json:"name" form:"name"`
 			Ip          string `json:"ip" form:"ip"`
 			Port        []int  `json:"port" form:"port"`
 			MaxConn     int    `json:"maxConn" form:"maxConn"`
@@ -217,9 +221,115 @@ type IniConfig struct {
 			Node string `json:"node" form:"node"`
 		} `json:"file" form:"file"`
 	} `json:"rpc" form:"rpc"`
+	Mysql struct {
+		Addr          []string `json:"addr" form:"addr"`
+		Username      string   `json:"username" form:"username"`
+		Password      string   `json:"password" form:"password"`
+		Database      string   `json:"database" form:"database"`
+		Tablename     string   `json:"tablename" form:"tablename"`
+		MaxConn       int      `json:"maxConn" form:"maxConn"`
+		MaxIdleConn   int      `json:"maxIdleConn" form:"maxIdleConn"`
+		MaxLifeTime   int      `json:"maxLifeTime" form:"maxLifeTime"`
+		SetLevel      int      `json:"SetLevel" form:"SetLevel"`
+		SlowThreshold int      `json:"slowThreshold" form:"slowThreshold"`
+	} `json:"mysql" form:"mysql"`
+	Mongo struct {
+		Url         string   `json:"url" form:"url"`
+		Addr        []string `json:"addr" form:"addr"`
+		Direct      bool     `json:"direct" form:"direct"`
+		Timeout     int      `json:"timeout" form:"timeout"`
+		Database    string   `json:"database" form:"database"`
+		Source      string   `json:"source" form:"source"`
+		Username    string   `json:"username" form:"username"`
+		Password    string   `json:"password" form:"password"`
+		MaxPoolSize int      `json:"maxPoolSize" form:"maxPoolSize"`
+	} `json:"mongo" form:"mongo"`
+	Redis struct {
+		Addr        []string `json:"addr" form:"addr"`
+		MaxIdle     int      `json:"maxIdle" form:"maxIdle"`
+		MaxActive   int      `json:"maxActive" form:"maxActive"`
+		IdleTimeout int      `json:"idleTimeout" form:"idleTimeout"`
+		Username    string   `json:"username" form:"username"`
+		Password    string   `json:"password" form:"password"`
+		Cluster     bool     `json:"cluster" form:"cluster"`
+	} `json:"redis" form:"redis"`
+	Kafka struct {
+		SASLUserName string `json:"SASLUserName" form:"SASLUserName"`
+		SASLPassword string `json:"SASLPassword" form:"SASLPassword"`
+		Ws2mschat    struct {
+			Addr  []string `json:"addr" form:"addr"`
+			Topic string   `json:"topic" form:"topic"`
+		}
+		MsgToMongo struct {
+			Addr  []string `json:"addr" form:"addr"`
+			Topic string   `json:"topic" form:"topic"`
+		}
+		Ms2pschat struct {
+			Addr  []string `json:"addr" form:"addr"`
+			Topic string   `json:"topic" form:"topic"`
+		}
+		ConsumerGroupID struct {
+			MsgToRedis string `json:"msgToTransfer" form:"msgToTransfer"`
+			MsgToMongo string `json:"msgToMongo" form:"msgToMongo"`
+			MsgToMySql string `json:"msgToMySql" form:"msgToMySql"`
+			MsgToPush  string `json:"msgToPush" form:"msgToPush"`
+		}
+	} `json:"kafka" form:"kafka"`
+	Prometheus struct {
+		Enable bool   `json:"enable" form:"enable"`
+		Ip     string `json:"ip" form:"ip"`
+		Gate   struct {
+			Port []int `json:"port" form:"port"`
+		} `json:"gate" form:"gate"`
+		Msg struct {
+			Port []int `json:"port" form:"port"`
+		} `json:"msg" form:"msg"`
+		Push struct {
+			Port []int `json:"port" form:"port"`
+		} `json:"push" form:"push"`
+		Transfer struct {
+			Port []int `json:"port" form:"port"`
+		} `json:"transfer" form:"transfer"`
+		User struct {
+			Port []int `json:"port" form:"port"`
+		} `json:"user" form:"user"`
+		Friend struct {
+			Port []int `json:"port" form:"port"`
+		} `json:"friend" form:"friend"`
+		Group struct {
+			Port []int `json:"port" form:"port"`
+		} `json:"group" form:"group"`
+		Auth struct {
+			Port []int `json:"port" form:"port"`
+		} `json:"auth" form:"auth"`
+		Cache struct {
+			Port []int `json:"port" form:"port"`
+		} `json:"cache" form:"cache"`
+		Admin struct {
+			Port []int `json:"port" form:"port"`
+		} `json:"admin" form:"admin"`
+		RealTime struct {
+			Port []int `json:"port" form:"port"`
+		} `json:"realtime" form:"realtime"`
+	} `json:"prometheus" form:"prometheus"`
 }
 
-func readIni(filename string) (c *IniConfig) {
+func set(name string, cb func(*IniConfig) string, c *IniConfig) {
+	switch global.Name {
+	case "":
+		switch cb {
+		case nil:
+		default:
+			global.Name = cb(c)
+		}
+	}
+	switch global.Name == "" {
+	case true:
+		logs.Fatalf("error")
+	}
+}
+
+func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 	if err := ini.Load(filename); err != nil {
 		logs.Fatalf(err.Error())
 	}
@@ -235,6 +345,11 @@ func readIni(filename string) (c *IniConfig) {
 		va *= c
 	}
 	c.Interval = va
+	c.Monitor.Name = ini.GetString("monitor", "name")
+	c.Gate.Name = ini.GetString("gate", "name")
+	c.Gate.Http.Name = ini.GetString("gate.http", "name")
+	c.File.Name = ini.GetString("file", "name")
+	set(global.Name, cb, c)
 	// Log
 	c.Log.Monitor.Dir = ini.GetString("log", "monitor.dir")
 	c.Log.Monitor.Level = ini.GetInt("log", "monitor.level")
@@ -271,6 +386,7 @@ func readIni(filename string) (c *IniConfig) {
 	c.TgBot.ChatId = ini.GetInt64("tg_bot", "chatId")
 	c.TgBot.Token = ini.GetString("tg_bot", "token")
 	// Monitor
+	// c.Monitor.Name = ini.GetString("monitor", "name")
 	c.Monitor.Ip = ini.GetString("monitor", "ip")
 	ports := strings.Split(ini.GetString("monitor", "port"), ",")
 	for _, port := range ports {
@@ -296,6 +412,7 @@ func readIni(filename string) (c *IniConfig) {
 	c.File.Path.UuidList = ini.GetString("path", "file.uuidlist")
 	c.File.Path.List = ini.GetString("path", "file.list")
 	// File
+	// c.File.Name = ini.GetString("file", "name")
 	c.File.Ip = ini.GetString("file", "ip")
 	ports = strings.Split(ini.GetString("file", "port"), ",")
 	for _, port := range ports {
@@ -387,6 +504,7 @@ func readIni(filename string) (c *IniConfig) {
 	c.Etcd.UserName = ini.GetString("etcd", "username")
 	c.Etcd.Password = ini.GetString("etcd", "password")
 	// Gate
+	// c.Gate.Name = ini.GetString("gate", "name")
 	c.Gate.Proto = ini.GetString("gate", "proto")
 	c.Gate.Ip = ini.GetString("gate", "ip")
 	ports = strings.Split(ini.GetString("gate", "port"), ",")
@@ -403,6 +521,7 @@ func readIni(filename string) (c *IniConfig) {
 	c.Gate.ReadBufferSize = ini.GetInt("gate", "readBufferSize")
 	c.Gate.PrintInterval = ini.GetInt("gate", "printInterval")
 	c.Gate.Path.Handshake = ini.GetString("path", "gate.handshake")
+	// c.Gate.Http.Name = ini.GetString("gate.http", "name")
 	c.Gate.Http.Ip = ini.GetString("gate.http", "ip")
 	ports = strings.Split(ini.GetString("gate.http", "port"), ",")
 	for _, port := range ports {
@@ -448,12 +567,146 @@ func readIni(filename string) (c *IniConfig) {
 			c.Rpc.File.Port = append(c.Rpc.File.Port, utils.Atoi(port))
 		}
 	}
+	// Mysql
+	addrs = strings.Split(ini.GetString("mysql", "addr"), ",")
+	for _, addr := range addrs {
+		switch addr == "" {
+		case false:
+			c.Mysql.Addr = append(c.Mysql.Addr, addr)
+		}
+	}
+	c.Mysql.Username = ini.GetString("mysql", "username")
+	c.Mysql.Password = ini.GetString("mysql", "password")
+	c.Mysql.Database = ini.GetString("mysql", "database")
+	c.Mysql.Tablename = ini.GetString("mysql", "tablename")
+	c.Mysql.MaxConn = ini.GetInt("mysql", "maxConn")
+	c.Mysql.MaxIdleConn = ini.GetInt("mysql", "maxIdleConn")
+	c.Mysql.MaxLifeTime = ini.GetInt("mysql", "maxLifeTime")
+	c.Mysql.SetLevel = ini.GetInt("mysql", "SetLevel")
+	c.Mysql.SlowThreshold = ini.GetInt("mysql", "slowThreshold")
+	// Mongo
+	c.Mongo.Url = ini.GetString("mongo", "url")
+	addrs = strings.Split(ini.GetString("mongo", "addr"), ",")
+	for _, addr := range addrs {
+		switch addr == "" {
+		case false:
+			c.Mongo.Addr = append(c.Mongo.Addr, addr)
+		}
+	}
+	c.Mongo.Direct = ini.GetInt("mongo", "direct") > 0
+	c.Mongo.Timeout = ini.GetInt("mongo", "timeout")
+	c.Mongo.Database = ini.GetString("mongo", "database")
+	c.Mongo.Source = ini.GetString("mongo", "source")
+	c.Mongo.Username = ini.GetString("mongo", "username")
+	c.Mongo.Password = ini.GetString("mongo", "password")
+	c.Mongo.MaxPoolSize = ini.GetInt("mongo", "maxPoolSize")
+	// Redis
+	addrs = strings.Split(ini.GetString("redis", "addr"), ",")
+	for _, addr := range addrs {
+		switch addr == "" {
+		case false:
+			c.Redis.Addr = append(c.Redis.Addr, addr)
+		}
+	}
+	c.Redis.MaxIdle = ini.GetInt("redis", "maxIdle")
+	c.Redis.MaxActive = ini.GetInt("redis", "maxActive")
+	c.Redis.IdleTimeout = ini.GetInt("redis", "idleTimeout")
+	c.Redis.Username = ini.GetString("redis", "username")
+	c.Redis.Password = ini.GetString("redis", "password")
+	c.Redis.Cluster = ini.GetInt("redis", "cluster") > 0
+	// Prometheus
+	c.Prometheus.Enable = ini.GetInt("prometheus", "enable") > 0
+	c.Prometheus.Ip = ini.GetString("prometheus", "ip")
+	ports = strings.Split(ini.GetString("prometheus", "gate.port"), ",")
+	for _, port := range ports {
+		switch port == "" {
+		case false:
+			c.Prometheus.Gate.Port = append(c.Prometheus.Gate.Port, utils.Atoi(port))
+		}
+	}
+	ports = strings.Split(ini.GetString("prometheus", "msg.port"), ",")
+	for _, port := range ports {
+		switch port == "" {
+		case false:
+			c.Prometheus.Msg.Port = append(c.Prometheus.Msg.Port, utils.Atoi(port))
+		}
+	}
+	ports = strings.Split(ini.GetString("prometheus", "push.port"), ",")
+	for _, port := range ports {
+		switch port == "" {
+		case false:
+			c.Prometheus.Push.Port = append(c.Prometheus.Push.Port, utils.Atoi(port))
+		}
+	}
+	ports = strings.Split(ini.GetString("prometheus", "user.port"), ",")
+	for _, port := range ports {
+		switch port == "" {
+		case false:
+			c.Prometheus.User.Port = append(c.Prometheus.User.Port, utils.Atoi(port))
+		}
+	}
+	ports = strings.Split(ini.GetString("prometheus", "friend.port"), ",")
+	for _, port := range ports {
+		switch port == "" {
+		case false:
+			c.Prometheus.Friend.Port = append(c.Prometheus.Friend.Port, utils.Atoi(port))
+		}
+	}
+	ports = strings.Split(ini.GetString("prometheus", "group.port"), ",")
+	for _, port := range ports {
+		switch port == "" {
+		case false:
+			c.Prometheus.Group.Port = append(c.Prometheus.Group.Port, utils.Atoi(port))
+		}
+	}
+	ports = strings.Split(ini.GetString("prometheus", "auth.port"), ",")
+	for _, port := range ports {
+		switch port == "" {
+		case false:
+			c.Prometheus.Auth.Port = append(c.Prometheus.Auth.Port, utils.Atoi(port))
+		}
+	}
+	ports = strings.Split(ini.GetString("prometheus", "cache.port"), ",")
+	for _, port := range ports {
+		switch port == "" {
+		case false:
+			c.Prometheus.Cache.Port = append(c.Prometheus.Cache.Port, utils.Atoi(port))
+		}
+	}
+	ports = strings.Split(ini.GetString("prometheus", "admin.port"), ",")
+	for _, port := range ports {
+		switch port == "" {
+		case false:
+			c.Prometheus.Admin.Port = append(c.Prometheus.Admin.Port, utils.Atoi(port))
+		}
+	}
+	ports = strings.Split(ini.GetString("prometheus", "admin.port"), ",")
+	for _, port := range ports {
+		switch port == "" {
+		case false:
+			c.Prometheus.Admin.Port = append(c.Prometheus.Admin.Port, utils.Atoi(port))
+		}
+	}
+	ports = strings.Split(ini.GetString("prometheus", "realTime.port"), ",")
+	for _, port := range ports {
+		switch port == "" {
+		case false:
+			c.Prometheus.RealTime.Port = append(c.Prometheus.RealTime.Port, utils.Atoi(port))
+		}
+	}
+	ports = strings.Split(ini.GetString("prometheus", "transfer.port"), ",")
+	for _, port := range ports {
+		switch port == "" {
+		case false:
+			c.Prometheus.Transfer.Port = append(c.Prometheus.Transfer.Port, utils.Atoi(port))
+		}
+	}
 	return
 }
 
-func check(name string) {
-	switch name {
-	case "monitor":
+func check() {
+	switch global.Name {
+	case Config.Monitor.Name:
 		switch global.Cmd.Log_Dir == "" {
 		case true:
 			switch Config.Log.Monitor.Dir == "" {
@@ -480,7 +733,7 @@ func check(name string) {
 		case true:
 			logs.SetLevel(logs.Level(Config.Log.Monitor.Level))
 		}
-	case "gate":
+	case Config.Gate.Name:
 		switch global.Cmd.Log_Dir == "" {
 		case true:
 			switch Config.Log.Gate.Dir == "" {
@@ -507,7 +760,7 @@ func check(name string) {
 		case true:
 			logs.SetLevel(logs.Level(Config.Log.Gate.Level))
 		}
-	case "gate.http":
+	case Config.Gate.Http.Name:
 		switch global.Cmd.Log_Dir == "" {
 		case true:
 			switch Config.Log.Gate.Http.Dir == "" {
@@ -534,7 +787,7 @@ func check(name string) {
 		case true:
 			logs.SetLevel(logs.Level(Config.Log.Gate.Http.Level))
 		}
-	case "file":
+	case Config.File.Name:
 		switch global.Cmd.Log_Dir == "" {
 		case true:
 			switch Config.Log.File.Dir == "" {
@@ -577,31 +830,69 @@ func check(name string) {
 	tg_bot.NewTgBot(Config.TgBot.Token, Config.TgBot.ChatId, Config.TgBot.Enable > 0)
 }
 
-func read(conf string) {
-	Config = readIni(conf)
+func read(conf string, cb func(*IniConfig) string) {
+	Config = readIni(conf, cb)
 	if Config == nil {
 		logs.Fatalf("error")
 	}
 }
 
-func InitConfig(name, conf string) {
-	read(conf)
+func InitMonitorConfig(conf string) {
+	read(conf, func(c *IniConfig) string {
+		return c.Monitor.Name
+	})
 	switch Config.Flag {
 	case 1:
 		flag.Parse()
 	default:
 	}
-	check(name)
+	check()
 }
 
-func readConfig(name, conf string) {
-	read(conf)
-	check(name)
+func InitGateConfig(conf string) {
+	read(conf, func(c *IniConfig) string {
+		return c.Gate.Name
+	})
+	switch Config.Flag {
+	case 1:
+		flag.Parse()
+	default:
+	}
+	check()
 }
 
-func ReadConfig(name, conf string) {
+func InitHttpGateConfig(conf string) {
+	read(conf, func(c *IniConfig) string {
+		return c.Gate.Http.Name
+	})
+	switch Config.Flag {
+	case 1:
+		flag.Parse()
+	default:
+	}
+	check()
+}
+
+func InitFileConfig(conf string) {
+	read(conf, func(c *IniConfig) string {
+		return c.File.Name
+	})
+	switch Config.Flag {
+	case 1:
+		flag.Parse()
+	default:
+	}
+	check()
+}
+
+func readConfig(conf string) {
+	read(conf, nil)
+	check()
+}
+
+func ReadConfig(conf string) {
 	lock.RLock()
-	readConfig(name, conf)
+	readConfig(conf)
 	lock.RUnlock()
 }
 
@@ -663,36 +954,36 @@ func updateConfig(conf string, req *global.UpdateCfgReq) {
 	ini.SaveTo(conf)
 }
 
-func UpdateConfig(name, conf string, req *global.UpdateCfgReq) {
+func UpdateConfig(conf string, req *global.UpdateCfgReq) {
 	lock.Lock()
 	updateConfig(conf, req)
-	readConfig(name, conf)
+	readConfig(conf)
 	lock.Unlock()
 }
 
-func GetConfig(name string, req *global.GetCfgReq) (*global.GetCfgResp, bool) {
+func GetConfig(req *global.GetCfgReq) (*global.GetCfgResp, bool) {
 	dir, level, mode, style, timezone := "", 0, 0, 0, 0
 	lock.RLock()
-	switch name {
-	case "monitor":
+	switch global.Name {
+	case Config.Monitor.Name:
 		dir = Config.Log.Monitor.Dir
 		level = Config.Log.Monitor.Level
 		mode = Config.Log.Monitor.Mode
 		style = Config.Log.Monitor.Style
 		timezone = Config.Log.Monitor.Timezone
-	case "gate":
+	case Config.Gate.Name:
 		dir = Config.Log.Monitor.Dir
 		level = Config.Log.Monitor.Level
 		mode = Config.Log.Monitor.Mode
 		style = Config.Log.Monitor.Style
 		timezone = Config.Log.Monitor.Timezone
-	case "gate.http":
+	case Config.Gate.Http.Name:
 		dir = Config.Log.Monitor.Dir
 		level = Config.Log.Monitor.Level
 		mode = Config.Log.Monitor.Mode
 		style = Config.Log.Monitor.Style
 		timezone = Config.Log.Monitor.Timezone
-	case "file":
+	case Config.File.Name:
 		dir = Config.Log.Monitor.Dir
 		level = Config.Log.Monitor.Level
 		mode = Config.Log.Monitor.Mode

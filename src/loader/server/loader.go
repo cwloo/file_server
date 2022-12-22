@@ -10,11 +10,11 @@ var (
 	wg sync.WaitGroup
 )
 
-func Run(id int) {
+func Run(id int, name string) {
 	global.Server = &Router{}
 	global.RpcServer = &RPCServer{}
 	// wg.Add(2)
-	go global.Server.Run(id)
-	go global.RpcServer.Run(id)
+	go global.Server.Run(id, name)
+	go global.RpcServer.Run(id, name)
 	// wg.Wait()
 }

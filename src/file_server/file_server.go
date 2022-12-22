@@ -13,10 +13,8 @@ import (
 )
 
 func main() {
-	global.Name = "file"
-	global.Cmd.ID, global.Cmd.Dir, global.Cmd.Conf_Dir, global.Cmd.Log_Dir = global.ParseArgs()
-	config.InitConfig(global.Name, global.Cmd.Conf_Dir)
-	logs.Errorf("%v log_dir=%v", global.Name, config.Config.Log.File.Dir)
+	global.Cmd.ParseArgs()
+	config.InitFileConfig(global.Cmd.Conf_Dir)
 	logs.SetTimezone(logs.TimeZone(config.Config.Log.File.Timezone))
 	logs.SetMode(logs.Mode(config.Config.Log.File.Mode))
 	logs.SetStyle(logs.Style(config.Config.Log.File.Style))
@@ -33,6 +31,6 @@ func main() {
 	task.After(time.Duration(config.Config.Interval)*time.Second, cb.NewFunctor00(func() {
 		handler.ReadConfig()
 	}))
-	file_server.Run(global.Cmd.ID)
+	file_server.Run(global.Cmd.ID, global.Name)
 	logs.Close()
 }

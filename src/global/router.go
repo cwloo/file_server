@@ -7,5 +7,5 @@ import "github.com/cwloo/uploader/src/global/httpsrv"
 // <summary>
 type Router interface {
 	Server() httpsrv.HttpServer
-	Run(id int)
+	Run(id int, name string)
 }

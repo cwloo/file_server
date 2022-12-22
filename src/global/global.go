@@ -49,16 +49,18 @@ var (
 )
 
 var (
-	Name string
-	Cmd  struct {
-		ID       int
-		Dir      string
-		Conf_Dir string
-		Log_Dir  string
-	}
+	Name      string
+	Cmd       CMD
 	Server    Router
 	RpcServer RPCServer
 )
+
+func init() {
+	Cmd.Arg.ID = "id"
+	Cmd.Arg.CONF = "config"
+	Cmd.Arg.C = "c"
+	Cmd.Arg.LOG = "log_dir"
+}
 
 // <summary>
 // ErrorMsg

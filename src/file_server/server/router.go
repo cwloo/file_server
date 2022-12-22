@@ -21,7 +21,7 @@ func (s *Router) Server() httpsrv.HttpServer {
 	return s.server
 }
 
-func (s *Router) Run(id int) {
+func (s *Router) Run(id int, name string) {
 	if id >= len(config.Config.File.Port) {
 		logs.Fatalf("error")
 		logs.Fatalf("error id=%v File.Port.size=%v", id, len(config.Config.File.Port))
@@ -40,7 +40,7 @@ func (s *Router) Run(id int) {
 	s.server.Router(config.Config.File.Path.FileDetail, s.FileDetailReq)
 	s.server.Router(config.Config.File.Path.UuidList, s.UuidListReq)
 	s.server.Router(config.Config.File.Path.List, s.ListReq)
-	s.server.Run()
+	s.server.Run(id, name)
 }
 
 func (s *Router) UpdateConfigReq(w http.ResponseWriter, r *http.Request) {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/cwloo/gonet/core/base/sub"
 	"github.com/cwloo/gonet/utils"
+	handler_sub "github.com/cwloo/uploader/src/loader/handler/sub"
 )
 
 func OnInput(str string) int {
@@ -18,7 +19,7 @@ func OnInput(str string) int {
 	case 'c':
 		utils.ClearScreen[runtime.GOOS]()
 	case 'l':
-		List()
+		handler_sub.List()
 	case 'q':
 		utils.ClearScreen[runtime.GOOS]()
 		sub.KillAll()

@@ -6,15 +6,13 @@ import (
 	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/global"
 	"github.com/cwloo/uploader/src/loader/handler"
+	"github.com/cwloo/uploader/src/loader/handler/sub"
 	loader "github.com/cwloo/uploader/src/loader/server"
-	"github.com/cwloo/uploader/src/loader/sub"
 )
 
 func main() {
-	global.Name = "monitor"
-	global.Cmd.ID, global.Cmd.Dir, global.Cmd.Conf_Dir, global.Cmd.Log_Dir = global.ParseArgs()
-	config.InitConfig(global.Name, global.Cmd.Conf_Dir)
-	logs.Errorf("%v log_dir=%v", global.Name, config.Config.Log.Monitor.Dir)
+	global.Cmd.ParseArgs()
+	config.InitMonitorConfig(global.Cmd.Conf_Dir)
 	logs.SetTimezone(logs.TimeZone(config.Config.Log.Monitor.Timezone))
 	logs.SetMode(logs.Mode(config.Config.Log.Monitor.Mode))
 	logs.SetStyle(logs.Style(config.Config.Log.Monitor.Style))
@@ -27,7 +25,7 @@ func main() {
 	// 	logs.Fatalf("%v", err)
 	// }
 	sub.Start()
-	loader.Run(global.Cmd.ID)
+	loader.Run(global.Cmd.ID, global.Name)
 	sub.WaitAll()
 	logs.Debugf("exit...")
 	logs.Close()
