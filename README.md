@@ -10,7 +10,7 @@
 
 * file_server         测试服务端(必须 ./loader 父进程启动)
 
-* file_server 服务端启动
+* file_server 启动
 
 * $ cd file_server/loader
 * $ ./loader --config=/mnt/hgfs/uploader/deploy/config/conf.ini
