@@ -13,9 +13,12 @@ func OnInput(str string) int {
 	if str == "" {
 		return 0
 	}
+	str = strings.ToLower(str)
 	switch str[0] {
 	case 'c':
 		utils.ClearScreen[runtime.GOOS]()
+	case 'l':
+		List()
 	case 'q':
 		utils.ClearScreen[runtime.GOOS]()
 		sub.KillAll()

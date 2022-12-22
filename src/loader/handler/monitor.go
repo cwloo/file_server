@@ -9,8 +9,14 @@ import (
 	"github.com/cwloo/gonet/logs"
 )
 
+func List() {
+	sub.Range(func(pid int, args ...any) {
+		logs.Tracef("%v %v", pid, args)
+	})
+}
+
 func restart(id int, cmd, dir, Exec, conf, log_dir string) {
-	logs.Warnf("%v %v %v %v %v", id, cmd, dir, Exec, conf, log_dir)
+	logs.Warnf("%v %v %v %v %v %v", id, cmd, dir, Exec, conf, log_dir)
 	f, err := exec.LookPath(dir + Exec)
 	if err != nil {
 		logs.Fatalf(err.Error())
