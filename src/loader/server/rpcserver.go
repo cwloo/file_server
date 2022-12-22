@@ -7,8 +7,11 @@ import (
 	"strings"
 
 	config "github.com/cwloo/uploader/src/config"
+	"github.com/cwloo/uploader/src/global"
 
+	"github.com/cwloo/gonet/core/net/conn"
 	"github.com/cwloo/gonet/logs"
+	"github.com/cwloo/gonet/utils"
 	pb_monitor "github.com/cwloo/uploader/proto/monitor"
 	getcdv3 "github.com/cwloo/uploader/src/global/pkg/grpc-etcdv3/getcdv3"
 
@@ -52,11 +55,23 @@ func (s *RPCServer) Target() string {
 }
 
 func (s *RPCServer) Run(id int, name string) {
-	if id >= len(config.Config.Rpc.Monitor.Port) {
-		logs.Fatalf("error id=%v Rpc.Monitor.Port.size=%v", id, len(config.Config.Rpc.Monitor.Port))
+	switch global.Cmd.Rpc {
+	case "":
+		if id >= len(config.Config.Rpc.Monitor.Port) {
+			logs.Fatalf("error id=%v Rpc.Monitor.Port.size=%v", id, len(config.Config.Rpc.Monitor.Port))
+		}
+		s.addr = config.Config.Rpc.Ip
+		s.port = config.Config.Rpc.Monitor.Port[id]
+	default:
+		addr := conn.ParseAddress(global.Cmd.Rpc)
+		switch addr {
+		case nil:
+			logs.Fatalf("error")
+		default:
+			s.addr = addr.Ip
+			s.port = utils.Atoi(addr.Port)
+		}
 	}
-	s.addr = config.Config.Rpc.Ip
-	s.port = config.Config.Rpc.Monitor.Port[id]
 	s.node = config.Config.Rpc.Monitor.Node
 	s.etcdSchema = config.Config.Etcd.Schema
 	s.etcdAddr = config.Config.Etcd.Addr

@@ -60,6 +60,9 @@ func init() {
 	Cmd.Arg.CONF = "config"
 	Cmd.Arg.C = "c"
 	Cmd.Arg.LOG = "log_dir"
+	Cmd.Arg.L = "l"
+	Cmd.Arg.SERVER = "server"
+	Cmd.Arg.RPC = "rpc"
 }
 
 // <summary>

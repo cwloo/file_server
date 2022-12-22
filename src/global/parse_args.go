@@ -14,10 +14,13 @@ import (
 // ARG
 // <summary>
 type ARG struct {
-	ID   string
-	CONF string
-	LOG  string
-	C    string
+	ID     string
+	CONF   string
+	LOG    string
+	C      string
+	L      string
+	SERVER string
+	RPC    string
 }
 
 func (s *ARG) FormatId(id int) string {
@@ -36,7 +39,7 @@ func (s *ARG) FormatLogDir(dir string) string {
 	return strings.Join([]string{"--", Cmd.Arg.LOG, "=", dir}, "")
 }
 
-func (s *ARG) ParseArgs() (id int, dir, conf, log_dir string) {
+func (s *ARG) ParseArgs() (id int, dir, conf, log_dir, server, rpc string) {
 	logs.Warnf("%v", os.Args)
 	d := map[string]string{}
 	for _, v := range os.Args {
@@ -68,10 +71,30 @@ func (s *ARG) ParseArgs() (id int, dir, conf, log_dir string) {
 	case true:
 		log_dir = v
 	}
+	v, ok = d[s.L]
+	switch ok {
+	case true:
+		log_dir = v
+	}
 	switch conf == "" {
 	case true:
 		p, _, _ := utils.G()
 		conf = strings.Join([]string{dir, p, "config", p, "conf.ini"}, "")
+	}
+	v, ok = d[s.L]
+	switch ok {
+	case true:
+		log_dir = v
+	}
+	v, ok = d[s.SERVER]
+	switch ok {
+	case true:
+		server = v
+	}
+	v, ok = d[s.RPC]
+	switch ok {
+	case true:
+		rpc = v
 	}
 	return
 }
@@ -85,8 +108,10 @@ type CMD struct {
 	Dir      string
 	Conf_Dir string
 	Log_Dir  string
+	Server   string
+	Rpc      string
 }
 
 func (s *CMD) ParseArgs() {
-	s.ID, s.Dir, s.Conf_Dir, s.Log_Dir = s.Arg.ParseArgs()
+	s.ID, s.Dir, s.Conf_Dir, s.Log_Dir, s.Server, s.Rpc = s.Arg.ParseArgs()
 }

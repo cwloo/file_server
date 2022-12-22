@@ -3,8 +3,11 @@ package http_gate
 import (
 	"net/http"
 
+	"github.com/cwloo/gonet/core/net/conn"
 	"github.com/cwloo/gonet/logs"
+	"github.com/cwloo/gonet/utils"
 	"github.com/cwloo/uploader/src/config"
+	"github.com/cwloo/uploader/src/global"
 	"github.com/cwloo/uploader/src/global/httpsrv"
 	"github.com/cwloo/uploader/src/http_gate/handler"
 )
@@ -21,13 +24,27 @@ func (s *Router) Server() httpsrv.HttpServer {
 }
 
 func (s *Router) Run(id int, name string) {
-	if id >= len(config.Config.Gate.Http.Port) {
-		logs.Fatalf("error id=%v Gate.Http.Port.size=%v", id, len(config.Config.Gate.Http.Port))
+	switch global.Cmd.Server {
+	case "":
+		if id >= len(config.Config.Gate.Http.Port) {
+			logs.Fatalf("error id=%v Gate.Http.Port.size=%v", id, len(config.Config.Gate.Http.Port))
+		}
+		s.server = httpsrv.NewHttpServer(
+			config.Config.Gate.Http.Ip,
+			config.Config.Gate.Http.Port[id],
+			config.Config.Gate.Http.IdleTimeout)
+	default:
+		addr := conn.ParseAddress(global.Cmd.Server)
+		switch addr {
+		case nil:
+			logs.Fatalf("error")
+		default:
+			s.server = httpsrv.NewHttpServer(
+				addr.Ip,
+				utils.Atoi(addr.Port),
+				config.Config.Gate.Http.IdleTimeout)
+		}
 	}
-	s.server = httpsrv.NewHttpServer(
-		config.Config.Gate.Http.Ip,
-		config.Config.Gate.Http.Port[id],
-		config.Config.Gate.Http.IdleTimeout)
 	s.server.Router(config.Config.Path.UpdateCfg, s.UpdateConfigReq)
 	s.server.Router(config.Config.Path.GetCfg, s.GetConfigReq)
 	s.server.Router(config.Config.Gate.Http.Path.Fileserver, s.FileServerReq)

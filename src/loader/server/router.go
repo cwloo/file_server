@@ -3,8 +3,11 @@ package loader
 import (
 	"net/http"
 
+	"github.com/cwloo/gonet/core/net/conn"
 	"github.com/cwloo/gonet/logs"
+	"github.com/cwloo/gonet/utils"
 	"github.com/cwloo/uploader/src/config"
+	"github.com/cwloo/uploader/src/global"
 	"github.com/cwloo/uploader/src/global/httpsrv"
 	"github.com/cwloo/uploader/src/loader/handler"
 )
@@ -21,13 +24,27 @@ func (s *Router) Server() httpsrv.HttpServer {
 }
 
 func (s *Router) Run(id int, name string) {
-	if id >= len(config.Config.Monitor.Port) {
-		logs.Fatalf("error id=%v Monitor.Port.size=%v", id, len(config.Config.Monitor.Port))
+	switch global.Cmd.Server {
+	case "":
+		if id >= len(config.Config.Monitor.Port) {
+			logs.Fatalf("error id=%v Monitor.Port.size=%v", id, len(config.Config.Monitor.Port))
+		}
+		s.server = httpsrv.NewHttpServer(
+			config.Config.Monitor.Ip,
+			config.Config.Monitor.Port[id],
+			config.Config.Monitor.IdleTimeout)
+	default:
+		addr := conn.ParseAddress(global.Cmd.Server)
+		switch addr {
+		case nil:
+			logs.Fatalf("error")
+		default:
+			s.server = httpsrv.NewHttpServer(
+				addr.Ip,
+				utils.Atoi(addr.Port),
+				config.Config.Monitor.IdleTimeout)
+		}
 	}
-	s.server = httpsrv.NewHttpServer(
-		config.Config.Monitor.Ip,
-		config.Config.Monitor.Port[id],
-		config.Config.Monitor.IdleTimeout)
 	s.server.Router(config.Config.Path.UpdateCfg, s.UpdateConfigReq)
 	s.server.Router(config.Config.Path.GetCfg, s.GetConfigReq)
 	s.server.Router(config.Config.Monitor.Path.Start, s.startReq)

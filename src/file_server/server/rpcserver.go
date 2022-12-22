@@ -8,8 +8,11 @@ import (
 
 	config "github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/file_server/handler"
+	"github.com/cwloo/uploader/src/global"
 
+	"github.com/cwloo/gonet/core/net/conn"
 	"github.com/cwloo/gonet/logs"
+	"github.com/cwloo/gonet/utils"
 	pb_file "github.com/cwloo/uploader/proto/file"
 	getcdv3 "github.com/cwloo/uploader/src/global/pkg/grpc-etcdv3/getcdv3"
 
@@ -53,11 +56,23 @@ func (s *RPCServer) Target() string {
 }
 
 func (s *RPCServer) Run(id int, name string) {
-	if id >= len(config.Config.Rpc.File.Port) {
-		logs.Fatalf("error id=%v Rpc.File.Port.size=%v", id, len(config.Config.Rpc.File.Port))
+	switch global.Cmd.Rpc {
+	case "":
+		if id >= len(config.Config.Rpc.File.Port) {
+			logs.Fatalf("error id=%v Rpc.File.Port.size=%v", id, len(config.Config.Rpc.File.Port))
+		}
+		s.addr = config.Config.Rpc.Ip
+		s.port = config.Config.Rpc.File.Port[id]
+	default:
+		addr := conn.ParseAddress(global.Cmd.Rpc)
+		switch addr {
+		case nil:
+			logs.Fatalf("error")
+		default:
+			s.addr = addr.Ip
+			s.port = utils.Atoi(addr.Port)
+		}
 	}
-	s.addr = config.Config.Rpc.Ip
-	s.port = config.Config.Rpc.File.Port[id]
 	s.node = config.Config.Rpc.File.Node
 	s.etcdSchema = config.Config.Etcd.Schema
 	s.etcdAddr = config.Config.Etcd.Addr

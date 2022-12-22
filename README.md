@@ -33,11 +33,72 @@
 
 ###### `q`  killAll子服务，并退出监控
 
+##### `launch.json` debug 调试
+
+###### `{`
+###### `    "version": "0.2.0",`
+###### `    "configurations": [`
+###### `        {`
+###### `            "name": "loader",`
+###### `            "type": "go",`
+###### `            "request": "launch",`
+###### `            "mode": "debug",`
+###### `            "program": "${workspaceRoot}/src/loader/loader.go",`
+###### `            "args": [`
+###### `                "-c=${workspaceRoot}/deploy/config/conf.ini",`
+###### `                "-l=${workspaceRoot}/deploy/log",`
+###### `                "-server=192.168.0.103:8000",`
+###### `                "-rpc=192.168.0.103:5228",`
+###### `            ],`
+###### `        },`
+###### `        {`
+###### `            "name": "gate",`
+###### `            "type": "go",`
+###### `            "request": "launch",`
+###### `            "mode": "debug",`
+###### `            "program": "${workspaceRoot}/src/gate/gate.go",`
+###### `            "args": [`
+###### `                "-c=${workspaceRoot}/deploy/config/conf.ini",`
+###### `                "-l=${workspaceRoot}/deploy/log",`
+###### `                "-server=192.168.0.103:7786",`
+###### `                "-rpc=192.168.0.103:5232",`
+###### `            ],`
+###### `        },`
+###### `        {`
+###### `            "name": "http_gate",`
+###### `            "type": "go",`
+###### `            "request": "launch",`
+###### `            "mode": "debug",`
+###### `            "program": "${workspaceRoot}/src/http_gate/http_gate.go",`
+###### `            "args": [`
+###### `                "-c=${workspaceRoot}/deploy/config/conf.ini",`
+###### `                "-l=${workspaceRoot}/deploy/log",`
+###### `                "-server=192.168.0.103:7788",`
+###### `                "-rpc=192.168.0.103:5235",`
+###### `            ],`
+###### `        },`
+###### `        {`
+###### `            "name": "file_server",`
+###### `            "type": "go",`
+###### `            "request": "launch",`
+###### `            "mode": "debug",`
+###### `            "program": "${workspaceRoot}/src/file_server/file_server.go",`
+###### `            "args": [`
+###### `                "-c=${workspaceRoot}/deploy/config/conf.ini",`
+###### `                "-l=${workspaceRoot}/deploy/log",`
+###### `                "-server=192.168.0.103:8086",`
+###### `                "-rpc=192.168.0.103:5236",`
+###### `            ],`
+###### `        }`
+###### `    ]`
+###### `}`
+
+
+
 ##### `file_client` 启动
 
 * `$ cd file_client/loader`
 * `$ ./loader`
-
 
 
 ![image](https://github.com/cwloo/gonet/blob/master/tool/res/uploader_client.png)
