@@ -50,16 +50,22 @@ OK:
 	cb(handler)
 }
 
-func (s *SessionToHandler) GetAdd(uuid string, async bool, new func(bool, string) Uploader) (handler Uploader, ok bool) {
+func (s *SessionToHandler) GetAdd(uuid string, async bool, new NewUploader) (handler Uploader, ok bool) {
 	n := 0
 	s.l.Lock()
 	handler, ok = s.m[uuid]
 	if !ok {
-		if new == nil {
+		switch new == nil {
+		case true:
 			s.l.Unlock()
 			goto ERR
 		}
 		handler = new(async, uuid)
+		switch handler == nil {
+		case true:
+			s.l.Unlock()
+			goto ERR
+		}
 		s.m[uuid] = handler
 		n = len(s.m)
 		s.l.Unlock()

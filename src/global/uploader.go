@@ -9,6 +9,8 @@ import (
 	"github.com/cwloo/gonet/utils"
 )
 
+type NewUploader func(bool, string) Uploader
+
 // <summary>
 // Uploader
 // <summary>
