@@ -75,6 +75,6 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )
 
-replace github.com/cwloo/gonet v0.0.0 => /mnt/hgfs/gonet
+// replace github.com/cwloo/gonet v0.0.0 => /mnt/hgfs/gonet
 
-// replace github.com/cwloo/gonet v0.0.0 => E:\winshare\gonet
+replace github.com/cwloo/gonet v0.0.0 => E:\winshare\gonet
