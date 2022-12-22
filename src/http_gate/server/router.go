@@ -1,4 +1,4 @@
-package gate
+package http_gate
 
 import (
 	"net/http"

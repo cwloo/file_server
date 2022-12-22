@@ -4,7 +4,7 @@ import (
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/global"
-	"github.com/cwloo/uploader/src/http_gate/gate"
+	http_gate "github.com/cwloo/uploader/src/http_gate/server"
 )
 
 func main() {
@@ -16,6 +16,6 @@ func main() {
 	logs.SetMode(logs.Mode(config.Config.Log.Gate.Http.Mode))
 	logs.SetStyle(logs.Style(config.Config.Log.Gate.Http.Style))
 	logs.Init(config.Config.Log.Gate.Http.Dir, logs.Level(config.Config.Log.Gate.Http.Level), global.Exe, 100000000)
-	gate.Run(global.Cmd.ID)
+	http_gate.Run(global.Cmd.ID)
 	logs.Close()
 }

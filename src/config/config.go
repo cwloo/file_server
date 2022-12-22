@@ -80,9 +80,11 @@ type IniConfig struct {
 		Token  string `json:"token" form:"token"`
 	} `json:"tg_bot" form:"tg_bot"`
 	Monitor struct {
-		Ip   string `json:"ip" form:"ip"`
-		Port []int  `json:"port" form:"port"`
-		Path struct {
+		Ip          string `json:"ip" form:"ip"`
+		Port        []int  `json:"port" form:"port"`
+		MaxConn     int    `json:"maxConn" form:"maxConn"`
+		IdleTimeout int    `json:"idleTimeout" form:"idleTimeout"`
+		Path        struct {
 			Start   string `json:"start" form:"start"`
 			Kill    string `json:"kill" form:"kill"`
 			KillAll string `json:"killall" form:"killall"`
@@ -197,7 +199,11 @@ type IniConfig struct {
 		} `json:"http" form:"http"`
 	} `json:"gate" form:"gate"`
 	Rpc struct {
-		Ip   string `json:"ip" form:"ip"`
+		Ip      string `json:"ip" form:"ip"`
+		Monitor struct {
+			Port []int  `json:"port" form:"port"`
+			Node string `json:"node" form:"node"`
+		} `json:"monitor" form:"monitor"`
 		Gate struct {
 			Port []int  `json:"port" form:"port"`
 			Node string `json:"node" form:"node"`
@@ -273,6 +279,8 @@ func readIni(filename string) (c *IniConfig) {
 			c.Monitor.Port = append(c.Monitor.Port, utils.Atoi(port))
 		}
 	}
+	c.Monitor.MaxConn = ini.GetInt("monitor", "maxConn")
+	c.Monitor.IdleTimeout = ini.GetInt("monitor", "idleTimeout")
 	// Path
 	c.Path.UpdateCfg = ini.GetString("path", "updateconfig")
 	c.Path.GetCfg = ini.GetString("path", "getconfig")
@@ -408,6 +416,14 @@ func readIni(filename string) (c *IniConfig) {
 	c.Gate.Http.Path.Fileserver = ini.GetString("path", "gate.http.fileserver")
 	// Rpc
 	c.Rpc.Ip = ini.GetString("rpc", "ip")
+	c.Rpc.Monitor.Node = ini.GetString("rpc", "monitor.node")
+	ports = strings.Split(ini.GetString("rpc", "monitor.port"), ",")
+	for _, port := range ports {
+		switch port == "" {
+		case false:
+			c.Rpc.Monitor.Port = append(c.Rpc.Monitor.Port, utils.Atoi(port))
+		}
+	}
 	c.Rpc.Gate.Node = ini.GetString("rpc", "gate.node")
 	ports = strings.Split(ini.GetString("rpc", "gate.port"), ",")
 	for _, port := range ports {

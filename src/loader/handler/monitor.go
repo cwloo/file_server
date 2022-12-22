@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/cwloo/gonet/logs"
 )
 
-func Restart(id int, cmd, dir, Exec, conf, log_dir string) {
+func restart(id int, cmd, dir, Exec, conf, log_dir string) {
 	logs.Warnf("%v %v %v %v %v", id, cmd, dir, Exec, conf, log_dir)
 	f, err := exec.LookPath(dir + Exec)
 	if err != nil {
@@ -40,7 +40,7 @@ func Monitor(sta *os.ProcessState, v ...any) {
 			Exec := v[3].(string)
 			conf := v[4].(string)
 			log_dir := v[5].(string)
-			Restart(id, cmd, dir, Exec, conf, log_dir)
+			restart(id, cmd, dir, Exec, conf, log_dir)
 		}
 	}
 }

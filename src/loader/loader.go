@@ -10,6 +10,8 @@ import (
 	"github.com/cwloo/gonet/utils"
 	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/global"
+	"github.com/cwloo/uploader/src/loader/handler"
+	loader "github.com/cwloo/uploader/src/loader/server"
 )
 
 func main() {
@@ -22,7 +24,7 @@ func main() {
 	logs.SetStyle(logs.Style(config.Config.Log.Monitor.Style))
 	logs.Init(config.Config.Log.Monitor.Dir, logs.Level(config.Config.Log.Monitor.Level), global.Exe, 100000000)
 	go func() {
-		utils.ReadConsole(onInput)
+		utils.ReadConsole(handler.OnInput)
 	}()
 	// dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	// if err != nil {
@@ -79,13 +81,14 @@ func main() {
 				fmt.Sprintf("--config=%v", Exec.Conf),
 				fmt.Sprintf("--log_dir=%v", Exec.LogDir),
 			}
-			if sub.Start(f, args, Monitor, id, Exec.Cmd, Exec.Dir, Exec.Exec, Exec.Conf, Exec.LogDir) {
+			if sub.Start(f, args, handler.Monitor, id, Exec.Cmd, Exec.Dir, Exec.Exec, Exec.Conf, Exec.LogDir) {
 				id++
 				i++
 				n++
 			}
 		}
 	}
+	loader.Run(global.Cmd.ID)
 	logs.Debugf("Children = Succ[%03d]", n)
 	sub.WaitAll()
 	logs.Debugf("exit...")

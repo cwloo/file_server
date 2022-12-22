@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"runtime"
@@ -9,7 +9,7 @@ import (
 	"github.com/cwloo/gonet/utils"
 )
 
-func onInput(str string) int {
+func OnInput(str string) int {
 	if str == "" {
 		return 0
 	}

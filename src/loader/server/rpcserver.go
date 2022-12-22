@@ -1,4 +1,4 @@
-package gate
+package loader
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	config "github.com/cwloo/uploader/src/config"
 
 	"github.com/cwloo/gonet/logs"
-	pb_gate "github.com/cwloo/uploader/proto/gate"
+	pb_monitor "github.com/cwloo/uploader/proto/monitor"
 	getcdv3 "github.com/cwloo/uploader/src/global/pkg/grpc-etcdv3/getcdv3"
 
 	"google.golang.org/grpc"
@@ -52,12 +52,12 @@ func (s *RPCServer) Target() string {
 }
 
 func (s *RPCServer) Run(id int) {
-	if id >= len(config.Config.Rpc.Gate.Http.Port) {
-		logs.Fatalf("error id=%v Rpc.Gate.Http.Port.size=%v", id, len(config.Config.Rpc.Gate.Http.Port))
+	if id >= len(config.Config.Rpc.Monitor.Port) {
+		logs.Fatalf("error id=%v Rpc.Monitor.Port.size=%v", id, len(config.Config.Rpc.Monitor.Port))
 	}
 	s.addr = config.Config.Rpc.Ip
-	s.port = config.Config.Rpc.Gate.Http.Port[id]
-	s.node = config.Config.Rpc.Gate.Http.Node
+	s.port = config.Config.Rpc.Monitor.Port[id]
+	s.node = config.Config.Rpc.Monitor.Node
 	s.etcdSchema = config.Config.Etcd.Schema
 	s.etcdAddr = config.Config.Etcd.Addr
 	listener, err := net.Listen("tcp", strings.Join([]string{s.addr, strconv.Itoa(s.port)}, ":"))
@@ -68,7 +68,7 @@ func (s *RPCServer) Run(id int) {
 	var opts []grpc.ServerOption
 	server := grpc.NewServer(opts...)
 	defer server.GracefulStop()
-	pb_gate.RegisterGateServer(server, s)
+	pb_monitor.RegisterMonitorServer(server, s)
 
 	logs.Warnf("etcd%v schema=%v node=%v:%v:%v", s.etcdAddr, s.etcdSchema, s.node, s.addr, s.port)
 	err = getcdv3.RegisterEtcd4Unique(s.etcdSchema, strings.Join(s.etcdAddr, ","), s.addr, s.port, s.node, 10)
@@ -85,7 +85,7 @@ func (s *RPCServer) Run(id int) {
 	}
 }
 
-func (r *RPCServer) GetFileServer(_ context.Context, in *pb_gate.FileServerReq) (*pb_gate.FileServerResp, error) {
+func (r *RPCServer) GetFileServer(_ context.Context, in *pb_monitor.FileServerReq) (*pb_monitor.FileServerResp, error) {
 	logs.Debugf("")
-	return nil, nil
+	return &pb_monitor.FileServerResp{}, nil
 }
