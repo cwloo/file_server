@@ -16,7 +16,7 @@ func QueryFileServer(md5 string) (*pb_file.FileServerResp, error) {
 	case false:
 		return &pb_file.FileServerResp{
 			Md5:     md5,
-			Dns:     strings.Join([]string{config.Config.File.Ip, strconv.Itoa(config.Config.File.Port[cmd.Cmd.ID])}, ""),
+			Dns:     strings.Join([]string{config.Config.File.Ip, strconv.Itoa(config.Config.File.Port[cmd.Id()])}, ""),
 			ErrCode: 0,
 			ErrMsg:  "ok"}, nil
 	}
