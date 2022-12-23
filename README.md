@@ -14,20 +14,19 @@
 
 ##### file_server 启动
 
-* $ cd src/loader
+* $ cd loader
 * $ ./loader --config=deploy/config/conf.ini
 
 ###### c 清屏指令
 
 ###### l 查看子服务
 
-###### 55383 [file:0 192.168.0.113:8086 rpc:127.0.0.1:5236 src/file_server/ ./file_server --config=src/config/conf.ini --log_dir=]
-###### 55384 [file:1 192.168.0.113:8087 rpc:127.0.0.1:5237 src/file_server/ ./file_server --config=src/config/conf.ini --log_dir=]
-###### 55385 [file:2 192.168.0.113:8089 rpc:127.0.0.1:5238 src/file_server/ ./file_server --config=src/config/conf.ini --log_dir=]
-###### 55386 [file:3 192.168.0.113:8090 rpc:127.0.0.1:5239 src/file_server/ ./file_server --config=src/config/conf.ini --log_dir=]
-###### 55381 [gate.http:0 192.168.0.113:7787 rpc:127.0.0.1:5233 src/http_gate/ ./http_gate --config=src/config/conf.ini --log_dir=]
-###### 55382 [gate.http:1 192.168.0.113:7788 rpc:127.0.0.1:5235 src/http_gate/ ./http_gate --config=src/config/conf.ini --log_dir=]
-
+###### 55383 [file_server:1 192.168.0.113:8086 rpc:192.168.0.113:5236 file_server/ ./file_server --config=config/conf.ini --log_dir=]
+###### 55384 [file_server:2 192.168.0.113:8087 rpc:192.168.0.113:5237 file_server/ ./file_server --config=config/conf.ini --log_dir=]
+###### 55385 [file_server:3 192.168.0.113:8089 rpc:192.168.0.113:5238 file_server/ ./file_server --config=config/conf.ini --log_dir=]
+###### 55386 [file_server:4 192.168.0.113:8090 rpc:192.168.0.113:5239 file_server/ ./file_server --config=config/conf.ini --log_dir=]
+###### 55381 [http_gate:1 192.168.0.113:7787 rpc:192.168.0.113:5233 http_gate/ ./http_gate --config=config/conf.ini --log_dir=]
+###### 55382 [http_gate:2 192.168.0.113:7788 rpc:192.168.0.113:5235 http_gate/ ./http_gate --config=config/conf.ini --log_dir=]
 
 ###### k pid kill子服务，会自动拉起
 
@@ -43,7 +42,7 @@
 ######             "type": "go",
 ######             "request": "launch",
 ######             "mode": "debug",
-######             "program": "${workspaceRoot}/src/loader/loader.go",
+######             "program": "${workspaceRoot}/loader/loader.go",
 ######             "args": [
 ######                 "-c=${workspaceRoot}/deploy/config/conf.ini",
 ######                 "-l=${workspaceRoot}/deploy/log",
@@ -56,7 +55,7 @@
 ######             "type": "go",
 ######             "request": "launch",
 ######             "mode": "debug",
-######             "program": "${workspaceRoot}/src/gate/gate.go",
+######             "program": "${workspaceRoot}/gate/gate.go",
 ######             "args": [
 ######                 "-c=${workspaceRoot}/deploy/config/conf.ini",
 ######                 "-l=${workspaceRoot}/deploy/log",
@@ -69,7 +68,7 @@
 ######             "type": "go",
 ######             "request": "launch",
 ######             "mode": "debug",
-######             "program": "${workspaceRoot}/src/http_gate/http_gate.go",
+######             "program": "${workspaceRoot}/http_gate/http_gate.go",
 ######             "args": [
 ######                 "-c=${workspaceRoot}/deploy/config/conf.ini",
 ######                 "-l=${workspaceRoot}/deploy/log",
@@ -82,7 +81,7 @@
 ######             "type": "go",
 ######             "request": "launch",
 ######             "mode": "debug",
-######             "program": "${workspaceRoot}/src/file_server/file_server.go",
+######             "program": "${workspaceRoot}/file_server/file_server.go",
 ######             "args": [
 ######                 "-c=${workspaceRoot}/deploy/config/conf.ini",
 ######                 "-l=${workspaceRoot}/deploy/log",
@@ -97,7 +96,7 @@
 
 ##### file_client 启动
 
-* $ cd src/file_client/loader
+* $ cd file_client/loader
 * $ ./loader
 
 
