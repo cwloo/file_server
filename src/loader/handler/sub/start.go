@@ -139,13 +139,13 @@ func Start() {
 			// 	Exec.Cmd,
 			// 	global.FormatId(id),
 			// 	global.FormatConf(Exec.Conf),
-			// 	global.FormatLogDir(Exec.LogDir),
+			// 	global.FormatLog(Exec.LogDir),
 			// }, " "), " ")
 			args := []string{
 				Exec.Cmd,
 				global.Cmd.Arg.FormatId(id),
 				global.Cmd.Arg.FormatConf(Exec.Conf),
-				global.Cmd.Arg.FormatLogDir(Exec.LogDir),
+				global.Cmd.Arg.FormatLog(Exec.LogDir),
 			}
 			if _, ok := sub.Start(f, args, func(pid int, v ...any) {
 				p := v[0].(*PID)
@@ -160,7 +160,7 @@ func Start() {
 					p.Dir,
 					p.Cmd,
 					global.Cmd.Arg.FormatConf(p.Conf),
-					global.Cmd.Arg.FormatLogDir(p.Log))
+					global.Cmd.Arg.FormatLog(p.Log))
 			}, Monitor, &PID{
 				Id:   id,
 				Name: name,

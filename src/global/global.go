@@ -56,13 +56,11 @@ var (
 )
 
 func init() {
-	Cmd.Arg.ID = "id"
-	Cmd.Arg.CONF = "config"
-	Cmd.Arg.C = "c"
-	Cmd.Arg.LOG = "log_dir"
-	Cmd.Arg.L = "l"
-	Cmd.Arg.SERVER = "server"
-	Cmd.Arg.RPC = "rpc"
+	Cmd.Arg.ID = []string{"id", "i"}
+	Cmd.Arg.CONF = []string{"config", "conf", "c"}
+	Cmd.Arg.LOG = []string{"log_dir", "log-dir", "logdir", "log", "l"}
+	Cmd.Arg.SERVER = []string{"server"}
+	Cmd.Arg.RPC = []string{"rpc"}
 }
 
 // <summary>

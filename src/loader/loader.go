@@ -24,8 +24,8 @@ func main() {
 	// if err != nil {
 	// 	logs.Fatalf("%v", err)
 	// }
-	sub.Start()
 	loader.Run(global.Cmd.ID, global.Name)
+	sub.Start()
 	sub.WaitAll()
 	logs.Debugf("exit...")
 	logs.Close()

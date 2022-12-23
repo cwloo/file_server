@@ -314,21 +314,6 @@ type IniConfig struct {
 	} `json:"prometheus" form:"prometheus"`
 }
 
-func set(name string, cb func(*IniConfig) string, c *IniConfig) {
-	switch global.Name {
-	case "":
-		switch cb {
-		case nil:
-		default:
-			global.Name = cb(c)
-		}
-	}
-	switch global.Name == "" {
-	case true:
-		logs.Fatalf("error")
-	}
-}
-
 func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 	if err := ini.Load(filename); err != nil {
 		logs.Fatalf(err.Error())
@@ -349,7 +334,7 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 	c.Gate.Name = ini.GetString("gate", "name")
 	c.Gate.Http.Name = ini.GetString("gate.http", "name")
 	c.File.Name = ini.GetString("file", "name")
-	set(global.Name, cb, c)
+	setServiceName(cb, c)
 	// Log
 	c.Log.Monitor.Dir = ini.GetString("log", "monitor.dir")
 	c.Log.Monitor.Level = ini.GetInt("log", "monitor.level")
@@ -705,7 +690,7 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 }
 
 func check() {
-	switch global.Name {
+	switch serviceName() {
 	case Config.Monitor.Name:
 		switch global.Cmd.Log_Dir == "" {
 		case true:
@@ -964,7 +949,7 @@ func UpdateConfig(conf string, req *global.UpdateCfgReq) {
 func GetConfig(req *global.GetCfgReq) (*global.GetCfgResp, bool) {
 	dir, level, mode, style, timezone := "", 0, 0, 0, 0
 	lock.RLock()
-	switch global.Name {
+	switch serviceName() {
 	case Config.Monitor.Name:
 		dir = Config.Log.Monitor.Dir
 		level = Config.Log.Monitor.Level

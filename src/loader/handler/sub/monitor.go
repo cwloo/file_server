@@ -23,7 +23,7 @@ func List() {
 			p.Dir,
 			p.Cmd,
 			global.Cmd.Arg.FormatConf(p.Conf),
-			global.Cmd.Arg.FormatLogDir(p.Log))
+			global.Cmd.Arg.FormatLog(p.Log))
 	})
 }
 
@@ -40,7 +40,7 @@ func restart(pid int, v ...any) {
 		p.Dir,
 		p.Cmd,
 		global.Cmd.Arg.FormatConf(p.Conf),
-		global.Cmd.Arg.FormatLogDir(p.Log))
+		global.Cmd.Arg.FormatLog(p.Log))
 	f, err := exec.LookPath(p.Dir + p.Exec)
 	if err != nil {
 		logs.Fatalf(err.Error())
@@ -50,7 +50,7 @@ func restart(pid int, v ...any) {
 		p.Cmd,
 		global.Cmd.Arg.FormatId(p.Id),
 		global.Cmd.Arg.FormatConf(p.Conf),
-		global.Cmd.Arg.FormatLogDir(p.Log),
+		global.Cmd.Arg.FormatLog(p.Log),
 	}
 	sub.Start(f, args, func(pid int, v ...any) {
 		p := v[0].(*PID)
@@ -65,7 +65,7 @@ func restart(pid int, v ...any) {
 			p.Dir,
 			p.Cmd,
 			global.Cmd.Arg.FormatConf(p.Conf),
-			global.Cmd.Arg.FormatLogDir(p.Log))
+			global.Cmd.Arg.FormatLog(p.Log))
 	}, Monitor, p)
 }
 
