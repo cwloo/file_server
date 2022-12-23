@@ -84,9 +84,11 @@ func main() {
 		}
 		args = append(args, file...)
 		// 启动子进程
-		if process.Start(f, args, func(*os.ProcessState, ...any) {
+		if _, ok := process.Start(f, args, func(pid int, v ...any) {
 
-		}) {
+		}, func(*os.ProcessState, ...any) {
+
+		}); ok {
 			id++
 		}
 	}
