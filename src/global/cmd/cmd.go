@@ -120,6 +120,19 @@ func (s *ARG) assertLog() {
 	}
 }
 
+func (s *ARG) assertServer() {
+	switch len(cmd.Arg.SERVER) == 0 {
+	case true:
+		logs.Fatalf("error")
+	}
+}
+
+func (s *ARG) assertRpc() {
+	switch len(cmd.Arg.RPC) == 0 {
+	case true:
+		logs.Fatalf("error")
+	}
+}
 func (s *ARG) formatId(id int) string {
 	s.assertId()
 	return strings.Join([]string{"--", cmd.Arg.ID[0], "=", strconv.Itoa(id)}, "")
@@ -136,12 +149,12 @@ func (s *ARG) formatLog(log string) string {
 }
 
 func (s *ARG) formatServer(server string) string {
-	s.assertLog()
+	s.assertServer()
 	return strings.Join([]string{"--", cmd.Arg.SERVER[0], "=", server}, "")
 }
 
 func (s *ARG) formatRpc(rpc string) string {
-	s.assertLog()
+	s.assertRpc()
 	return strings.Join([]string{"--", cmd.Arg.RPC[0], "=", rpc}, "")
 }
 
