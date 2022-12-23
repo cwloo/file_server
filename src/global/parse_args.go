@@ -33,6 +33,23 @@ func (s *ARG) FormatLog(dir string) string {
 	return strings.Join([]string{"--", Cmd.Arg.LOG[0], "=", dir}, "")
 }
 
+// <summary>
+// CMD
+// <summary>
+type CMD struct {
+	Arg      ARG
+	ID       int
+	Dir      string
+	Conf_Dir string
+	Log_Dir  string
+	Server   string
+	Rpc      string
+}
+
+func (s *CMD) ParseArgs() {
+	s.ID, s.Dir, s.Conf_Dir, s.Log_Dir, s.Server, s.Rpc = s.Arg.parse()
+}
+
 func replaceG(old string) (new string) {
 	new = old
 	exist := true
@@ -111,21 +128,4 @@ func (s *ARG) parse() (id int, dir, conf, log, server, rpc string) {
 		}
 	}
 	return
-}
-
-// <summary>
-// CMD
-// <summary>
-type CMD struct {
-	Arg      ARG
-	ID       int
-	Dir      string
-	Conf_Dir string
-	Log_Dir  string
-	Server   string
-	Rpc      string
-}
-
-func (s *CMD) ParseArgs() {
-	s.ID, s.Dir, s.Conf_Dir, s.Log_Dir, s.Server, s.Rpc = s.Arg.parse()
 }
