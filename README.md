@@ -14,19 +14,19 @@
 
 ##### file_server 启动
 
-* $ cd file_server/loader
-* $ ./loader --config=uploader/deploy/config/conf.ini
+* $ cd src/loader
+* $ ./loader --config=deploy/config/conf.ini
 
 ###### c 清屏指令
 
 ###### l 查看子服务
 
-###### 55383 [file:0 192.168.0.113:8086 rpc:127.0.0.1:5236 uploader/src/file_server/ ./file_server --config=uploader/src/config/conf.ini --log_dir=]
-###### 55384 [file:1 192.168.0.113:8087 rpc:127.0.0.1:5237 uploader/src/file_server/ ./file_server --config=uploader/src/config/conf.ini --log_dir=]
-###### 55385 [file:2 192.168.0.113:8089 rpc:127.0.0.1:5238 uploader/src/file_server/ ./file_server --config=uploader/src/config/conf.ini --log_dir=]
-###### 55386 [file:3 192.168.0.113:8090 rpc:127.0.0.1:5239 uploader/src/file_server/ ./file_server --config=uploader/src/config/conf.ini --log_dir=]
-###### 55381 [gate.http:0 192.168.0.113:7787 rpc:127.0.0.1:5233 uploader/src/http_gate/ ./http_gate --config=uploader/src/config/conf.ini --log_dir=]
-###### 55382 [gate.http:1 192.168.0.113:7788 rpc:127.0.0.1:5235 uploader/src/http_gate/ ./http_gate --config=uploader/src/config/conf.ini --log_dir=]
+###### 55383 [file:0 192.168.0.113:8086 rpc:127.0.0.1:5236 src/file_server/ ./file_server --config=src/config/conf.ini --log_dir=]
+###### 55384 [file:1 192.168.0.113:8087 rpc:127.0.0.1:5237 src/file_server/ ./file_server --config=src/config/conf.ini --log_dir=]
+###### 55385 [file:2 192.168.0.113:8089 rpc:127.0.0.1:5238 src/file_server/ ./file_server --config=src/config/conf.ini --log_dir=]
+###### 55386 [file:3 192.168.0.113:8090 rpc:127.0.0.1:5239 src/file_server/ ./file_server --config=src/config/conf.ini --log_dir=]
+###### 55381 [gate.http:0 192.168.0.113:7787 rpc:127.0.0.1:5233 src/http_gate/ ./http_gate --config=src/config/conf.ini --log_dir=]
+###### 55382 [gate.http:1 192.168.0.113:7788 rpc:127.0.0.1:5235 src/http_gate/ ./http_gate --config=src/config/conf.ini --log_dir=]
 
 
 ###### k pid kill子服务，会自动拉起
@@ -97,7 +97,7 @@
 
 ##### file_client 启动
 
-* $ cd file_client/loader
+* $ cd src/file_client/loader
 * $ ./loader
 
 
