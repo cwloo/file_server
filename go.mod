@@ -4,10 +4,12 @@ go 1.19
 
 require (
 	github.com/Shopify/sarama v1.37.2
+	github.com/coreos/etcd v3.3.27+incompatible
 	github.com/cwloo/gonet v0.0.0
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/golang/protobuf v1.5.2
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.14.0
 	go.etcd.io/etcd/api/v3 v3.5.6
 	go.etcd.io/etcd/client/v3 v3.5.6
@@ -50,7 +52,6 @@ require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
@@ -75,6 +76,6 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )
 
-// replace github.com/cwloo/gonet v0.0.0 => /mnt/hgfs/gonet
+replace github.com/cwloo/gonet v0.0.0 => /mnt/hgfs/gonet
 
-replace github.com/cwloo/gonet v0.0.0 => E:\winshare\gonet
+// replace github.com/cwloo/gonet v0.0.0 => E:\winshare\gonet

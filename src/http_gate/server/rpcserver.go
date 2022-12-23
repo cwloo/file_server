@@ -87,7 +87,7 @@ func (s *RPCServer) Run(id int, name string) {
 	pb_httpgate.RegisterHttpGateServer(server, s)
 
 	logs.Warnf("%v:%v etcd%v schema=%v node=%v:%v:%v", name, id, s.etcdAddr, s.etcdSchema, s.node, s.addr, s.port)
-	err = getcdv3.RegisterEtcd4Unique(s.etcdSchema, strings.Join(s.etcdAddr, ","), s.addr, s.port, s.node, 10)
+	err = getcdv3.RegisterEtcd(s.etcdSchema, strings.Join(s.etcdAddr, ","), s.addr, s.port, s.node, 10)
 	if err != nil {
 		errMsg := strings.Join([]string{s.etcdSchema, " ", strings.Join(s.etcdAddr, ","), " ", s.addr, ":", strconv.Itoa(s.port), " ", s.node, " ", err.Error()}, "")
 		logs.Fatalf(errMsg)

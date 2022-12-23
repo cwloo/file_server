@@ -3,11 +3,13 @@ package file_server
 import (
 	"context"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 
 	config "github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/file_server/handler"
+	"github.com/cwloo/uploader/src/global"
 
 	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/core/net/conn"
@@ -87,7 +89,7 @@ func (s *RPCServer) Run(id int, name string) {
 	pb_file.RegisterFileServer(server, s)
 
 	logs.Warnf("%v:%v etcd%v schema=%v node=%v:%v:%v", name, id, s.etcdAddr, s.etcdSchema, s.node, s.addr, s.port)
-	err = getcdv3.RegisterEtcd4Unique(s.etcdSchema, strings.Join(s.etcdAddr, ","), s.addr, s.port, s.node, 10)
+	err = getcdv3.RegisterEtcd(s.etcdSchema, strings.Join(s.etcdAddr, ","), s.addr, s.port, s.node, 10)
 	if err != nil {
 		errMsg := strings.Join([]string{s.etcdSchema, " ", strings.Join(s.etcdAddr, ","), " ", s.addr, ":", strconv.Itoa(s.port), " ", s.node, " ", err.Error()}, "")
 		logs.Fatalf(errMsg)
@@ -102,6 +104,12 @@ func (s *RPCServer) Run(id int, name string) {
 }
 
 func (r *RPCServer) GetFileServer(_ context.Context, req *pb_file.FileServerReq) (*pb_file.FileServerResp, error) {
-	logs.Debugf("")
+	logs.Debugf("%v [%v:%v %v:%v rpc:%v:%v] %+v",
+		os.Getpid(),
+		global.Name,
+		cmd.Id()+1,
+		config.Config.File.Ip, config.Config.File.Port[cmd.Id()],
+		config.Config.Rpc.Ip, config.Config.Rpc.File.Port[cmd.Id()],
+		req)
 	return handler.QueryFileServer(req.Md5)
 }

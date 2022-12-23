@@ -152,7 +152,7 @@ func Start() {
 				logs.DebugfP("%v [%v:%v %v:%v rpc:%v:%v %v %v %v %v]",
 					pid,
 					p.Name,
-					p.Id,
+					p.Id+1,
 					p.Server.Ip,
 					p.Server.Port,
 					p.Server.Rpc.Ip,

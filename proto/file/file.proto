@@ -2,15 +2,32 @@ syntax = "proto3";
 option go_package = "uploader/proto/file;pb_file";
 package file;
 
+message CommonResp {
+  string name = 1;
+  int32 id = 2;
+  message Server {
+      string ip = 1;
+      int32 port = 2;
+    message Rpc {
+      string ip = 1;
+      int32 port = 2;
+    }
+    Rpc rpc = 3;
+  }
+  Server server = 3;
+  int32 pid = 4;
+}
+
 message FileServerReq {
   string md5 = 1;
 }
 
 message FileServerResp {
-  string md5 = 1;
-  string dns = 2;
-  int32  errCode = 3;
-  string errMsg = 4;
+  CommonResp resp = 1;
+  string md5 = 2;
+  string dns = 3;
+  int32  errCode = 4;
+  string errMsg = 5;
 }
 
 service File {

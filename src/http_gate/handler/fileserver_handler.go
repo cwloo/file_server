@@ -17,17 +17,13 @@ import (
 )
 
 func QueryFileServer(md5 string) (*global.FileServerResp, bool) {
-	grpcCons := getcdv3.GetDefaultConn4Unique(config.Config.Etcd.Schema, strings.Join(config.Config.Etcd.Addr, ","),
-		config.Config.Rpc.File.Node, config.Config.Rpc.File.Port)
+	// v := getcdv3.GetDefaultConn(config.Config.Etcd.Schema, strings.Join(config.Config.Etcd.Addr, ","), config.Config.Rpc.File.Node)
+	grpcCons := getcdv3.GetDefaultConn4Unique(config.Config.Etcd.Schema, strings.Join(config.Config.Etcd.Addr, ","), config.Config.Rpc.File.Node)
 	logs.Infof("%v grpcCons.size=%v", md5, len(grpcCons))
 	for _, v := range grpcCons {
-		// if v.Target() == global.RpcServer.Target() {
-		// 	continue
-		// }
-		logs.Warnf("%v", v.Target())
 		client := pb_file.NewFileClient(v)
 		req := &pb_file.FileServerReq{
-			Md5: "",
+			Md5: md5,
 		}
 		resp, err := client.GetFileServer(context.Background(), req)
 		if err != nil {
@@ -35,17 +31,33 @@ func QueryFileServer(md5 string) (*global.FileServerResp, bool) {
 			continue
 		}
 		if resp.ErrCode != 0 {
-			logs.Errorf("%v %v", resp.ErrCode, resp.ErrMsg)
+			logs.Errorf("%v %v [%v:%v %v:%v rpc:%v:%v]", v.Target(),
+				resp.Resp.Pid,
+				resp.Resp.Name,
+				resp.Resp.Id,
+				resp.Resp.Server.Ip, resp.Resp.Server.Port,
+				resp.Resp.Server.Rpc.Ip, resp.Resp.Server.Rpc.Port)
 			continue
 		}
-		if resp.Dns != "" {
+		if resp.ErrCode == 0 {
+			logs.Infof("%v %v [%v:%v %v:%v rpc:%v:%v]", v.Target(),
+				resp.Resp.Pid,
+				resp.Resp.Name,
+				resp.Resp.Id,
+				resp.Resp.Server.Ip, resp.Resp.Server.Port,
+				resp.Resp.Server.Rpc.Ip, resp.Resp.Server.Rpc.Port)
 			return &global.FileServerResp{
 				Md5:     md5,
 				Dns:     resp.Dns,
 				ErrCode: 0,
 				ErrMsg:  "ok"}, true
 		}
-		logs.Debugf("%v", resp.String())
+		logs.Debugf("%v %v [%v:%v %v:%v rpc:%v:%v]", v.Target(),
+			resp.Resp.Pid,
+			resp.Resp.Name,
+			resp.Resp.Id,
+			resp.Resp.Server.Ip, resp.Resp.Server.Port,
+			resp.Resp.Server.Rpc.Ip, resp.Resp.Server.Rpc.Port)
 	}
 	return &global.FileServerResp{
 		Md5:     md5,
