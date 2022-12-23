@@ -10,10 +10,11 @@ import (
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/global"
+	"github.com/cwloo/uploader/src/global/cmd"
 )
 
 func UpdateCfg(req *global.UpdateCfgReq) (*global.UpdateCfgResp, bool) {
-	config.UpdateConfig(global.Cmd.Conf, req)
+	config.UpdateConfig(cmd.Conf(), req)
 	return &global.UpdateCfgResp{
 		ErrCode: 0,
 		ErrMsg:  "ok"}, true

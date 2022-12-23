@@ -5,14 +5,15 @@ import (
 	"github.com/cwloo/gonet/utils"
 	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/global"
+	"github.com/cwloo/uploader/src/global/cmd"
 	"github.com/cwloo/uploader/src/loader/handler"
 	"github.com/cwloo/uploader/src/loader/handler/sub"
 	loader "github.com/cwloo/uploader/src/loader/server"
 )
 
 func main() {
-	global.Cmd.ParseArgs()
-	config.InitMonitorConfig(global.Cmd.Conf)
+	cmd.ParseArgs()
+	config.InitMonitorConfig(cmd.Conf())
 	logs.SetTimezone(logs.TimeZone(config.Config.Log.Monitor.Timezone))
 	logs.SetMode(logs.Mode(config.Config.Log.Monitor.Mode))
 	logs.SetStyle(logs.Style(config.Config.Log.Monitor.Style))
@@ -24,7 +25,7 @@ func main() {
 	// if err != nil {
 	// 	logs.Fatalf("%v", err)
 	// }
-	loader.Run(global.Cmd.ID, global.Name)
+	loader.Run(cmd.Id(), global.Name)
 	sub.Start()
 	sub.WaitAll()
 	logs.Debugf("exit...")

@@ -50,18 +50,9 @@ var (
 
 var (
 	Name      string
-	Cmd       CMD
 	Server    Router
 	RpcServer RPCServer
 )
-
-func init() {
-	Cmd.Arg.ID = []string{"id", "i"}
-	Cmd.Arg.CONF = []string{"config", "conf", "c"}
-	Cmd.Arg.LOG = []string{"log_dir", "log-dir", "logdir", "log", "l"}
-	Cmd.Arg.SERVER = []string{"server"}
-	Cmd.Arg.RPC = []string{"rpc"}
-}
 
 // <summary>
 // ErrorMsg

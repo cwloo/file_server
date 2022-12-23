@@ -10,11 +10,12 @@ import (
 	"github.com/cwloo/uploader/src/file_server/handler"
 	file_server "github.com/cwloo/uploader/src/file_server/server"
 	"github.com/cwloo/uploader/src/global"
+	"github.com/cwloo/uploader/src/global/cmd"
 )
 
 func main() {
-	global.Cmd.ParseArgs()
-	config.InitFileConfig(global.Cmd.Conf)
+	cmd.ParseArgs()
+	config.InitFileConfig(cmd.Conf())
 	logs.SetTimezone(logs.TimeZone(config.Config.Log.File.Timezone))
 	logs.SetMode(logs.Mode(config.Config.Log.File.Mode))
 	logs.SetStyle(logs.Style(config.Config.Log.File.Style))
@@ -31,6 +32,6 @@ func main() {
 	task.After(time.Duration(config.Config.Interval)*time.Second, cb.NewFunctor00(func() {
 		handler.ReadConfig()
 	}))
-	file_server.Run(global.Cmd.ID, global.Name)
+	file_server.Run(cmd.Id(), global.Name)
 	logs.Close()
 }

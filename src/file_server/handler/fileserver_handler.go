@@ -7,6 +7,7 @@ import (
 	pb_file "github.com/cwloo/uploader/proto/file"
 	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/global"
+	"github.com/cwloo/uploader/src/global/cmd"
 )
 
 func QueryFileServer(md5 string) (*pb_file.FileServerResp, error) {
@@ -15,7 +16,7 @@ func QueryFileServer(md5 string) (*pb_file.FileServerResp, error) {
 	case false:
 		return &pb_file.FileServerResp{
 			Md5:     md5,
-			Dns:     strings.Join([]string{config.Config.File.Ip, strconv.Itoa(config.Config.File.Port[global.Cmd.ID])}, ""),
+			Dns:     strings.Join([]string{config.Config.File.Ip, strconv.Itoa(config.Config.File.Port[cmd.Cmd.ID])}, ""),
 			ErrCode: 0,
 			ErrMsg:  "ok"}, nil
 	}

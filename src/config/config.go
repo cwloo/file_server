@@ -11,6 +11,7 @@ import (
 	"github.com/cwloo/gonet/utils"
 
 	"github.com/cwloo/uploader/src/global"
+	"github.com/cwloo/uploader/src/global/cmd"
 	"github.com/cwloo/uploader/src/global/tg_bot"
 )
 
@@ -692,7 +693,7 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 func check() {
 	switch serviceName() {
 	case Config.Monitor.Name:
-		switch global.Cmd.Log == "" {
+		switch cmd.Log() == "" {
 		case true:
 			switch Config.Log.Monitor.Dir == "" {
 			case true:
@@ -700,7 +701,7 @@ func check() {
 			default:
 			}
 		default:
-			Config.Log.Monitor.Dir = global.Cmd.Log
+			Config.Log.Monitor.Dir = cmd.Log()
 		}
 		switch Config.Log.Monitor.Timezone != int(logs.GetTimeZone()) {
 		case true:
@@ -719,7 +720,7 @@ func check() {
 			logs.SetLevel(logs.Level(Config.Log.Monitor.Level))
 		}
 	case Config.Gate.Name:
-		switch global.Cmd.Log == "" {
+		switch cmd.Log() == "" {
 		case true:
 			switch Config.Log.Gate.Dir == "" {
 			case true:
@@ -727,7 +728,7 @@ func check() {
 			default:
 			}
 		default:
-			Config.Log.Gate.Dir = global.Cmd.Log
+			Config.Log.Gate.Dir = cmd.Log()
 		}
 		switch Config.Log.Gate.Timezone != int(logs.GetTimeZone()) {
 		case true:
@@ -746,7 +747,7 @@ func check() {
 			logs.SetLevel(logs.Level(Config.Log.Gate.Level))
 		}
 	case Config.Gate.Http.Name:
-		switch global.Cmd.Log == "" {
+		switch cmd.Log() == "" {
 		case true:
 			switch Config.Log.Gate.Http.Dir == "" {
 			case true:
@@ -754,7 +755,7 @@ func check() {
 			default:
 			}
 		default:
-			Config.Log.Gate.Http.Dir = global.Cmd.Log
+			Config.Log.Gate.Http.Dir = cmd.Log()
 		}
 		switch Config.Log.Gate.Http.Timezone != int(logs.GetTimeZone()) {
 		case true:
@@ -773,7 +774,7 @@ func check() {
 			logs.SetLevel(logs.Level(Config.Log.Gate.Http.Level))
 		}
 	case Config.File.Name:
-		switch global.Cmd.Log == "" {
+		switch cmd.Log() == "" {
 		case true:
 			switch Config.Log.File.Dir == "" {
 			case true:
@@ -781,7 +782,7 @@ func check() {
 			default:
 			}
 		default:
-			Config.Log.File.Dir = global.Cmd.Log
+			Config.Log.File.Dir = cmd.Log()
 		}
 		switch Config.Log.File.Timezone != int(logs.GetTimeZone()) {
 		case true:

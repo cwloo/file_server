@@ -6,7 +6,7 @@ import (
 
 	"github.com/cwloo/gonet/core/base/sub"
 	"github.com/cwloo/gonet/logs"
-	"github.com/cwloo/uploader/src/global"
+	"github.com/cwloo/uploader/src/global/cmd"
 )
 
 func List() {
@@ -22,8 +22,8 @@ func List() {
 			p.Server.Rpc.Port,
 			p.Dir,
 			p.Cmd,
-			global.Cmd.Arg.FormatConf(p.Conf),
-			global.Cmd.Arg.FormatLog(p.Log))
+			cmd.FormatConf(p.Conf),
+			cmd.FormatLog(p.Log))
 	})
 }
 
@@ -39,8 +39,8 @@ func restart(pid int, v ...any) {
 		p.Server.Rpc.Port,
 		p.Dir,
 		p.Cmd,
-		global.Cmd.Arg.FormatConf(p.Conf),
-		global.Cmd.Arg.FormatLog(p.Log))
+		cmd.FormatConf(p.Conf),
+		cmd.FormatLog(p.Log))
 	f, err := exec.LookPath(p.Dir + p.Exec)
 	if err != nil {
 		logs.Fatalf(err.Error())
@@ -48,9 +48,9 @@ func restart(pid int, v ...any) {
 	}
 	args := []string{
 		p.Cmd,
-		global.Cmd.Arg.FormatId(p.Id),
-		global.Cmd.Arg.FormatConf(p.Conf),
-		global.Cmd.Arg.FormatLog(p.Log),
+		cmd.FormatId(p.Id),
+		cmd.FormatConf(p.Conf),
+		cmd.FormatLog(p.Log),
 	}
 	sub.Start(f, args, func(pid int, v ...any) {
 		p := v[0].(*PID)
@@ -64,8 +64,8 @@ func restart(pid int, v ...any) {
 			p.Server.Rpc.Port,
 			p.Dir,
 			p.Cmd,
-			global.Cmd.Arg.FormatConf(p.Conf),
-			global.Cmd.Arg.FormatLog(p.Log))
+			cmd.FormatConf(p.Conf),
+			cmd.FormatLog(p.Log))
 	}, Monitor, p)
 }
 

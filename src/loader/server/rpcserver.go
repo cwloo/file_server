@@ -7,12 +7,12 @@ import (
 	"strings"
 
 	config "github.com/cwloo/uploader/src/config"
-	"github.com/cwloo/uploader/src/global"
 
 	"github.com/cwloo/gonet/core/net/conn"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
 	pb_monitor "github.com/cwloo/uploader/proto/monitor"
+	"github.com/cwloo/uploader/src/global/cmd"
 	getcdv3 "github.com/cwloo/uploader/src/global/pkg/grpc-etcdv3/getcdv3"
 
 	"google.golang.org/grpc"
@@ -55,7 +55,7 @@ func (s *RPCServer) Target() string {
 }
 
 func (s *RPCServer) Run(id int, name string) {
-	switch global.Cmd.Rpc {
+	switch cmd.Rpc() {
 	case "":
 		if id >= len(config.Config.Rpc.Monitor.Port) {
 			logs.Fatalf("error id=%v Rpc.Monitor.Port.size=%v", id, len(config.Config.Rpc.Monitor.Port))
@@ -63,7 +63,7 @@ func (s *RPCServer) Run(id int, name string) {
 		s.addr = config.Config.Rpc.Ip
 		s.port = config.Config.Rpc.Monitor.Port[id]
 	default:
-		addr := conn.ParseAddress(global.Cmd.Rpc)
+		addr := conn.ParseAddress(cmd.Rpc())
 		switch addr {
 		case nil:
 			logs.Fatalf("error")

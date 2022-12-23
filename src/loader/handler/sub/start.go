@@ -8,7 +8,7 @@ import (
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
 	"github.com/cwloo/uploader/src/config"
-	"github.com/cwloo/uploader/src/global"
+	"github.com/cwloo/uploader/src/global/cmd"
 )
 
 // <summary>
@@ -33,7 +33,7 @@ type PID struct {
 }
 
 func Start() {
-	p, cmd, Ext := utils.G()
+	p, Cmd, Ext := utils.G()
 	subs := map[string]struct {
 		Num    int
 		Cmd    string
@@ -70,11 +70,11 @@ func Start() {
 				},
 			},
 			Num:  config.Config.Sub.Gate.Num,
-			Cmd:  strings.Join([]string{cmd, config.Config.Sub.Gate.Exec, Ext}, ""),
-			Dir:  strings.Join([]string{global.Cmd.Dir, p, config.Config.Sub.Gate.Dir, p}, ""),
+			Cmd:  strings.Join([]string{Cmd, config.Config.Sub.Gate.Exec, Ext}, ""),
+			Dir:  strings.Join([]string{cmd.Dir(), p, config.Config.Sub.Gate.Dir, p}, ""),
 			Exec: config.Config.Sub.Gate.Exec + Ext,
-			Conf: global.Cmd.Conf,
-			Log:  global.Cmd.Log},
+			Conf: cmd.Conf(),
+			Log:  cmd.Log()},
 		config.Config.Gate.Http.Name: {
 			Server: struct {
 				Ip   string
@@ -95,11 +95,11 @@ func Start() {
 				},
 			},
 			Num:  config.Config.Sub.Gate.Http.Num,
-			Cmd:  strings.Join([]string{cmd, config.Config.Sub.Gate.Http.Exec, Ext}, ""),
-			Dir:  strings.Join([]string{global.Cmd.Dir, p, config.Config.Sub.Gate.Http.Dir, p}, ""),
+			Cmd:  strings.Join([]string{Cmd, config.Config.Sub.Gate.Http.Exec, Ext}, ""),
+			Dir:  strings.Join([]string{cmd.Dir(), p, config.Config.Sub.Gate.Http.Dir, p}, ""),
 			Exec: config.Config.Sub.Gate.Http.Exec + Ext,
-			Conf: global.Cmd.Conf,
-			Log:  global.Cmd.Log},
+			Conf: cmd.Conf(),
+			Log:  cmd.Log()},
 		config.Config.File.Name: {
 			Server: struct {
 				Ip   string
@@ -120,11 +120,11 @@ func Start() {
 				},
 			},
 			Num:  config.Config.Sub.File.Num,
-			Cmd:  strings.Join([]string{cmd, config.Config.Sub.File.Exec, Ext}, ""),
-			Dir:  strings.Join([]string{global.Cmd.Dir, p, config.Config.Sub.File.Dir, p}, ""),
+			Cmd:  strings.Join([]string{Cmd, config.Config.Sub.File.Exec, Ext}, ""),
+			Dir:  strings.Join([]string{cmd.Dir(), p, config.Config.Sub.File.Dir, p}, ""),
 			Exec: config.Config.Sub.File.Exec + Ext,
-			Conf: global.Cmd.Conf,
-			Log:  global.Cmd.Log},
+			Conf: cmd.Conf(),
+			Log:  cmd.Log()},
 	}
 	n := 0
 	for name, Exec := range subs {
@@ -143,9 +143,9 @@ func Start() {
 			// }, " "), " ")
 			args := []string{
 				Exec.Cmd,
-				global.Cmd.Arg.FormatId(id),
-				global.Cmd.Arg.FormatConf(Exec.Conf),
-				global.Cmd.Arg.FormatLog(Exec.Log),
+				cmd.FormatId(id),
+				cmd.FormatConf(Exec.Conf),
+				cmd.FormatLog(Exec.Log),
 			}
 			if _, ok := sub.Start(f, args, func(pid int, v ...any) {
 				p := v[0].(*PID)
@@ -159,8 +159,8 @@ func Start() {
 					p.Server.Rpc.Port,
 					p.Dir,
 					p.Cmd,
-					global.Cmd.Arg.FormatConf(p.Conf),
-					global.Cmd.Arg.FormatLog(p.Log))
+					cmd.FormatConf(p.Conf),
+					cmd.FormatLog(p.Log))
 			}, Monitor, &PID{
 				Id:   id,
 				Name: name,

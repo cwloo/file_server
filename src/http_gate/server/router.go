@@ -7,7 +7,7 @@ import (
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
 	"github.com/cwloo/uploader/src/config"
-	"github.com/cwloo/uploader/src/global"
+	"github.com/cwloo/uploader/src/global/cmd"
 	"github.com/cwloo/uploader/src/global/httpsrv"
 	"github.com/cwloo/uploader/src/http_gate/handler"
 )
@@ -24,7 +24,7 @@ func (s *Router) Server() httpsrv.HttpServer {
 }
 
 func (s *Router) Run(id int, name string) {
-	switch global.Cmd.Server {
+	switch cmd.Server() {
 	case "":
 		if id >= len(config.Config.Gate.Http.Port) {
 			logs.Fatalf("error id=%v Gate.Http.Port.size=%v", id, len(config.Config.Gate.Http.Port))
@@ -34,7 +34,7 @@ func (s *Router) Run(id int, name string) {
 			config.Config.Gate.Http.Port[id],
 			config.Config.Gate.Http.IdleTimeout)
 	default:
-		addr := conn.ParseAddress(global.Cmd.Server)
+		addr := conn.ParseAddress(cmd.Server())
 		switch addr {
 		case nil:
 			logs.Fatalf("error")
