@@ -3,13 +3,13 @@ package file_server
 import (
 	"net/http"
 
+	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/core/net/conn"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
 	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/file_server/handler"
 	"github.com/cwloo/uploader/src/file_server/handler/uploader"
-	"github.com/cwloo/uploader/src/global/cmd"
 	"github.com/cwloo/uploader/src/global/httpsrv"
 )
 
@@ -25,7 +25,7 @@ func (s *Router) Server() httpsrv.HttpServer {
 }
 
 func (s *Router) Run(id int, name string) {
-	switch cmd.Server() {
+	switch cmd.Arg("server") {
 	case "":
 		if id >= len(config.Config.File.Port) {
 			logs.Fatalf("error id=%v File.Port.size=%v", id, len(config.Config.File.Port))
@@ -35,7 +35,7 @@ func (s *Router) Run(id int, name string) {
 			config.Config.File.Port[id],
 			config.Config.File.IdleTimeout)
 	default:
-		addr := conn.ParseAddress(cmd.Server())
+		addr := conn.ParseAddress(cmd.Arg("server"))
 		switch addr {
 		case nil:
 			logs.Fatalf("error")

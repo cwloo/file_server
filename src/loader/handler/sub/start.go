@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/cwloo/gonet/core/base/sub"
+	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
 	"github.com/cwloo/uploader/src/config"
-	"github.com/cwloo/uploader/src/global/cmd"
 )
 
 // <summary>

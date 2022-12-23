@@ -5,8 +5,8 @@ import (
 	"os/exec"
 
 	"github.com/cwloo/gonet/core/base/sub"
+	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/logs"
-	"github.com/cwloo/uploader/src/global/cmd"
 )
 
 func List() {

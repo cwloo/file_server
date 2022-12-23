@@ -3,10 +3,10 @@ package handler
 import (
 	"time"
 
+	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/core/base/task"
 	"github.com/cwloo/gonet/core/cb"
 	"github.com/cwloo/uploader/src/config"
-	"github.com/cwloo/uploader/src/global/cmd"
 )
 
 func ReadConfig() {

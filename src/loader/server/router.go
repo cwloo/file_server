@@ -3,11 +3,11 @@ package loader
 import (
 	"net/http"
 
+	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/core/net/conn"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
 	"github.com/cwloo/uploader/src/config"
-	"github.com/cwloo/uploader/src/global/cmd"
 	"github.com/cwloo/uploader/src/global/httpsrv"
 	"github.com/cwloo/uploader/src/loader/handler"
 )
@@ -24,7 +24,7 @@ func (s *Router) Server() httpsrv.HttpServer {
 }
 
 func (s *Router) Run(id int, name string) {
-	switch cmd.Server() {
+	switch cmd.Arg("server") {
 	case "":
 		if id >= len(config.Config.Monitor.Port) {
 			logs.Fatalf("error id=%v Monitor.Port.size=%v", id, len(config.Config.Monitor.Port))
@@ -34,7 +34,7 @@ func (s *Router) Run(id int, name string) {
 			config.Config.Monitor.Port[id],
 			config.Config.Monitor.IdleTimeout)
 	default:
-		addr := conn.ParseAddress(cmd.Server())
+		addr := conn.ParseAddress(cmd.Arg("server"))
 		switch addr {
 		case nil:
 			logs.Fatalf("error")

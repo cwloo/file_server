@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/core/base/task"
 	"github.com/cwloo/gonet/core/cb"
 	"github.com/cwloo/gonet/logs"
@@ -10,8 +11,16 @@ import (
 	"github.com/cwloo/uploader/src/file_server/handler"
 	file_server "github.com/cwloo/uploader/src/file_server/server"
 	"github.com/cwloo/uploader/src/global"
-	"github.com/cwloo/uploader/src/global/cmd"
 )
+
+func init() {
+	cmd.InitArgs(func(arg *cmd.ARG) {
+		arg.CONF.Dir = "config"
+		arg.CONF.Name = "conf.ini"
+		arg.Append("server", "server")
+		arg.Append("rpc", "rpc")
+	})
+}
 
 func main() {
 	cmd.ParseArgs()

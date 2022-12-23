@@ -4,10 +4,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/cwloo/gonet/core/base/sys/cmd"
 	pb_file "github.com/cwloo/uploader/proto/file"
 	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/global"
-	"github.com/cwloo/uploader/src/global/cmd"
 )
 
 func QueryFileServer(md5 string) (*pb_file.FileServerResp, error) {

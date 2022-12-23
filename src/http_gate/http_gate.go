@@ -1,12 +1,21 @@
 package main
 
 import (
+	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/global"
-	"github.com/cwloo/uploader/src/global/cmd"
 	http_gate "github.com/cwloo/uploader/src/http_gate/server"
 )
+
+func init() {
+	cmd.InitArgs(func(arg *cmd.ARG) {
+		arg.CONF.Dir = "config"
+		arg.CONF.Name = "conf.ini"
+		arg.Append("server", "server")
+		arg.Append("rpc", "rpc")
+	})
+}
 
 func main() {
 	cmd.ParseArgs()

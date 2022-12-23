@@ -1,15 +1,24 @@
 package main
 
 import (
+	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
 	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/global"
-	"github.com/cwloo/uploader/src/global/cmd"
 	"github.com/cwloo/uploader/src/loader/handler"
 	"github.com/cwloo/uploader/src/loader/handler/sub"
 	loader "github.com/cwloo/uploader/src/loader/server"
 )
+
+func init() {
+	cmd.InitArgs(func(arg *cmd.ARG) {
+		arg.CONF.Dir = "config"
+		arg.CONF.Name = "conf.ini"
+		arg.Append("server", "server")
+		arg.Append("rpc", "rpc")
+	})
+}
 
 func main() {
 	cmd.ParseArgs()
@@ -23,7 +32,7 @@ func main() {
 	}()
 	// dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	// if err != nil {
-	// 	logs.Fatalf("%v", err)
+	// 	logs.Fatalf(err.Error())
 	// }
 	loader.Run(cmd.Id(), global.Name)
 	sub.Start()
