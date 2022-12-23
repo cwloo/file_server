@@ -14,7 +14,7 @@ import (
 
 func main() {
 	global.Cmd.ParseArgs()
-	config.InitFileConfig(global.Cmd.Conf_Dir)
+	config.InitFileConfig(global.Cmd.Conf)
 	logs.SetTimezone(logs.TimeZone(config.Config.Log.File.Timezone))
 	logs.SetMode(logs.Mode(config.Config.Log.File.Mode))
 	logs.SetStyle(logs.Style(config.Config.Log.File.Style))

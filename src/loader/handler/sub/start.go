@@ -40,7 +40,7 @@ func Start() {
 		Dir    string
 		Exec   string
 		Conf   string
-		LogDir string
+		Log    string
 		Server struct {
 			Ip   string
 			Port []int
@@ -69,12 +69,12 @@ func Start() {
 					Port: config.Config.Rpc.Gate.Port,
 				},
 			},
-			Num:    config.Config.Sub.Gate.Num,
-			Cmd:    strings.Join([]string{cmd, config.Config.Sub.Gate.Exec, Ext}, ""),
-			Dir:    strings.Join([]string{global.Cmd.Dir, p, config.Config.Sub.Gate.Dir, p}, ""),
-			Exec:   config.Config.Sub.Gate.Exec + Ext,
-			Conf:   global.Cmd.Conf_Dir,
-			LogDir: global.Cmd.Log_Dir},
+			Num:  config.Config.Sub.Gate.Num,
+			Cmd:  strings.Join([]string{cmd, config.Config.Sub.Gate.Exec, Ext}, ""),
+			Dir:  strings.Join([]string{global.Cmd.Dir, p, config.Config.Sub.Gate.Dir, p}, ""),
+			Exec: config.Config.Sub.Gate.Exec + Ext,
+			Conf: global.Cmd.Conf,
+			Log:  global.Cmd.Log},
 		config.Config.Gate.Http.Name: {
 			Server: struct {
 				Ip   string
@@ -94,12 +94,12 @@ func Start() {
 					Port: config.Config.Rpc.Gate.Http.Port,
 				},
 			},
-			Num:    config.Config.Sub.Gate.Http.Num,
-			Cmd:    strings.Join([]string{cmd, config.Config.Sub.Gate.Http.Exec, Ext}, ""),
-			Dir:    strings.Join([]string{global.Cmd.Dir, p, config.Config.Sub.Gate.Http.Dir, p}, ""),
-			Exec:   config.Config.Sub.Gate.Http.Exec + Ext,
-			Conf:   global.Cmd.Conf_Dir,
-			LogDir: global.Cmd.Log_Dir},
+			Num:  config.Config.Sub.Gate.Http.Num,
+			Cmd:  strings.Join([]string{cmd, config.Config.Sub.Gate.Http.Exec, Ext}, ""),
+			Dir:  strings.Join([]string{global.Cmd.Dir, p, config.Config.Sub.Gate.Http.Dir, p}, ""),
+			Exec: config.Config.Sub.Gate.Http.Exec + Ext,
+			Conf: global.Cmd.Conf,
+			Log:  global.Cmd.Log},
 		config.Config.File.Name: {
 			Server: struct {
 				Ip   string
@@ -119,12 +119,12 @@ func Start() {
 					Port: config.Config.Rpc.File.Port,
 				},
 			},
-			Num:    config.Config.Sub.File.Num,
-			Cmd:    strings.Join([]string{cmd, config.Config.Sub.File.Exec, Ext}, ""),
-			Dir:    strings.Join([]string{global.Cmd.Dir, p, config.Config.Sub.File.Dir, p}, ""),
-			Exec:   config.Config.Sub.File.Exec + Ext,
-			Conf:   global.Cmd.Conf_Dir,
-			LogDir: global.Cmd.Log_Dir},
+			Num:  config.Config.Sub.File.Num,
+			Cmd:  strings.Join([]string{cmd, config.Config.Sub.File.Exec, Ext}, ""),
+			Dir:  strings.Join([]string{global.Cmd.Dir, p, config.Config.Sub.File.Dir, p}, ""),
+			Exec: config.Config.Sub.File.Exec + Ext,
+			Conf: global.Cmd.Conf,
+			Log:  global.Cmd.Log},
 	}
 	n := 0
 	for name, Exec := range subs {
@@ -139,13 +139,13 @@ func Start() {
 			// 	Exec.Cmd,
 			// 	global.FormatId(id),
 			// 	global.FormatConf(Exec.Conf),
-			// 	global.FormatLog(Exec.LogDir),
+			// 	global.FormatLog(Exec.Log),
 			// }, " "), " ")
 			args := []string{
 				Exec.Cmd,
 				global.Cmd.Arg.FormatId(id),
 				global.Cmd.Arg.FormatConf(Exec.Conf),
-				global.Cmd.Arg.FormatLog(Exec.LogDir),
+				global.Cmd.Arg.FormatLog(Exec.Log),
 			}
 			if _, ok := sub.Start(f, args, func(pid int, v ...any) {
 				p := v[0].(*PID)
@@ -186,7 +186,7 @@ func Start() {
 				Exec: Exec.Exec,
 				Dir:  Exec.Dir,
 				Conf: Exec.Conf,
-				Log:  Exec.LogDir,
+				Log:  Exec.Log,
 			}); ok {
 				id++
 				i++

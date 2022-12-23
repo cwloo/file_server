@@ -12,7 +12,7 @@ import (
 
 func main() {
 	global.Cmd.ParseArgs()
-	config.InitMonitorConfig(global.Cmd.Conf_Dir)
+	config.InitMonitorConfig(global.Cmd.Conf)
 	logs.SetTimezone(logs.TimeZone(config.Config.Log.Monitor.Timezone))
 	logs.SetMode(logs.Mode(config.Config.Log.Monitor.Mode))
 	logs.SetStyle(logs.Style(config.Config.Log.Monitor.Style))

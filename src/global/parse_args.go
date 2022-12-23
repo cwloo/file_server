@@ -37,17 +37,17 @@ func (s *ARG) FormatLog(dir string) string {
 // CMD
 // <summary>
 type CMD struct {
-	Arg      ARG
-	ID       int
-	Dir      string
-	Conf_Dir string
-	Log_Dir  string
-	Server   string
-	Rpc      string
+	Arg    ARG
+	ID     int
+	Dir    string
+	Conf   string
+	Log    string
+	Server string
+	Rpc    string
 }
 
 func (s *CMD) ParseArgs() {
-	s.ID, s.Dir, s.Conf_Dir, s.Log_Dir, s.Server, s.Rpc = s.Arg.parse()
+	s.ID, s.Dir, s.Conf, s.Log, s.Server, s.Rpc = s.Arg.parse()
 }
 
 func replaceG(old string) (new string) {

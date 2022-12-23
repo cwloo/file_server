@@ -9,7 +9,7 @@ import (
 
 func main() {
 	global.Cmd.ParseArgs()
-	config.InitHttpGateConfig(global.Cmd.Conf_Dir)
+	config.InitHttpGateConfig(global.Cmd.Conf)
 	logs.SetTimezone(logs.TimeZone(config.Config.Log.Gate.Http.Timezone))
 	logs.SetMode(logs.Mode(config.Config.Log.Gate.Http.Mode))
 	logs.SetStyle(logs.Style(config.Config.Log.Gate.Http.Style))

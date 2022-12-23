@@ -13,7 +13,7 @@ import (
 )
 
 func UpdateCfg(req *global.UpdateCfgReq) (*global.UpdateCfgResp, bool) {
-	config.UpdateConfig(global.Cmd.Conf_Dir, req)
+	config.UpdateConfig(global.Cmd.Conf, req)
 	return &global.UpdateCfgResp{
 		ErrCode: 0,
 		ErrMsg:  "ok"}, true

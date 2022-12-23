@@ -692,7 +692,7 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 func check() {
 	switch serviceName() {
 	case Config.Monitor.Name:
-		switch global.Cmd.Log_Dir == "" {
+		switch global.Cmd.Log == "" {
 		case true:
 			switch Config.Log.Monitor.Dir == "" {
 			case true:
@@ -700,7 +700,7 @@ func check() {
 			default:
 			}
 		default:
-			Config.Log.Monitor.Dir = global.Cmd.Log_Dir
+			Config.Log.Monitor.Dir = global.Cmd.Log
 		}
 		switch Config.Log.Monitor.Timezone != int(logs.GetTimeZone()) {
 		case true:
@@ -719,7 +719,7 @@ func check() {
 			logs.SetLevel(logs.Level(Config.Log.Monitor.Level))
 		}
 	case Config.Gate.Name:
-		switch global.Cmd.Log_Dir == "" {
+		switch global.Cmd.Log == "" {
 		case true:
 			switch Config.Log.Gate.Dir == "" {
 			case true:
@@ -727,7 +727,7 @@ func check() {
 			default:
 			}
 		default:
-			Config.Log.Gate.Dir = global.Cmd.Log_Dir
+			Config.Log.Gate.Dir = global.Cmd.Log
 		}
 		switch Config.Log.Gate.Timezone != int(logs.GetTimeZone()) {
 		case true:
@@ -746,7 +746,7 @@ func check() {
 			logs.SetLevel(logs.Level(Config.Log.Gate.Level))
 		}
 	case Config.Gate.Http.Name:
-		switch global.Cmd.Log_Dir == "" {
+		switch global.Cmd.Log == "" {
 		case true:
 			switch Config.Log.Gate.Http.Dir == "" {
 			case true:
@@ -754,7 +754,7 @@ func check() {
 			default:
 			}
 		default:
-			Config.Log.Gate.Http.Dir = global.Cmd.Log_Dir
+			Config.Log.Gate.Http.Dir = global.Cmd.Log
 		}
 		switch Config.Log.Gate.Http.Timezone != int(logs.GetTimeZone()) {
 		case true:
@@ -773,7 +773,7 @@ func check() {
 			logs.SetLevel(logs.Level(Config.Log.Gate.Http.Level))
 		}
 	case Config.File.Name:
-		switch global.Cmd.Log_Dir == "" {
+		switch global.Cmd.Log == "" {
 		case true:
 			switch Config.Log.File.Dir == "" {
 			case true:
@@ -781,7 +781,7 @@ func check() {
 			default:
 			}
 		default:
-			Config.Log.File.Dir = global.Cmd.Log_Dir
+			Config.Log.File.Dir = global.Cmd.Log
 		}
 		switch Config.Log.File.Timezone != int(logs.GetTimeZone()) {
 		case true:
