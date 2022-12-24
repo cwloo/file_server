@@ -3,6 +3,7 @@ package sub
 import (
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/cwloo/gonet/core/base/sub"
 	"github.com/cwloo/gonet/core/base/sys/cmd"
@@ -41,7 +42,7 @@ func restart(pid int, v ...any) {
 		p.Cmd,
 		cmd.FormatConf(p.Conf),
 		cmd.FormatLog(p.Log))
-	f, err := exec.LookPath(p.Dir + p.Exec)
+	f, err := exec.LookPath(cmd.CorrectPath(strings.Join([]string{p.Dir, P, p.Exec}, "")))
 	if err != nil {
 		logs.Fatalf(err.Error())
 		return

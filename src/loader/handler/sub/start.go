@@ -11,6 +11,10 @@ import (
 	"github.com/cwloo/uploader/src/config"
 )
 
+var (
+	P, Cmd, Ext = utils.G()
+)
+
 // <summary>
 // PID
 // <summary>
@@ -33,7 +37,6 @@ type PID struct {
 }
 
 func Start() {
-	p, Cmd, Ext := utils.G()
 	subs := map[string]struct {
 		Num    int
 		Cmd    string
@@ -71,7 +74,7 @@ func Start() {
 			},
 			Num:  config.Config.Sub.Gate.Num,
 			Cmd:  strings.Join([]string{Cmd, config.Config.Sub.Gate.Exec, Ext}, ""),
-			Dir:  strings.Join([]string{cmd.Dir(), p, config.Config.Sub.Gate.Dir, p}, ""),
+			Dir:  cmd.CorrectPath(strings.Join([]string{cmd.Dir(), P, config.Config.Sub.Gate.Dir, P}, "")),
 			Exec: config.Config.Sub.Gate.Exec + Ext,
 			Conf: cmd.Conf(),
 			Log:  cmd.Log()},
@@ -96,7 +99,7 @@ func Start() {
 			},
 			Num:  config.Config.Sub.Gate.Http.Num,
 			Cmd:  strings.Join([]string{Cmd, config.Config.Sub.Gate.Http.Exec, Ext}, ""),
-			Dir:  strings.Join([]string{cmd.Dir(), p, config.Config.Sub.Gate.Http.Dir, p}, ""),
+			Dir:  cmd.CorrectPath(strings.Join([]string{cmd.Dir(), P, config.Config.Sub.Gate.Http.Dir, P}, "")),
 			Exec: config.Config.Sub.Gate.Http.Exec + Ext,
 			Conf: cmd.Conf(),
 			Log:  cmd.Log()},
@@ -121,7 +124,7 @@ func Start() {
 			},
 			Num:  config.Config.Sub.File.Num,
 			Cmd:  strings.Join([]string{Cmd, config.Config.Sub.File.Exec, Ext}, ""),
-			Dir:  strings.Join([]string{cmd.Dir(), p, config.Config.Sub.File.Dir, p}, ""),
+			Dir:  cmd.CorrectPath(strings.Join([]string{cmd.Dir(), P, config.Config.Sub.File.Dir, P}, "")),
 			Exec: config.Config.Sub.File.Exec + Ext,
 			Conf: cmd.Conf(),
 			Log:  cmd.Log()},
@@ -130,7 +133,7 @@ func Start() {
 	for name, Exec := range subs {
 		id := 0
 		for i := 0; i < Exec.Num; {
-			f, err := exec.LookPath(Exec.Dir + Exec.Exec)
+			f, err := exec.LookPath(cmd.CorrectPath(strings.Join([]string{Exec.Dir, P, Exec.Exec}, "")))
 			if err != nil {
 				logs.Fatalf(err.Error())
 				return

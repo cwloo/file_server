@@ -2,20 +2,18 @@
 
 ###### go mod download github.com/cwloo/uploader@latest
 
-###### 1.monitor 监控父进程，监控子进程状态并拉起，服务保活，防宕机
+###### 1.loader 父进程，监控子进程状态并拉起，服务保活，防宕机
 
-###### 2.http_gate http文件服务网关(子进程，多进程模型)
+###### 2.http_gate 子进程，文件网关节点(多进程)
 
-###### 3.file_server 文件上传节点(子进程，多进程模型)
-
-* $ SET GOOS=linux
-* $ SET GOARCH=amd64
-* $ GOOS=linux GOARCH=amd64 go build
+###### 3.file_server 子进程，文件上传节点(多进程)
 
 ##### file_server 启动
 
 * $ cd loader
-* $ ./loader --config=deploy/config/conf.ini
+* $ ./loader --config=/mnt/hgfs/uploader/deploy/config/conf.ini
+* `or`
+* $ ./loader --dir-level=2 --conf-name=config/conf.ini
 
 ###### c 清屏指令
 
@@ -44,6 +42,7 @@
 ######             "mode": "debug",
 ######             "program": "${workspaceRoot}/loader/loader.go",
 ######             "args": [
+######                 "-dir-level=2",
 ######                 "-c=${workspaceRoot}/deploy/config/conf.ini",
 ######                 "-l=${workspaceRoot}/deploy/log",
 ######                 "-server=192.168.0.103:8000",
@@ -57,6 +56,7 @@
 ######             "mode": "debug",
 ######             "program": "${workspaceRoot}/gate/gate.go",
 ######             "args": [
+######                 "-dir-level=2",
 ######                 "-c=${workspaceRoot}/deploy/config/conf.ini",
 ######                 "-l=${workspaceRoot}/deploy/log",
 ######                 "-server=192.168.0.103:7786",
@@ -70,6 +70,7 @@
 ######             "mode": "debug",
 ######             "program": "${workspaceRoot}/http_gate/http_gate.go",
 ######             "args": [
+######                 "-dir-level=2",
 ######                 "-c=${workspaceRoot}/deploy/config/conf.ini",
 ######                 "-l=${workspaceRoot}/deploy/log",
 ######                 "-server=192.168.0.103:7788",
@@ -83,6 +84,7 @@
 ######             "mode": "debug",
 ######             "program": "${workspaceRoot}/file_server/file_server.go",
 ######             "args": [
+######                 "-dir-level=2",
 ######                 "-c=${workspaceRoot}/deploy/config/conf.ini",
 ######                 "-l=${workspaceRoot}/deploy/log",
 ######                 "-server=192.168.0.103:8086",
@@ -99,6 +101,9 @@
 * $ cd file_client/loader
 * $ ./loader
 
+###### $ SET GOOS=linux
+###### $ SET GOARCH=amd64
+###### $ GOOS=linux GOARCH=amd64 go build
 
 ![image](https://github.com/cwloo/gonet/blob/master/tool/res/uploader_client.png)
 

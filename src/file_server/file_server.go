@@ -15,8 +15,7 @@ import (
 
 func init() {
 	cmd.InitArgs(func(arg *cmd.ARG) {
-		arg.CONF.Dir = "config"
-		arg.CONF.Name = "conf.ini"
+		arg.SetConf("config/conf.ini")
 		arg.Append("server", "server", "srv", "svr", "s")
 		arg.Append("rpc", "rpc")
 	})
