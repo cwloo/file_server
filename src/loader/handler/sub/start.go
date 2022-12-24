@@ -183,7 +183,7 @@ func Start() {
 				}
 				args = append(args, cmd.FormatArg("n", strconv.Itoa(len(filelist))))
 				args = append(args, filelist...)
-				if _, ok := sub.Start(f, args, func(pid int, v ...any) {
+				_, ok = sub.Start(f, args, func(pid int, v ...any) {
 					p := v[0].(*PID)
 					logs.DebugfP("%v [%v:%v %v:%v rpc:%v:%v %v %v %v %v]",
 						pid,
@@ -206,13 +206,15 @@ func Start() {
 					Conf:     Exec.Conf,
 					Log:      Exec.Log,
 					Filelist: filelist,
-				}); ok {
+				})
+				switch ok {
+				case true:
 					id++
 					i++
 					n++
 				}
 			default:
-				if _, ok := sub.Start(f, args, func(pid int, v ...any) {
+				_, ok := sub.Start(f, args, func(pid int, v ...any) {
 					p := v[0].(*PID)
 					logs.DebugfP("%v [%v:%v %v:%v rpc:%v:%v %v %v %v %v]",
 						pid,
@@ -252,7 +254,9 @@ func Start() {
 					Dir:  Exec.Dir,
 					Conf: Exec.Conf,
 					Log:  Exec.Log,
-				}); ok {
+				})
+				switch ok {
+				case true:
 					id++
 					i++
 					n++
