@@ -2,17 +2,16 @@
 
 ###### go mod download github.com/cwloo/uploader@latest
 
-###### 1.loader 父进程，监控子进程状态并拉起，服务保活，防宕机
+###### `loader 父进程，监控子进程状态并拉起，服务保活，防宕机`
 
-###### 2.http_gate 子进程，文件网关节点(多进程)
+###### `http_gate 子进程，文件网关节点(多进程)`
 
-###### 3.file_server 子进程，文件上传节点(多进程)
+###### `file_server 子进程，文件上传节点(多进程)`
 
 ##### file_server 启动
 
 * $ cd loader
 * $ ./loader --config=/mnt/hgfs/uploader/deploy/config/conf.ini
-* `or`
 * $ ./loader --dir-level=2 --conf-name=config/conf.ini
 
 ###### c 清屏指令
