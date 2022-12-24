@@ -2,18 +2,36 @@ syntax = "proto3";
 option go_package = "uploader/proto/monitor;pb_monitor";
 package monitor;
 
-message FileServerReq {
+message CommonResp {
+  string name = 1;
+  int32 id = 2;
+  message Server {
+      string ip = 1;
+      int32 port = 2;
+    message Rpc {
+      string ip = 1;
+      int32 port = 2;
+    }
+    Rpc rpc = 3;
+  }
+  Server server = 3;
+  int32 pid = 4;
+}
+
+message RouterReq {
   string md5 = 1;
 }
 
-message FileServerResp {
-  string md5 = 1;
-  string dns = 2;
-  int32  errCode = 3;
-  string errMsg = 4;
+message RouterResp {
+ CommonResp resp = 1;
+  string md5 = 2;
+  string dns = 3;
+  int32 NumOfLoads = 4;
+  int32  errCode = 5;
+  string errMsg = 6;
 }
 
 service monitor {
-  rpc GetFileServer(FileServerReq) returns(FileServerResp);
+  rpc GetRouter(RouterReq) returns(RouterResp);
 }
 

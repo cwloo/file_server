@@ -11,8 +11,8 @@ import (
 func init() {
 	cmd.InitArgs(func(arg *cmd.ARG) {
 		arg.SetConf("config/conf.ini")
-		arg.Append("server", "server", "srv", "svr", "s")
-		arg.Append("rpc", "rpc")
+		arg.AppendPattern("server", "server", "srv", "svr", "s")
+		arg.AppendPattern("rpc", "rpc")
 	})
 }
 
@@ -23,6 +23,6 @@ func main() {
 	logs.SetMode(logs.Mode(config.Config.Log.Gate.Http.Mode))
 	logs.SetStyle(logs.Style(config.Config.Log.Gate.Http.Style))
 	logs.Init(config.Config.Log.Gate.Http.Dir, logs.Level(config.Config.Log.Gate.Http.Level), global.Exe, 100000000)
-	http_gate.Run(cmd.Id(), global.Name)
+	http_gate.Run(cmd.Id(), config.ServiceName())
 	logs.Close()
 }

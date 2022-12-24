@@ -95,7 +95,7 @@ func (x *CommonResp) GetPid() int32 {
 	return 0
 }
 
-type FileServerReq struct {
+type RouterReq struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -103,8 +103,8 @@ type FileServerReq struct {
 	Md5 string `protobuf:"bytes,1,opt,name=md5,proto3" json:"md5,omitempty"`
 }
 
-func (x *FileServerReq) Reset() {
-	*x = FileServerReq{}
+func (x *RouterReq) Reset() {
+	*x = RouterReq{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_file_file_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -112,13 +112,13 @@ func (x *FileServerReq) Reset() {
 	}
 }
 
-func (x *FileServerReq) String() string {
+func (x *RouterReq) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*FileServerReq) ProtoMessage() {}
+func (*RouterReq) ProtoMessage() {}
 
-func (x *FileServerReq) ProtoReflect() protoreflect.Message {
+func (x *RouterReq) ProtoReflect() protoreflect.Message {
 	mi := &file_file_file_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -130,32 +130,33 @@ func (x *FileServerReq) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use FileServerReq.ProtoReflect.Descriptor instead.
-func (*FileServerReq) Descriptor() ([]byte, []int) {
+// Deprecated: Use RouterReq.ProtoReflect.Descriptor instead.
+func (*RouterReq) Descriptor() ([]byte, []int) {
 	return file_file_file_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *FileServerReq) GetMd5() string {
+func (x *RouterReq) GetMd5() string {
 	if x != nil {
 		return x.Md5
 	}
 	return ""
 }
 
-type FileServerResp struct {
+type RouterResp struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Resp    *CommonResp `protobuf:"bytes,1,opt,name=resp,proto3" json:"resp,omitempty"`
-	Md5     string      `protobuf:"bytes,2,opt,name=md5,proto3" json:"md5,omitempty"`
-	Dns     string      `protobuf:"bytes,3,opt,name=dns,proto3" json:"dns,omitempty"`
-	ErrCode int32       `protobuf:"varint,4,opt,name=errCode,proto3" json:"errCode,omitempty"`
-	ErrMsg  string      `protobuf:"bytes,5,opt,name=errMsg,proto3" json:"errMsg,omitempty"`
+	Resp       *CommonResp `protobuf:"bytes,1,opt,name=resp,proto3" json:"resp,omitempty"`
+	Md5        string      `protobuf:"bytes,2,opt,name=md5,proto3" json:"md5,omitempty"`
+	Dns        string      `protobuf:"bytes,3,opt,name=dns,proto3" json:"dns,omitempty"`
+	NumOfLoads int32       `protobuf:"varint,4,opt,name=NumOfLoads,proto3" json:"NumOfLoads,omitempty"`
+	ErrCode    int32       `protobuf:"varint,5,opt,name=errCode,proto3" json:"errCode,omitempty"`
+	ErrMsg     string      `protobuf:"bytes,6,opt,name=errMsg,proto3" json:"errMsg,omitempty"`
 }
 
-func (x *FileServerResp) Reset() {
-	*x = FileServerResp{}
+func (x *RouterResp) Reset() {
+	*x = RouterResp{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_file_file_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -163,13 +164,13 @@ func (x *FileServerResp) Reset() {
 	}
 }
 
-func (x *FileServerResp) String() string {
+func (x *RouterResp) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*FileServerResp) ProtoMessage() {}
+func (*RouterResp) ProtoMessage() {}
 
-func (x *FileServerResp) ProtoReflect() protoreflect.Message {
+func (x *RouterResp) ProtoReflect() protoreflect.Message {
 	mi := &file_file_file_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -181,40 +182,47 @@ func (x *FileServerResp) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use FileServerResp.ProtoReflect.Descriptor instead.
-func (*FileServerResp) Descriptor() ([]byte, []int) {
+// Deprecated: Use RouterResp.ProtoReflect.Descriptor instead.
+func (*RouterResp) Descriptor() ([]byte, []int) {
 	return file_file_file_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *FileServerResp) GetResp() *CommonResp {
+func (x *RouterResp) GetResp() *CommonResp {
 	if x != nil {
 		return x.Resp
 	}
 	return nil
 }
 
-func (x *FileServerResp) GetMd5() string {
+func (x *RouterResp) GetMd5() string {
 	if x != nil {
 		return x.Md5
 	}
 	return ""
 }
 
-func (x *FileServerResp) GetDns() string {
+func (x *RouterResp) GetDns() string {
 	if x != nil {
 		return x.Dns
 	}
 	return ""
 }
 
-func (x *FileServerResp) GetErrCode() int32 {
+func (x *RouterResp) GetNumOfLoads() int32 {
+	if x != nil {
+		return x.NumOfLoads
+	}
+	return 0
+}
+
+func (x *RouterResp) GetErrCode() int32 {
 	if x != nil {
 		return x.ErrCode
 	}
 	return 0
 }
 
-func (x *FileServerResp) GetErrMsg() string {
+func (x *RouterResp) GetErrMsg() string {
 	if x != nil {
 		return x.ErrMsg
 	}
@@ -359,25 +367,25 @@ var file_file_file_proto_rawDesc = []byte{
 	0x65, 0x72, 0x2e, 0x52, 0x70, 0x63, 0x52, 0x03, 0x72, 0x70, 0x63, 0x1a, 0x29, 0x0a, 0x03, 0x52,
 	0x70, 0x63, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x70, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02,
 	0x69, 0x70, 0x12, 0x12, 0x0a, 0x04, 0x70, 0x6f, 0x72, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05,
-	0x52, 0x04, 0x70, 0x6f, 0x72, 0x74, 0x22, 0x21, 0x0a, 0x0d, 0x46, 0x69, 0x6c, 0x65, 0x53, 0x65,
-	0x72, 0x76, 0x65, 0x72, 0x52, 0x65, 0x71, 0x12, 0x10, 0x0a, 0x03, 0x6d, 0x64, 0x35, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6d, 0x64, 0x35, 0x22, 0x8c, 0x01, 0x0a, 0x0e, 0x46, 0x69,
-	0x6c, 0x65, 0x53, 0x65, 0x72, 0x76, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x12, 0x24, 0x0a, 0x04,
-	0x72, 0x65, 0x73, 0x70, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x10, 0x2e, 0x66, 0x69, 0x6c,
-	0x65, 0x2e, 0x43, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x52, 0x04, 0x72, 0x65,
-	0x73, 0x70, 0x12, 0x10, 0x0a, 0x03, 0x6d, 0x64, 0x35, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x03, 0x6d, 0x64, 0x35, 0x12, 0x10, 0x0a, 0x03, 0x64, 0x6e, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x03, 0x64, 0x6e, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x65, 0x72, 0x72, 0x43, 0x6f, 0x64,
-	0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x05, 0x52, 0x07, 0x65, 0x72, 0x72, 0x43, 0x6f, 0x64, 0x65,
-	0x12, 0x16, 0x0a, 0x06, 0x65, 0x72, 0x72, 0x4d, 0x73, 0x67, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x06, 0x65, 0x72, 0x72, 0x4d, 0x73, 0x67, 0x32, 0x42, 0x0a, 0x04, 0x46, 0x69, 0x6c, 0x65,
-	0x12, 0x3a, 0x0a, 0x0d, 0x47, 0x65, 0x74, 0x46, 0x69, 0x6c, 0x65, 0x53, 0x65, 0x72, 0x76, 0x65,
-	0x72, 0x12, 0x13, 0x2e, 0x66, 0x69, 0x6c, 0x65, 0x2e, 0x46, 0x69, 0x6c, 0x65, 0x53, 0x65, 0x72,
-	0x76, 0x65, 0x72, 0x52, 0x65, 0x71, 0x1a, 0x14, 0x2e, 0x66, 0x69, 0x6c, 0x65, 0x2e, 0x46, 0x69,
-	0x6c, 0x65, 0x53, 0x65, 0x72, 0x76, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x42, 0x1d, 0x5a, 0x1b,
-	0x75, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x65, 0x72, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x66,
-	0x69, 0x6c, 0x65, 0x3b, 0x70, 0x62, 0x5f, 0x66, 0x69, 0x6c, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x33,
+	0x52, 0x04, 0x70, 0x6f, 0x72, 0x74, 0x22, 0x1d, 0x0a, 0x09, 0x52, 0x6f, 0x75, 0x74, 0x65, 0x72,
+	0x52, 0x65, 0x71, 0x12, 0x10, 0x0a, 0x03, 0x6d, 0x64, 0x35, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x03, 0x6d, 0x64, 0x35, 0x22, 0xa8, 0x01, 0x0a, 0x0a, 0x52, 0x6f, 0x75, 0x74, 0x65, 0x72,
+	0x52, 0x65, 0x73, 0x70, 0x12, 0x24, 0x0a, 0x04, 0x72, 0x65, 0x73, 0x70, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x10, 0x2e, 0x66, 0x69, 0x6c, 0x65, 0x2e, 0x43, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e,
+	0x52, 0x65, 0x73, 0x70, 0x52, 0x04, 0x72, 0x65, 0x73, 0x70, 0x12, 0x10, 0x0a, 0x03, 0x6d, 0x64,
+	0x35, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6d, 0x64, 0x35, 0x12, 0x10, 0x0a, 0x03,
+	0x64, 0x6e, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x64, 0x6e, 0x73, 0x12, 0x1e,
+	0x0a, 0x0a, 0x4e, 0x75, 0x6d, 0x4f, 0x66, 0x4c, 0x6f, 0x61, 0x64, 0x73, 0x18, 0x04, 0x20, 0x01,
+	0x28, 0x05, 0x52, 0x0a, 0x4e, 0x75, 0x6d, 0x4f, 0x66, 0x4c, 0x6f, 0x61, 0x64, 0x73, 0x12, 0x18,
+	0x0a, 0x07, 0x65, 0x72, 0x72, 0x43, 0x6f, 0x64, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x05, 0x52,
+	0x07, 0x65, 0x72, 0x72, 0x43, 0x6f, 0x64, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x65, 0x72, 0x72, 0x4d,
+	0x73, 0x67, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x65, 0x72, 0x72, 0x4d, 0x73, 0x67,
+	0x32, 0x36, 0x0a, 0x04, 0x46, 0x69, 0x6c, 0x65, 0x12, 0x2e, 0x0a, 0x09, 0x47, 0x65, 0x74, 0x52,
+	0x6f, 0x75, 0x74, 0x65, 0x72, 0x12, 0x0f, 0x2e, 0x66, 0x69, 0x6c, 0x65, 0x2e, 0x52, 0x6f, 0x75,
+	0x74, 0x65, 0x72, 0x52, 0x65, 0x71, 0x1a, 0x10, 0x2e, 0x66, 0x69, 0x6c, 0x65, 0x2e, 0x52, 0x6f,
+	0x75, 0x74, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x42, 0x1d, 0x5a, 0x1b, 0x75, 0x70, 0x6c, 0x6f,
+	0x61, 0x64, 0x65, 0x72, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x66, 0x69, 0x6c, 0x65, 0x3b,
+	0x70, 0x62, 0x5f, 0x66, 0x69, 0x6c, 0x65, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -395,17 +403,17 @@ func file_file_file_proto_rawDescGZIP() []byte {
 var file_file_file_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_file_file_proto_goTypes = []interface{}{
 	(*CommonResp)(nil),            // 0: file.CommonResp
-	(*FileServerReq)(nil),         // 1: file.FileServerReq
-	(*FileServerResp)(nil),        // 2: file.FileServerResp
+	(*RouterReq)(nil),             // 1: file.RouterReq
+	(*RouterResp)(nil),            // 2: file.RouterResp
 	(*CommonResp_Server)(nil),     // 3: file.CommonResp.Server
 	(*CommonResp_Server_Rpc)(nil), // 4: file.CommonResp.Server.Rpc
 }
 var file_file_file_proto_depIdxs = []int32{
 	3, // 0: file.CommonResp.server:type_name -> file.CommonResp.Server
-	0, // 1: file.FileServerResp.resp:type_name -> file.CommonResp
+	0, // 1: file.RouterResp.resp:type_name -> file.CommonResp
 	4, // 2: file.CommonResp.Server.rpc:type_name -> file.CommonResp.Server.Rpc
-	1, // 3: file.File.GetFileServer:input_type -> file.FileServerReq
-	2, // 4: file.File.GetFileServer:output_type -> file.FileServerResp
+	1, // 3: file.File.GetRouter:input_type -> file.RouterReq
+	2, // 4: file.File.GetRouter:output_type -> file.RouterResp
 	4, // [4:5] is the sub-list for method output_type
 	3, // [3:4] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name
@@ -432,7 +440,7 @@ func file_file_file_proto_init() {
 			}
 		}
 		file_file_file_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FileServerReq); i {
+			switch v := v.(*RouterReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -444,7 +452,7 @@ func file_file_file_proto_init() {
 			}
 		}
 		file_file_file_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*FileServerResp); i {
+			switch v := v.(*RouterResp); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -512,7 +520,7 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type FileClient interface {
-	GetFileServer(ctx context.Context, in *FileServerReq, opts ...grpc.CallOption) (*FileServerResp, error)
+	GetRouter(ctx context.Context, in *RouterReq, opts ...grpc.CallOption) (*RouterResp, error)
 }
 
 type fileClient struct {
@@ -523,9 +531,9 @@ func NewFileClient(cc grpc.ClientConnInterface) FileClient {
 	return &fileClient{cc}
 }
 
-func (c *fileClient) GetFileServer(ctx context.Context, in *FileServerReq, opts ...grpc.CallOption) (*FileServerResp, error) {
-	out := new(FileServerResp)
-	err := c.cc.Invoke(ctx, "/file.File/GetFileServer", in, out, opts...)
+func (c *fileClient) GetRouter(ctx context.Context, in *RouterReq, opts ...grpc.CallOption) (*RouterResp, error) {
+	out := new(RouterResp)
+	err := c.cc.Invoke(ctx, "/file.File/GetRouter", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -534,35 +542,35 @@ func (c *fileClient) GetFileServer(ctx context.Context, in *FileServerReq, opts 
 
 // FileServer is the server API for File service.
 type FileServer interface {
-	GetFileServer(context.Context, *FileServerReq) (*FileServerResp, error)
+	GetRouter(context.Context, *RouterReq) (*RouterResp, error)
 }
 
 // UnimplementedFileServer can be embedded to have forward compatible implementations.
 type UnimplementedFileServer struct {
 }
 
-func (*UnimplementedFileServer) GetFileServer(context.Context, *FileServerReq) (*FileServerResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetFileServer not implemented")
+func (*UnimplementedFileServer) GetRouter(context.Context, *RouterReq) (*RouterResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRouter not implemented")
 }
 
 func RegisterFileServer(s *grpc.Server, srv FileServer) {
 	s.RegisterService(&_File_serviceDesc, srv)
 }
 
-func _File_GetFileServer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FileServerReq)
+func _File_GetRouter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RouterReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FileServer).GetFileServer(ctx, in)
+		return srv.(FileServer).GetRouter(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/file.File/GetFileServer",
+		FullMethod: "/file.File/GetRouter",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FileServer).GetFileServer(ctx, req.(*FileServerReq))
+		return srv.(FileServer).GetRouter(ctx, req.(*RouterReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -572,8 +580,8 @@ var _File_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*FileServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetFileServer",
-			Handler:    _File_GetFileServer_Handler,
+			MethodName: "GetRouter",
+			Handler:    _File_GetRouter_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

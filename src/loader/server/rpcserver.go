@@ -3,10 +3,12 @@ package loader
 import (
 	"context"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 
 	config "github.com/cwloo/uploader/src/config"
+	"github.com/cwloo/uploader/src/global"
 
 	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/core/net/conn"
@@ -55,7 +57,7 @@ func (s *RPCServer) Target() string {
 }
 
 func (s *RPCServer) Run(id int, name string) {
-	switch cmd.Arg("rpc") {
+	switch cmd.PatternArg("rpc") {
 	case "":
 		if id >= len(config.Config.Rpc.Monitor.Port) {
 			logs.Fatalf("error id=%v Rpc.Monitor.Port.size=%v", id, len(config.Config.Rpc.Monitor.Port))
@@ -63,7 +65,7 @@ func (s *RPCServer) Run(id int, name string) {
 		s.addr = config.Config.Rpc.Ip
 		s.port = config.Config.Rpc.Monitor.Port[id]
 	default:
-		addr := conn.ParseAddress(cmd.Arg("rpc"))
+		addr := conn.ParseAddress(cmd.PatternArg("rpc"))
 		switch addr {
 		case nil:
 			logs.Fatalf("error")
@@ -100,7 +102,14 @@ func (s *RPCServer) Run(id int, name string) {
 	}
 }
 
-func (r *RPCServer) GetFileServer(_ context.Context, in *pb_monitor.FileServerReq) (*pb_monitor.FileServerResp, error) {
-	logs.Debugf("")
-	return &pb_monitor.FileServerResp{}, nil
+func (r *RPCServer) GetRouter(_ context.Context, req *pb_monitor.RouterReq) (*pb_monitor.RouterResp, error) {
+	logs.Debugf("%v [%v:%v %v:%v rpc:%v:%v NumOfLoads:%v] %+v",
+		os.Getpid(),
+		global.Name,
+		cmd.Id()+1,
+		config.Config.Monitor.Ip, config.Config.Monitor.Port[cmd.Id()],
+		config.Config.Rpc.Ip, config.Config.Rpc.Monitor.Port[cmd.Id()],
+		global.Uploaders.Len(),
+		req)
+	return &pb_monitor.RouterResp{}, nil
 }

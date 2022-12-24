@@ -10,7 +10,7 @@
 
 ##### file_server 启动
 
-* $ cd loader
+* $ cd deploy/bin
 * $ ./loader --config=/mnt/hgfs/uploader/deploy/config/conf.ini
 * $ ./loader --dir-level=2 --conf-name=config/conf.ini
 
@@ -97,8 +97,8 @@
 
 ##### file_client 启动
 
-* $ cd file_client/loader
-* $ ./loader
+* $ cd deploy/bin
+* $ ./loader.exe --dir-level=3 --conf-name=deploy\clientConfig\conf.ini
 
 ###### $ SET GOOS=linux
 ###### $ SET GOARCH=amd64

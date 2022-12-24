@@ -421,39 +421,39 @@ func (s *Fileinfo) UpdateHitTime(time time.Time) {
 // Md5ToFileInfo [md5]=FileInfo
 // <summary>
 type Md5ToFileInfo struct {
-	l *sync.Mutex
+	l *sync.RWMutex
 	m map[string]FileInfo
 }
 
 func NewMd5ToFileInfo() *Md5ToFileInfo {
-	return &Md5ToFileInfo{m: map[string]FileInfo{}, l: &sync.Mutex{}}
+	return &Md5ToFileInfo{m: map[string]FileInfo{}, l: &sync.RWMutex{}}
 }
 
 func (s *Md5ToFileInfo) Len() (c int) {
-	s.l.Lock()
+	s.l.RLock()
 	c = len(s.m)
-	s.l.Unlock()
+	s.l.RUnlock()
 	return
 }
 
 func (s *Md5ToFileInfo) Get(md5 string) (info FileInfo) {
-	s.l.Lock()
+	s.l.RLock()
 	if c, ok := s.m[md5]; ok {
 		info = c
 	}
-	s.l.Unlock()
+	s.l.RUnlock()
 	return
 }
 
 func (s *Md5ToFileInfo) Do(md5 string, cb func(FileInfo)) {
 	var info FileInfo
-	s.l.Lock()
+	s.l.RLock()
 	if c, ok := s.m[md5]; ok {
 		info = c
-		s.l.Unlock()
+		s.l.RUnlock()
 		goto OK
 	}
-	s.l.Unlock()
+	s.l.RUnlock()
 	return
 OK:
 	cb(info)
@@ -516,11 +516,11 @@ OK:
 }
 
 func (s *Md5ToFileInfo) Range(cb func(string, FileInfo)) {
-	s.l.Lock()
+	s.l.RLock()
 	for md5, info := range s.m {
 		cb(md5, info)
 	}
-	s.l.Unlock()
+	s.l.RUnlock()
 }
 
 func (s *Md5ToFileInfo) RangeRemoveWithCond(cond func(FileInfo) bool, cb func(FileInfo)) {

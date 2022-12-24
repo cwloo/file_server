@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/cwloo/gonet/core/base/sys/cmd"
+	"github.com/cwloo/gonet/core/net/conn"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
 	"github.com/cwloo/uploader/src/global"
@@ -35,6 +36,13 @@ type IniConfig struct {
 			Style    int    `json:"style" form:"style"`
 			Timezone int    `json:"timezone" form:"timezone"`
 		} `json:"monitor" form:"monitor"`
+		Client struct {
+			Dir      string `json:"dir" form:"dir"`
+			Level    int    `json:"level" form:"level"`
+			Mode     int    `json:"mode" form:"mode"`
+			Style    int    `json:"style" form:"style"`
+			Timezone int    `json:"timezone" form:"timezone"`
+		} `json:"client" form:"client"`
 		Gate struct {
 			Dir      string `json:"dir" form:"dir"`
 			Level    int    `json:"level" form:"level"`
@@ -58,6 +66,11 @@ type IniConfig struct {
 		} `json:"file" form:"file"`
 	} `json:"log" form:"log"`
 	Sub struct {
+		Client struct {
+			Num  int    `json:"num" form:"num"`
+			Dir  string `json:"dir" form:"dir"`
+			Exec string `json:"exec" form:"exec"`
+		} `json:"client" form:"client"`
 		Gate struct {
 			Num  int    `json:"num" form:"num"`
 			Dir  string `json:"dir" form:"dir"`
@@ -79,6 +92,12 @@ type IniConfig struct {
 		ChatId int64  `json:"chatId" form:"chatId"`
 		Token  string `json:"token" form:"token"`
 	} `json:"tg_bot" form:"tg_bot"`
+	Etcd struct {
+		Schema   string   `json:"schema" form:"schema"`
+		Addr     []string `json:"addr" form:"addr"`
+		UserName string   `json:"username" form:"username"`
+		Password string   `json:"password" form:"password"`
+	} `json:"etcd" form:"etcd"`
 	Monitor struct {
 		Name        string `json:"name" form:"name"`
 		Ip          string `json:"ip" form:"ip"`
@@ -92,6 +111,50 @@ type IniConfig struct {
 			SubList string `json:"sublist" form:"sublist"`
 		} `json:"path" form:"path"`
 	} `json:"monitor" form:"monitor"`
+	Client struct {
+		Name string `json:"name" form:"name"`
+		Addr []struct {
+			Proto string `json:"proto" form:"proto"`
+			Ip    string `json:"ip" form:"ip"`
+			Port  int    `json:"port" form:"port"`
+		} `json:"addr" form:"addr"`
+		Url struct {
+			Router   string `json:"router" form:"router"`
+			Upload   string `json:"upload" form:"upload"`
+			Get      string `json:"get" form:"get"`
+			Fileinfo string `json:"fileinfo" form:"fileinfo"`
+		} `json:"url" form:"url"`
+		Upload struct {
+			SegmentSize int64    `json:"segmentSize" form:"segmentSize"`
+			MultiFile   int      `json:"multiFile" form:"multiFile"`
+			Filelist    []string `json:"filelist" form:"filelist"`
+		} `json:"upload" form:"upload"`
+	} `json:"client" form:"client"`
+	Gate struct {
+		Name  string `json:"name" form:"name"`
+		Proto string `json:"proto" form:"proto"`
+		Ip    string `json:"ip" form:"ip"`
+		Port  []int  `json:"port" form:"port"`
+		Path  struct {
+			Handshake string `json:"handshake" form:"handshake"`
+		} `json:"path" form:"path"`
+		MaxConn          int `json:"maxConn" form:"maxConn"`
+		UsePool          int `json:"usePool" form:"usePool"`
+		HandshakeTimeout int `json:"handshakeTimeout" form:"handshakeTimeout"`
+		IdleTimeout      int `json:"idleTimeout" form:"idleTimeout"`
+		ReadBufferSize   int `json:"readBufferSize" form:"readBufferSize"`
+		PrintInterval    int `json:"printInterval" form:"printInterval"`
+		Http             struct {
+			Name        string `json:"name" form:"name"`
+			Ip          string `json:"ip" form:"ip"`
+			Port        []int  `json:"port" form:"port"`
+			MaxConn     int    `json:"maxConn" form:"maxConn"`
+			IdleTimeout int    `json:"idleTimeout" form:"idleTimeout"`
+			Path        struct {
+				Router string `json:"router" form:"router"`
+			} `json:"path" form:"path"`
+		} `json:"http" form:"http"`
+	} `json:"gate" form:"gate"`
 	File struct {
 		Name        string `json:"name" form:"name"`
 		Ip          string `json:"ip" form:"ip"`
@@ -122,6 +185,25 @@ type IniConfig struct {
 			List       string `json:"list" form:"list"`
 		} `json:"path" form:"path"`
 	} `json:"file" form:"file"`
+	Rpc struct {
+		Ip      string `json:"ip" form:"ip"`
+		Monitor struct {
+			Port []int  `json:"port" form:"port"`
+			Node string `json:"node" form:"node"`
+		} `json:"monitor" form:"monitor"`
+		Gate struct {
+			Port []int  `json:"port" form:"port"`
+			Node string `json:"node" form:"node"`
+			Http struct {
+				Port []int  `json:"port" form:"port"`
+				Node string `json:"node" form:"node"`
+			} `json:"http" form:"http"`
+		} `json:"gate" form:"gate"`
+		File struct {
+			Port []int  `json:"port" form:"port"`
+			Node string `json:"node" form:"node"`
+		} `json:"file" form:"file"`
+	} `json:"rpc" form:"rpc"`
 	Oss struct {
 		Type   string `json:"type" form:"type"`
 		Aliyun struct {
@@ -171,56 +253,6 @@ type IniConfig struct {
 			Base_url   string `json:"base_url" form:"base_url"`
 		} `json:"huawei_obs" form:"huawei_obs"`
 	} `json:"oss" form:"oss"`
-	Etcd struct {
-		Schema   string   `json:"schema" form:"schema"`
-		Addr     []string `json:"addr" form:"addr"`
-		UserName string   `json:"username" form:"username"`
-		Password string   `json:"password" form:"password"`
-	} `json:"etcd" form:"etcd"`
-	Gate struct {
-		Name  string `json:"name" form:"name"`
-		Proto string `json:"proto" form:"proto"`
-		Ip    string `json:"ip" form:"ip"`
-		Port  []int  `json:"port" form:"port"`
-		Path  struct {
-			Handshake string `json:"handshake" form:"handshake"`
-		} `json:"path" form:"path"`
-		MaxConn          int `json:"maxConn" form:"maxConn"`
-		UsePool          int `json:"usePool" form:"usePool"`
-		HandshakeTimeout int `json:"handshakeTimeout" form:"handshakeTimeout"`
-		IdleTimeout      int `json:"idleTimeout" form:"idleTimeout"`
-		ReadBufferSize   int `json:"readBufferSize" form:"readBufferSize"`
-		PrintInterval    int `json:"printInterval" form:"printInterval"`
-		Http             struct {
-			Name        string `json:"name" form:"name"`
-			Ip          string `json:"ip" form:"ip"`
-			Port        []int  `json:"port" form:"port"`
-			MaxConn     int    `json:"maxConn" form:"maxConn"`
-			IdleTimeout int    `json:"idleTimeout" form:"idleTimeout"`
-			Path        struct {
-				Fileserver string `json:"fileserver" form:"fileserver"`
-			} `json:"path" form:"path"`
-		} `json:"http" form:"http"`
-	} `json:"gate" form:"gate"`
-	Rpc struct {
-		Ip      string `json:"ip" form:"ip"`
-		Monitor struct {
-			Port []int  `json:"port" form:"port"`
-			Node string `json:"node" form:"node"`
-		} `json:"monitor" form:"monitor"`
-		Gate struct {
-			Port []int  `json:"port" form:"port"`
-			Node string `json:"node" form:"node"`
-			Http struct {
-				Port []int  `json:"port" form:"port"`
-				Node string `json:"node" form:"node"`
-			} `json:"http" form:"http"`
-		} `json:"gate" form:"gate"`
-		File struct {
-			Port []int  `json:"port" form:"port"`
-			Node string `json:"node" form:"node"`
-		} `json:"file" form:"file"`
-	} `json:"rpc" form:"rpc"`
 	Mysql struct {
 		Addr          []string `json:"addr" form:"addr"`
 		Username      string   `json:"username" form:"username"`
@@ -331,6 +363,7 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 	}
 	c.Interval = va
 	c.Monitor.Name = ini.GetString("monitor", "name")
+	c.Client.Name = ini.GetString("client", "name")
 	c.Gate.Name = ini.GetString("gate", "name")
 	c.Gate.Http.Name = ini.GetString("gate.http", "name")
 	c.File.Name = ini.GetString("file", "name")
@@ -341,6 +374,11 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 	c.Log.Monitor.Mode = ini.GetInt("log", "monitor.mode")
 	c.Log.Monitor.Style = ini.GetInt("log", "monitor.style")
 	c.Log.Monitor.Timezone = ini.GetInt("log", "monitor.timezone")
+	c.Log.Client.Dir = ini.GetString("log", "client.dir")
+	c.Log.Client.Level = ini.GetInt("log", "client.level")
+	c.Log.Client.Mode = ini.GetInt("log", "client.mode")
+	c.Log.Client.Style = ini.GetInt("log", "client.style")
+	c.Log.Client.Timezone = ini.GetInt("log", "client.timezone")
 	c.Log.Gate.Dir = ini.GetString("log", "gate.dir")
 	c.Log.Gate.Level = ini.GetInt("log", "gate.level")
 	c.Log.Gate.Mode = ini.GetInt("log", "gate.mode")
@@ -357,6 +395,9 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 	c.Log.File.Style = ini.GetInt("log", "file.style")
 	c.Log.File.Timezone = ini.GetInt("log", "file.timezone")
 	// Sub
+	c.Sub.Client.Num = ini.GetInt("sub", "client.num")
+	c.Sub.Client.Dir = ini.GetString("sub", "client.dir")
+	c.Sub.Client.Exec = ini.GetString("sub", "client.execname")
 	c.Sub.Gate.Num = ini.GetInt("sub", "gate.num")
 	c.Sub.Gate.Dir = ini.GetString("sub", "gate.dir")
 	c.Sub.Gate.Exec = ini.GetString("sub", "gate.execname")
@@ -370,6 +411,17 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 	c.TgBot.Enable = ini.GetInt("tg_bot", "enable")
 	c.TgBot.ChatId = ini.GetInt64("tg_bot", "chatId")
 	c.TgBot.Token = ini.GetString("tg_bot", "token")
+	// Etcd
+	c.Etcd.Schema = ini.GetString("etcd", "schema")
+	addrs := strings.Split(ini.GetString("etcd", "addr"), ",")
+	for _, addr := range addrs {
+		switch addr == "" {
+		case false:
+			c.Etcd.Addr = append(c.Etcd.Addr, addr)
+		}
+	}
+	c.Etcd.UserName = ini.GetString("etcd", "username")
+	c.Etcd.Password = ini.GetString("etcd", "password")
 	// Monitor
 	// c.Monitor.Name = ini.GetString("monitor", "name")
 	c.Monitor.Ip = ini.GetString("monitor", "ip")
@@ -382,6 +434,49 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 	}
 	c.Monitor.MaxConn = ini.GetInt("monitor", "maxConn")
 	c.Monitor.IdleTimeout = ini.GetInt("monitor", "idleTimeout")
+	// Client
+	// c.Client.Name = ini.GetString("client", "name")
+	addrs = strings.Split(ini.GetString("client", "addr"), ",")
+	for _, addr := range addrs {
+		switch addr == "" {
+		case false:
+			v := conn.ParseAddress(addr)
+			switch v {
+			case nil:
+				logs.Fatalf("error")
+			default:
+				c.Client.Addr = append(c.Client.Addr, struct {
+					Proto string `json:"proto" form:"proto"`
+					Ip    string `json:"ip" form:"ip"`
+					Port  int    `json:"port" form:"port"`
+				}{
+					Proto: v.Proto,
+					Ip:    v.Ip,
+					Port:  utils.Atoi(v.Port),
+				})
+			}
+		}
+	}
+	c.Client.Url.Router = ini.GetString("client", "url.router")
+	c.Client.Url.Upload = ini.GetString("client", "url.upload")
+	c.Client.Url.Get = ini.GetString("client", "url.get")
+	c.Client.Url.Fileinfo = ini.GetString("client", "url.fileinfo")
+	str := ini.GetString("client", "upload.segmentSize")
+	slice := strings.Split(str, "*")
+	val := int64(1)
+	for _, v := range slice {
+		v = strings.ReplaceAll(v, " ", "")
+		c, _ := strconv.ParseInt(v, 10, 0)
+		val *= c
+	}
+	c.Client.Upload.SegmentSize = val
+	c.Client.Upload.MultiFile = ini.GetInt("client", "upload.multiFile")
+	num := ini.GetInt("client", "upload.num")
+	for i := 0; i < num; i++ {
+		c.Client.Upload.Filelist = append(
+			c.Client.Upload.Filelist,
+			ini.GetString("client", strings.Join([]string{"upload.file", strconv.Itoa(i)}, "")))
+	}
 	// Path
 	c.Path.UpdateCfg = ini.GetString("path", "updateconfig")
 	c.Path.GetCfg = ini.GetString("path", "getconfig")
@@ -414,9 +509,9 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 	c.File.Upload.MultiFile = ini.GetInt("file", "upload.multiFile")
 	c.File.Upload.UseAsync = ini.GetInt("file", "upload.useAsync")
 	c.File.Upload.UseOriginFilename = ini.GetInt("file", "upload.useOriginFilename")
-	str := ini.GetString("file", "upload.maxMemory")
-	slice := strings.Split(str, "*")
-	val := int64(1)
+	str = ini.GetString("file", "upload.maxMemory")
+	slice = strings.Split(str, "*")
+	val = int64(1)
 	for _, v := range slice {
 		v = strings.ReplaceAll(v, " ", "")
 		c, _ := strconv.ParseInt(v, 10, 0)
@@ -477,17 +572,6 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 	c.Oss.Aliyun.AccessKeyId = ini.GetString("aliyun", "accessKeyId")
 	c.Oss.Aliyun.AccessKeySecret = ini.GetString("aliyun", "accessKeySecret")
 	c.Oss.Aliyun.Routines = ini.GetInt("aliyun", "routines")
-	// Etcd
-	c.Etcd.Schema = ini.GetString("etcd", "schema")
-	addrs := strings.Split(ini.GetString("etcd", "addr"), ",")
-	for _, addr := range addrs {
-		switch addr == "" {
-		case false:
-			c.Etcd.Addr = append(c.Etcd.Addr, addr)
-		}
-	}
-	c.Etcd.UserName = ini.GetString("etcd", "username")
-	c.Etcd.Password = ini.GetString("etcd", "password")
 	// Gate
 	// c.Gate.Name = ini.GetString("gate", "name")
 	c.Gate.Proto = ini.GetString("gate", "proto")
@@ -517,7 +601,7 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 	}
 	c.Gate.Http.MaxConn = ini.GetInt("gate.http", "maxConn")
 	c.Gate.Http.IdleTimeout = ini.GetInt("gate.http", "idleTimeout")
-	c.Gate.Http.Path.Fileserver = ini.GetString("path", "gate.http.fileserver")
+	c.Gate.Http.Path.Router = ini.GetString("path", "gate.http.router")
 	// Rpc
 	c.Rpc.Ip = ini.GetString("rpc", "ip")
 	c.Rpc.Monitor.Node = ini.GetString("rpc", "monitor.node")
@@ -690,7 +774,7 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 }
 
 func check() {
-	switch serviceName() {
+	switch ServiceName() {
 	case Config.Monitor.Name:
 		switch cmd.Log() == "" {
 		case true:
@@ -834,6 +918,18 @@ func InitMonitorConfig(conf string) {
 	check()
 }
 
+func InitClientConfig(conf string) {
+	read(conf, func(c *IniConfig) string {
+		return c.Client.Name
+	})
+	switch Config.Flag {
+	case 1:
+		flag.Parse()
+	default:
+	}
+	check()
+}
+
 func InitGateConfig(conf string) {
 	read(conf, func(c *IniConfig) string {
 		return c.Gate.Name
@@ -949,7 +1045,7 @@ func UpdateConfig(conf string, req *global.UpdateCfgReq) {
 func GetConfig(req *global.GetCfgReq) (*global.GetCfgResp, bool) {
 	dir, level, mode, style, timezone := "", 0, 0, 0, 0
 	lock.RLock()
-	switch serviceName() {
+	switch ServiceName() {
 	case Config.Monitor.Name:
 		dir = Config.Log.Monitor.Dir
 		level = Config.Log.Monitor.Level

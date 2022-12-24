@@ -18,19 +18,20 @@ message CommonResp {
   int32 pid = 4;
 }
 
-message FileServerReq {
+message RouterReq {
   string md5 = 1;
 }
 
-message FileServerResp {
+message RouterResp {
   CommonResp resp = 1;
   string md5 = 2;
   string dns = 3;
-  int32  errCode = 4;
-  string errMsg = 5;
+  int32 NumOfLoads = 4;
+  int32  errCode = 5;
+  string errMsg = 6;
 }
 
 service File {
-  rpc GetFileServer(FileServerReq) returns(FileServerResp);
+  rpc GetRouter(RouterReq) returns(RouterResp);
 }
 

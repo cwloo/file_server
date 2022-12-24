@@ -25,7 +25,7 @@ func (s *Router) Server() httpsrv.HttpServer {
 }
 
 func (s *Router) Run(id int, name string) {
-	switch cmd.Arg("server") {
+	switch cmd.PatternArg("server") {
 	case "":
 		if id >= len(config.Config.File.Port) {
 			logs.Fatalf("error id=%v File.Port.size=%v", id, len(config.Config.File.Port))
@@ -35,7 +35,7 @@ func (s *Router) Run(id int, name string) {
 			config.Config.File.Port[id],
 			config.Config.File.IdleTimeout)
 	default:
-		addr := conn.ParseAddress(cmd.Arg("server"))
+		addr := conn.ParseAddress(cmd.PatternArg("server"))
 		switch addr {
 		case nil:
 			logs.Fatalf("error")

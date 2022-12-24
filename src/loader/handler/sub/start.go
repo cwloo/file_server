@@ -2,6 +2,7 @@ package sub
 
 import (
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/cwloo/gonet/core/base/sub"
@@ -29,14 +30,27 @@ type PID struct {
 			Port int
 		}
 	}
-	Cmd  string
-	Exec string
-	Dir  string
-	Conf string
-	Log  string
+	Cmd      string
+	Exec     string
+	Dir      string
+	Conf     string
+	Log      string
+	Filelist []string
 }
 
 func Start() {
+	m := map[int][]string{}
+	{
+		id := 0
+		for _, f := range config.Config.Client.Upload.Filelist {
+			m[id] = append(m[id], f)
+			id++
+			if id >= config.Config.Sub.Client.Num {
+				id = 0
+			}
+		}
+	}
+
 	subs := map[string]struct {
 		Num    int
 		Cmd    string
@@ -53,6 +67,13 @@ func Start() {
 			}
 		}
 	}{
+		config.Config.Client.Name: {
+			Num:  config.Config.Sub.Client.Num,
+			Cmd:  strings.Join([]string{Cmd, config.Config.Sub.Client.Exec, Ext}, ""),
+			Dir:  cmd.CorrectPath(strings.Join([]string{cmd.Dir(), P, config.Config.Sub.Client.Dir, P}, "")),
+			Exec: config.Config.Sub.Client.Exec + Ext,
+			Conf: cmd.Conf(),
+			Log:  cmd.Log()},
 		config.Config.Gate.Name: {
 			Server: struct {
 				Ip   string
@@ -150,51 +171,94 @@ func Start() {
 				cmd.FormatConf(Exec.Conf),
 				cmd.FormatLog(Exec.Log),
 			}
-			if _, ok := sub.Start(f, args, func(pid int, v ...any) {
-				p := v[0].(*PID)
-				logs.DebugfP("%v [%v:%v %v:%v rpc:%v:%v %v %v %v %v]",
-					pid,
-					p.Name,
-					p.Id+1,
-					p.Server.Ip,
-					p.Server.Port,
-					p.Server.Rpc.Ip,
-					p.Server.Rpc.Port,
-					p.Dir,
-					p.Cmd,
-					cmd.FormatConf(p.Conf),
-					cmd.FormatLog(p.Log))
-			}, Monitor, &PID{
-				Id:   id,
-				Name: name,
-				Server: struct {
-					Ip   string
-					Port int
-					Rpc  struct {
-						Ip   string
-						Port int
+			filelist := []string{}
+			switch name {
+			case config.Config.Client.Name:
+				v, ok := m[id]
+				switch ok {
+				case true:
+					for i, f := range v {
+						filelist = append(filelist, cmd.FormatArg(strings.Join([]string{"file", strconv.Itoa(i)}, ""), f))
 					}
-				}{
-					Ip:   Exec.Server.Ip,
-					Port: Exec.Server.Port[id],
-					Rpc: struct {
+				}
+				args = append(args, cmd.FormatArg("n", strconv.Itoa(len(filelist))))
+				args = append(args, filelist...)
+				if _, ok := sub.Start(f, args, func(pid int, v ...any) {
+					p := v[0].(*PID)
+					logs.DebugfP("%v [%v:%v %v:%v rpc:%v:%v %v %v %v %v]",
+						pid,
+						p.Name,
+						p.Id+1,
+						p.Server.Ip,
+						p.Server.Port,
+						p.Server.Rpc.Ip,
+						p.Server.Rpc.Port,
+						p.Dir,
+						p.Cmd,
+						cmd.FormatConf(p.Conf),
+						cmd.FormatLog(p.Log))
+				}, Monitor, &PID{
+					Id:       id,
+					Name:     name,
+					Cmd:      Exec.Cmd,
+					Exec:     Exec.Exec,
+					Dir:      Exec.Dir,
+					Conf:     Exec.Conf,
+					Log:      Exec.Log,
+					Filelist: filelist,
+				}); ok {
+					id++
+					i++
+					n++
+				}
+			default:
+				if _, ok := sub.Start(f, args, func(pid int, v ...any) {
+					p := v[0].(*PID)
+					logs.DebugfP("%v [%v:%v %v:%v rpc:%v:%v %v %v %v %v]",
+						pid,
+						p.Name,
+						p.Id+1,
+						p.Server.Ip,
+						p.Server.Port,
+						p.Server.Rpc.Ip,
+						p.Server.Rpc.Port,
+						p.Dir,
+						p.Cmd,
+						cmd.FormatConf(p.Conf),
+						cmd.FormatLog(p.Log))
+				}, Monitor, &PID{
+					Id:   id,
+					Name: name,
+					Server: struct {
 						Ip   string
 						Port int
+						Rpc  struct {
+							Ip   string
+							Port int
+						}
 					}{
-						Ip:   Exec.Server.Rpc.Ip,
-						Port: Exec.Server.Rpc.Port[id],
+						Ip:   Exec.Server.Ip,
+						Port: Exec.Server.Port[id],
+						Rpc: struct {
+							Ip   string
+							Port int
+						}{
+							Ip:   Exec.Server.Rpc.Ip,
+							Port: Exec.Server.Rpc.Port[id],
+						},
 					},
-				},
-				Cmd:  Exec.Cmd,
-				Exec: Exec.Exec,
-				Dir:  Exec.Dir,
-				Conf: Exec.Conf,
-				Log:  Exec.Log,
-			}); ok {
-				id++
-				i++
-				n++
+					Cmd:  Exec.Cmd,
+					Exec: Exec.Exec,
+					Dir:  Exec.Dir,
+					Conf: Exec.Conf,
+					Log:  Exec.Log,
+				}); ok {
+					id++
+					i++
+					n++
+				}
 			}
+
 		}
 	}
 	logs.Debugf("Children = Succ[%03d]", n)

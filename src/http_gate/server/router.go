@@ -24,7 +24,7 @@ func (s *Router) Server() httpsrv.HttpServer {
 }
 
 func (s *Router) Run(id int, name string) {
-	switch cmd.Arg("server") {
+	switch cmd.PatternArg("server") {
 	case "":
 		if id >= len(config.Config.Gate.Http.Port) {
 			logs.Fatalf("error id=%v Gate.Http.Port.size=%v", id, len(config.Config.Gate.Http.Port))
@@ -34,7 +34,7 @@ func (s *Router) Run(id int, name string) {
 			config.Config.Gate.Http.Port[id],
 			config.Config.Gate.Http.IdleTimeout)
 	default:
-		addr := conn.ParseAddress(cmd.Arg("server"))
+		addr := conn.ParseAddress(cmd.PatternArg("server"))
 		switch addr {
 		case nil:
 			logs.Fatalf("error")
@@ -47,7 +47,7 @@ func (s *Router) Run(id int, name string) {
 	}
 	s.server.Router(config.Config.Path.UpdateCfg, s.UpdateConfigReq)
 	s.server.Router(config.Config.Path.GetCfg, s.GetConfigReq)
-	s.server.Router(config.Config.Gate.Http.Path.Fileserver, s.FileServerReq)
+	s.server.Router(config.Config.Gate.Http.Path.Router, s.RouterReq)
 	s.server.Run(id, name)
 }
 
@@ -59,6 +59,6 @@ func (s *Router) GetConfigReq(w http.ResponseWriter, r *http.Request) {
 	handler.GetCfgReq(w, r)
 }
 
-func (s *Router) FileServerReq(w http.ResponseWriter, r *http.Request) {
-	handler.FileServerReq(w, r)
+func (s *Router) RouterReq(w http.ResponseWriter, r *http.Request) {
+	handler.RouterReq(w, r)
 }

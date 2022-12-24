@@ -20,7 +20,7 @@ func setServiceName(cb func(*IniConfig) string, c *IniConfig) {
 	}
 }
 
-func serviceName() string {
+func ServiceName() string {
 	switch global.Name {
 	case "":
 		logs.Fatalf("error")

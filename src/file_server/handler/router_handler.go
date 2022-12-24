@@ -11,11 +11,11 @@ import (
 	"github.com/cwloo/uploader/src/global"
 )
 
-func QueryFileServer(md5 string) (*pb_file.FileServerResp, error) {
+func QueryRouter(md5 string) (*pb_file.RouterResp, error) {
 	info := global.FileInfos.Get(md5)
-	switch info == nil {
-	case true:
-		return &pb_file.FileServerResp{
+	switch info {
+	case nil:
+		return &pb_file.RouterResp{
 			Resp: &pb_file.CommonResp{
 				Pid:  int32(os.Getpid()),
 				Name: global.Name,
@@ -29,11 +29,13 @@ func QueryFileServer(md5 string) (*pb_file.FileServerResp, error) {
 					},
 				},
 			},
-			Md5:     md5,
-			ErrCode: 6,
-			ErrMsg:  "not founded"}, nil
+			Md5:        md5,
+			Dns:        strings.Join([]string{"http://", config.Config.File.Ip, ":", strconv.Itoa(config.Config.File.Port[cmd.Id()])}, ""),
+			NumOfLoads: int32(global.Uploaders.Len()),
+			ErrCode:    6,
+			ErrMsg:     "not exist"}, nil
 	default:
-		return &pb_file.FileServerResp{
+		return &pb_file.RouterResp{
 			Resp: &pb_file.CommonResp{
 				Pid:  int32(os.Getpid()),
 				Name: global.Name,
@@ -47,9 +49,10 @@ func QueryFileServer(md5 string) (*pb_file.FileServerResp, error) {
 					},
 				},
 			},
-			Md5:     md5,
-			Dns:     strings.Join([]string{config.Config.File.Ip, strconv.Itoa(config.Config.File.Port[cmd.Id()])}, ""),
-			ErrCode: 0,
-			ErrMsg:  "ok"}, nil
+			Md5:        md5,
+			Dns:        strings.Join([]string{"http://", config.Config.File.Ip, ":", strconv.Itoa(config.Config.File.Port[cmd.Id()])}, ""),
+			NumOfLoads: int32(global.Uploaders.Len()),
+			ErrCode:    0,
+			ErrMsg:     "ok"}, nil
 	}
 }

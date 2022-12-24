@@ -11,6 +11,7 @@ import (
 )
 
 var (
+	SegmentSize        int64 = 1024 * 1024 * 10   //单个文件分片上传大小
 	CheckMd5                 = true               //上传完毕是否校验文件完整性
 	WriteFile                = false              //上传文件是否缓存服务器本地
 	MultiFile                = false              //一次可以上传多个文件
@@ -111,20 +112,39 @@ type DelResp struct {
 }
 
 // <summary>
-// FileServerReq
+// NodeInfo
 // <summary>
-type FileServerReq struct {
+type NodeInfo struct {
+	Pid    int    `json:"pid" form:"pid"`
+	Name   string `json:"name" form:"name"`
+	Id     int    `json:"id" form:"id"`
+	Server struct {
+		Ip   string `json:"ip" form:"ip"`
+		Port int    `json:"port" form:"port"`
+		Rpc  struct {
+			Ip   string `json:"ip" form:"ip"`
+			Port int    `json:"port" form:"port"`
+		} `json:"rpc" form:"rpc"`
+	} `json:"server" form:"server"`
+}
+
+// <summary>
+// RouterReq
+// <summary>
+type RouterReq struct {
 	Md5 string `json:"md5,omitempty"`
 }
 
 // <summary>
-// FileServerResp
+// RouterResp
 // <summary>
-type FileServerResp struct {
-	Md5     string `json:"md5,omitempty"`
-	Dns     string `json:"dns,omitempty"`
-	ErrCode int    `json:"code" form:"code"`
-	ErrMsg  string `json:"errmsg" form:"errmsg"`
+type RouterResp struct {
+	Md5        string    `json:"md5" form:"md5"`
+	Dns        string    `json:"dns" form:"dns"`
+	NumOfLoads int       `json:"numOfLoads" form:"numOfLoads"`
+	Node       *NodeInfo `json:"node" form:"node"`
+	ErrCode    int       `json:"code" form:"code"`
+	ErrMsg     string    `json:"errmsg" form:"errmsg"`
 }
 
 // <summary>
@@ -230,10 +250,10 @@ type CfgData struct {
 // Resp
 // <summary>
 type Resp struct {
-	Uuid    string `json:"uuid,omitempty"`
-	Data    any    `json:"data,omitempty"`
-	ErrCode int    `json:"code" form:"code"`
-	ErrMsg  string `json:"errmsg" form:"errmsg"`
+	Uuid    string   `json:"uuid,omitempty"`
+	ErrCode int      `json:"code" form:"code"`
+	ErrMsg  string   `json:"errmsg" form:"errmsg"`
+	Data    []Result `json:"data,omitempty"`
 }
 
 // <summary>

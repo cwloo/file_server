@@ -12,39 +12,39 @@ var Uploaders = NewSessionToHandler()
 // SessionToHandler [uuid]=handler
 // <summary>
 type SessionToHandler struct {
-	l *sync.Mutex
+	l *sync.RWMutex
 	m map[string]Uploader
 }
 
 func NewSessionToHandler() *SessionToHandler {
-	return &SessionToHandler{m: map[string]Uploader{}, l: &sync.Mutex{}}
+	return &SessionToHandler{m: map[string]Uploader{}, l: &sync.RWMutex{}}
 }
 
 func (s *SessionToHandler) Len() (c int) {
-	s.l.Lock()
+	s.l.RLock()
 	c = len(s.m)
-	s.l.Unlock()
+	s.l.RUnlock()
 	return
 }
 
 func (s *SessionToHandler) Get(uuid string) (handler Uploader) {
-	s.l.Lock()
+	s.l.RLock()
 	if c, ok := s.m[uuid]; ok {
 		handler = c
 	}
-	s.l.Unlock()
+	s.l.RUnlock()
 	return
 }
 
 func (s *SessionToHandler) Do(uuid string, cb func(Uploader)) {
 	var handler Uploader
-	s.l.Lock()
+	s.l.RLock()
 	if c, ok := s.m[uuid]; ok {
 		handler = c
-		s.l.Unlock()
+		s.l.RUnlock()
 		goto OK
 	}
-	s.l.Unlock()
+	s.l.RUnlock()
 	return
 OK:
 	cb(handler)
@@ -82,13 +82,13 @@ OK:
 }
 
 func (s *SessionToHandler) List() {
-	s.l.Lock()
+	s.l.RLock()
 	logs.Debugf("---------------------------------------------------------------------------------")
 	for uuid := range s.m {
 		logs.Errorf("%v", uuid)
 	}
 	logs.Debugf("---------------------------------------------------------------------------------")
-	s.l.Unlock()
+	s.l.RUnlock()
 }
 
 func (s *SessionToHandler) Remove(uuid string) (handler Uploader) {
@@ -130,11 +130,11 @@ OK:
 }
 
 func (s *SessionToHandler) Range(cb func(string, Uploader)) {
-	s.l.Lock()
+	s.l.RLock()
 	for uuid, handler := range s.m {
 		cb(uuid, handler)
 	}
-	s.l.Unlock()
+	s.l.RUnlock()
 }
 
 func (s *SessionToHandler) RangeRemoveWithCond(cond func(Uploader) bool, cb func(Uploader)) {

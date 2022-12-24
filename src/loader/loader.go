@@ -14,8 +14,8 @@ import (
 func init() {
 	cmd.InitArgs(func(arg *cmd.ARG) {
 		arg.SetConf("config/conf.ini")
-		arg.Append("server", "server", "srv", "svr", "s")
-		arg.Append("rpc", "rpc")
+		arg.AppendPattern("server", "server", "srv", "svr", "s")
+		arg.AppendPattern("rpc", "rpc")
 	})
 }
 
@@ -33,7 +33,7 @@ func main() {
 	// if err != nil {
 	// 	logs.Fatalf(err.Error())
 	// }
-	loader.Run(cmd.Id(), global.Name)
+	loader.Run(cmd.Id(), config.ServiceName())
 	sub.Start()
 	sub.WaitAll()
 	logs.Debugf("exit...")

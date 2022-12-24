@@ -3,11 +3,13 @@ package sub
 import (
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/cwloo/gonet/core/base/sub"
 	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/logs"
+	"github.com/cwloo/uploader/src/config"
 )
 
 func List() {
@@ -52,6 +54,11 @@ func restart(pid int, v ...any) {
 		cmd.FormatId(p.Id),
 		cmd.FormatConf(p.Conf),
 		cmd.FormatLog(p.Log),
+	}
+	switch p.Name {
+	case config.Config.Client.Name:
+		args = append(args, cmd.FormatArg("n", strconv.Itoa(len(p.Filelist))))
+		args = append(args, p.Filelist...)
 	}
 	sub.Start(f, args, func(pid int, v ...any) {
 		p := v[0].(*PID)

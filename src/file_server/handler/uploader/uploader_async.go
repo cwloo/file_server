@@ -60,7 +60,7 @@ func NewAsyncUploader(uuid string) global.Uploader {
 
 func (s *AsyncUploader) start() {
 	if s.pipe == nil && s.flag.TestSet() {
-		mq := lq.NewQueue(1000)
+		mq := lq.NewQueue(1000) 
 		runner := NewProcessor(s.handler)
 		s.pipe = pipe.NewPipeWithQuit(global.I32.New(), "uploader.pipe", mq, runner, s.onQuit)
 		s.flag.Reset()

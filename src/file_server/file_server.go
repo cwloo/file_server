@@ -16,8 +16,8 @@ import (
 func init() {
 	cmd.InitArgs(func(arg *cmd.ARG) {
 		arg.SetConf("config/conf.ini")
-		arg.Append("server", "server", "srv", "svr", "s")
-		arg.Append("rpc", "rpc")
+		arg.AppendPattern("server", "server", "srv", "svr", "s")
+		arg.AppendPattern("rpc", "rpc")
 	})
 }
 
@@ -40,6 +40,6 @@ func main() {
 	task.After(time.Duration(config.Config.Interval)*time.Second, cb.NewFunctor00(func() {
 		handler.ReadConfig()
 	}))
-	file_server.Run(cmd.Id(), global.Name)
+	file_server.Run(cmd.Id(), config.ServiceName())
 	logs.Close()
 }
