@@ -12,6 +12,7 @@ func setServiceName(cb func(*IniConfig) string, c *IniConfig) {
 		case nil:
 		default:
 			global.Name = cb(c)
+			logs.SetPrename(global.Name)
 		}
 	}
 	switch global.Name == "" {

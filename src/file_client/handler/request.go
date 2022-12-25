@@ -29,7 +29,7 @@ func GetRouter(client *http.Client, md5 string) string {
 		config.Config.Client.Addr[r].Ip, ":",
 		strconv.Itoa(config.Config.Client.Addr[r].Port),
 		config.Config.Client.Path.Router}, "")
-	logs.Warnf("request =>> %v %v", method, url+"?md5="+md5)
+	logs.Tracef("request =>> %v %v", method, url+"?md5="+md5)
 	res, err := client.Get(url + "?md5=" + md5)
 	if err != nil {
 		logs.Errorf(err.Error())
@@ -55,7 +55,7 @@ func GetRouter(client *http.Client, md5 string) string {
 		if resp.Node.Domain == "" {
 			logs.Fatalf("error")
 		}
-		logs.Warnf("%v", string(body))
+		logs.Tracef("%v", string(body))
 		return resp.Node.Domain
 	}
 	return ""

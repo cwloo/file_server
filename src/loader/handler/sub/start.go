@@ -50,7 +50,6 @@ func Start() {
 			}
 		}
 	}
-
 	subs := map[string]struct {
 		Num    int
 		Cmd    string

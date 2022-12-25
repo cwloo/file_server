@@ -782,6 +782,7 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 }
 
 func check() {
+	// logs.Infof("%v", ServiceName())
 	switch ServiceName() {
 	case Config.Monitor.Name:
 		switch cmd.Log() == "" {
@@ -912,6 +913,7 @@ func read(conf string, cb func(*IniConfig) string) {
 	if Config == nil {
 		logs.Fatalf("error")
 	}
+	// logs.Infof("%v %v", ServiceName(), conf)
 }
 
 func InitMonitorConfig(conf string) {

@@ -1,7 +1,11 @@
 package main
 
 import (
+	"time"
+
 	"github.com/cwloo/gonet/core/base/sys/cmd"
+	"github.com/cwloo/gonet/core/base/task"
+	"github.com/cwloo/gonet/core/cb"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
 	"github.com/cwloo/uploader/src/config"
@@ -34,6 +38,10 @@ func main() {
 	// if err != nil {
 	// 	logs.Fatalf(err.Error())
 	// }
+
+	task.After(time.Duration(config.Config.Interval)*time.Second, cb.NewFunctor00(func() {
+		handler.ReadConfig()
+	}))
 	loader.Run(cmd.Id(), config.ServiceName())
 	sub.Start()
 	sub.WaitAll()

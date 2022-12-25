@@ -1,7 +1,11 @@
 package main
 
 import (
+	"time"
+
 	"github.com/cwloo/gonet/core/base/sys/cmd"
+	"github.com/cwloo/gonet/core/base/task"
+	"github.com/cwloo/gonet/core/cb"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/file_client/handler"
@@ -22,6 +26,10 @@ func main() {
 	logs.SetStyle(logs.Style(config.Config.Log.Client.Style))
 	logs.SetLevel(logs.Level(config.Config.Log.Client.Level))
 	logs.Init(config.Config.Log.Client.Dir, global.Exe, 100000000)
+
+	task.After(time.Duration(config.Config.Interval)*time.Second, cb.NewFunctor00(func() {
+		handler.ReadConfig()
+	}))
 	switch config.Config.Client.Upload.MultiFile > 0 {
 	case true:
 	default:
