@@ -4,6 +4,7 @@ import (
 	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/uploader/src/config"
+	"github.com/cwloo/uploader/src/file_client/handler"
 	"github.com/cwloo/uploader/src/global"
 )
 
@@ -22,8 +23,7 @@ func main() {
 	logs.Init(config.Config.Log.Client.Dir, logs.Level(config.Config.Log.Client.Level), global.Exe, 100000000)
 	switch config.Config.Client.Upload.MultiFile > 0 {
 	case true:
-		multiUpload()
 	default:
-		upload()
+		handler.Upload()
 	}
 }

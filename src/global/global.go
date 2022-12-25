@@ -119,14 +119,13 @@ type NodeInfo struct {
 	Name       string `json:"name" form:"name"`
 	Id         int    `json:"id" form:"id"`
 	NumOfLoads int    `json:"numOfLoads" form:"numOfLoads"`
-	Server     struct {
+	Ip         string `json:"ip" form:"ip"`
+	Port       int    `json:"port" form:"port"`
+	Domain     string `json:"domain" form:"domain"`
+	Rpc        struct {
 		Ip   string `json:"ip" form:"ip"`
 		Port int    `json:"port" form:"port"`
-		Rpc  struct {
-			Ip   string `json:"ip" form:"ip"`
-			Port int    `json:"port" form:"port"`
-		} `json:"rpc" form:"rpc"`
-	} `json:"server" form:"server"`
+	} `json:"rpc" form:"rpc"`
 }
 
 // <summary>
@@ -141,7 +140,6 @@ type RouterReq struct {
 // <summary>
 type RouterResp struct {
 	Md5     string    `json:"md5" form:"md5"`
-	Dns     string    `json:"dns" form:"dns"`
 	Node    *NodeInfo `json:"node" form:"node"`
 	ErrCode int       `json:"code" form:"code"`
 	ErrMsg  string    `json:"errmsg" form:"errmsg"`

@@ -156,11 +156,12 @@ type IniConfig struct {
 		} `json:"http" form:"http"`
 	} `json:"gate" form:"gate"`
 	File struct {
-		Name        string `json:"name" form:"name"`
-		Ip          string `json:"ip" form:"ip"`
-		Port        []int  `json:"port" form:"port"`
-		MaxConn     int    `json:"maxConn" form:"maxConn"`
-		IdleTimeout int    `json:"idleTimeout" form:"idleTimeout"`
+		Name        string   `json:"name" form:"name"`
+		Ip          string   `json:"ip" form:"ip"`
+		Port        []int    `json:"port" form:"port"`
+		MaxConn     int      `json:"maxConn" form:"maxConn"`
+		IdleTimeout int      `json:"idleTimeout" form:"idleTimeout"`
+		Domain      []string `json:"domain" form:"domain"`
 		Upload      struct {
 			Dir                string `json:"dir" form:"dir"`
 			CheckMd5           int    `json:"checkMd5" form:"checkMd5"`
@@ -503,6 +504,13 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 	}
 	c.File.MaxConn = ini.GetInt("file", "maxConn")
 	c.File.IdleTimeout = ini.GetInt("file", "idleTimeout")
+	domains := strings.Split(ini.GetString("file", "domain"), ",")
+	for _, domain := range domains {
+		switch domain == "" {
+		case false:
+			c.File.Domain = append(c.File.Domain, domain)
+		}
+	}
 	c.File.Upload.Dir = ini.GetString("file", "upload.dir")
 	c.File.Upload.CheckMd5 = ini.GetInt("file", "upload.checkMd5")
 	c.File.Upload.WriteFile = ini.GetInt("file", "upload.writeFile")

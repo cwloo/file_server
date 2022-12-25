@@ -18,10 +18,10 @@ import (
 
 func QueryRouter(md5 string) (*global.RouterResp, bool) {
 	// v := getcdv3.GetDefaultConn(config.Config.Etcd.Schema, strings.Join(config.Config.Etcd.Addr, ","), config.Config.Rpc.File.Node)
-	grpcCons := getcdv3.GetDefaultConn4Unique(config.Config.Etcd.Schema, strings.Join(config.Config.Etcd.Addr, ","), config.Config.Rpc.File.Node)
-	logs.Infof("%v grpcCons.size=%v", md5, len(grpcCons))
+	rpcConns := getcdv3.GetDefaultConn4Unique(config.Config.Etcd.Schema, strings.Join(config.Config.Etcd.Addr, ","), config.Config.Rpc.File.Node)
+	logs.Infof("%v rpcConns.size=%v", md5, len(rpcConns))
 	NumOfLoads := map[string]*pb_file.RouterResp{}
-	for _, v := range grpcCons {
+	for _, v := range rpcConns {
 		client := pb_file.NewFileClient(v)
 		req := &pb_file.RouterReq{
 			Md5: md5,
@@ -34,51 +34,42 @@ func QueryRouter(md5 string) (*global.RouterResp, bool) {
 		switch resp.ErrCode {
 		default:
 			logs.Errorf("%v %v [%v:%v %v:%v rpc:%v:%v NumOfLoads:%v]", v.Target(),
-				resp.Resp.Pid,
-				resp.Resp.Name,
-				resp.Resp.Id,
-				resp.Resp.Server.Ip, resp.Resp.Server.Port,
-				resp.Resp.Server.Rpc.Ip, resp.Resp.Server.Rpc.Port,
-				resp.NumOfLoads)
-			NumOfLoads[resp.Dns] = resp
+				resp.Node.Pid,
+				resp.Node.Name,
+				resp.Node.Id,
+				resp.Node.Ip, resp.Node.Port,
+				resp.Node.Rpc.Ip, resp.Node.Rpc.Port,
+				resp.Node.NumOfLoads)
+			NumOfLoads[resp.Node.Domain] = resp
 			continue
 		case 0:
 			logs.Infof("%v %v [%v:%v %v:%v rpc:%v:%v NumOfLoads:%v]", v.Target(),
-				resp.Resp.Pid,
-				resp.Resp.Name,
-				resp.Resp.Id,
-				resp.Resp.Server.Ip, resp.Resp.Server.Port,
-				resp.Resp.Server.Rpc.Ip, resp.Resp.Server.Rpc.Port,
-				resp.NumOfLoads)
+				resp.Node.Pid,
+				resp.Node.Name,
+				resp.Node.Id,
+				resp.Node.Ip, resp.Node.Port,
+				resp.Node.Rpc.Ip, resp.Node.Rpc.Port,
+				resp.Node.NumOfLoads)
 			return &global.RouterResp{
 				Node: &global.NodeInfo{
-					Pid:  int(resp.Resp.Pid),
-					Name: resp.Resp.Name,
-					Id:   int(resp.Resp.Id),
-					Server: struct {
+					Pid:        int(resp.Node.Pid),
+					Name:       resp.Node.Name,
+					Id:         int(resp.Node.Id),
+					NumOfLoads: int(resp.Node.NumOfLoads),
+					Ip:         resp.Node.Ip,
+					Port:       int(resp.Node.Port),
+					Domain:     resp.Node.Domain,
+					Rpc: struct {
 						Ip   string `json:"ip" form:"ip"`
 						Port int    `json:"port" form:"port"`
-						Rpc  struct {
-							Ip   string `json:"ip" form:"ip"`
-							Port int    `json:"port" form:"port"`
-						} `json:"rpc" form:"rpc"`
 					}{
-						Ip:   resp.Resp.Server.Ip,
-						Port: int(resp.Resp.Server.Port),
-						Rpc: struct {
-							Ip   string `json:"ip" form:"ip"`
-							Port int    `json:"port" form:"port"`
-						}{
-							Ip:   resp.Resp.Server.Rpc.Ip,
-							Port: int(resp.Resp.Server.Rpc.Port),
-						},
+						Ip:   resp.Node.Rpc.Ip,
+						Port: int(resp.Node.Rpc.Port),
 					},
 				},
-				Md5:        md5,
-				Dns:        resp.Dns,
-				NumOfLoads: int(resp.NumOfLoads),
-				ErrCode:    0,
-				ErrMsg:     "ok"}, true
+				Md5:     md5,
+				ErrCode: 0,
+				ErrMsg:  "ok"}, true
 		}
 	}
 	var minRouter *pb_file.RouterResp
@@ -87,12 +78,12 @@ func QueryRouter(md5 string) (*global.RouterResp, bool) {
 		switch minLoads {
 		case -1:
 			minRouter = v
-			minLoads = int(v.GetNumOfLoads())
+			minLoads = int(v.Node.GetNumOfLoads())
 		default:
-			switch int(v.GetNumOfLoads()) < minLoads {
+			switch int(v.Node.GetNumOfLoads()) < minLoads {
 			case true:
 				minRouter = v
-				minLoads = int(v.GetNumOfLoads())
+				minLoads = int(v.Node.GetNumOfLoads())
 			}
 		}
 	}
@@ -105,33 +96,24 @@ func QueryRouter(md5 string) (*global.RouterResp, bool) {
 	default:
 		return &global.RouterResp{
 			Node: &global.NodeInfo{
-				Pid:  int(minRouter.Resp.Pid),
-				Name: minRouter.Resp.Name,
-				Id:   int(minRouter.Resp.Id),
-				Server: struct {
+				Pid:        int(minRouter.Node.Pid),
+				Name:       minRouter.Node.Name,
+				Id:         int(minRouter.Node.Id),
+				NumOfLoads: int(minRouter.Node.NumOfLoads),
+				Ip:         minRouter.Node.Ip,
+				Port:       int(minRouter.Node.Port),
+				Domain:     minRouter.Node.Domain,
+				Rpc: struct {
 					Ip   string `json:"ip" form:"ip"`
 					Port int    `json:"port" form:"port"`
-					Rpc  struct {
-						Ip   string `json:"ip" form:"ip"`
-						Port int    `json:"port" form:"port"`
-					} `json:"rpc" form:"rpc"`
 				}{
-					Ip:   minRouter.Resp.Server.Ip,
-					Port: int(minRouter.Resp.Server.Port),
-					Rpc: struct {
-						Ip   string `json:"ip" form:"ip"`
-						Port int    `json:"port" form:"port"`
-					}{
-						Ip:   minRouter.Resp.Server.Rpc.Ip,
-						Port: int(minRouter.Resp.Server.Rpc.Port),
-					},
+					Ip:   minRouter.Node.Rpc.Ip,
+					Port: int(minRouter.Node.Rpc.Port),
 				},
 			},
-			Md5:        md5,
-			Dns:        minRouter.Dns,
-			NumOfLoads: int(minRouter.NumOfLoads),
-			ErrCode:    0,
-			ErrMsg:     "ok"}, true
+			Md5:     md5,
+			ErrCode: 0,
+			ErrMsg:  "ok"}, true
 	}
 }
 

@@ -7,17 +7,14 @@ message NodeInfo {
   string name = 2;
   int32 id = 3;
   int32 NumOfLoads = 4;
-  message Server {
-      string ip = 1;
-      int32 port = 2;
-	  string dns = 3;
-    message Rpc {
-      string ip = 1;
-      int32 port = 2;
-    }
-    Rpc rpc = 3;
+  string ip = 5;
+  int32 port = 6;
+  string domain = 7;
+  message Rpc {
+    string ip = 1;
+    int32 port = 2;
   }
-  Server server = 5;
+  Rpc rpc = 8;
 }
 
 message RouterReq {
