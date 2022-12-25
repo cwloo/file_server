@@ -102,7 +102,7 @@
 
 * $ cd deploy/bin
 
-* $ ./loader.exe --dir-level=3 --conf-name=deploy\clientConfig\conf.ini
+* $ loader.exe --dir-level=2 --conf-name=clientConfig\conf.ini
 
 ###### $ SET GOOS=linux
 ###### $ SET GOARCH=amd64
