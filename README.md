@@ -1,4 +1,4 @@
-##### golang 分布式文件上传服务，用于图片，语音，视频等文件上传阿里云等 高效稳定
+##### golang 分布式文件上传服务，用于图片，语音，视频等文件上传阿里云等 文件路由负载均衡
 
 ###### go mod download github.com/cwloo/uploader@latest
 
@@ -11,8 +11,11 @@
 ##### file_server 启动
 
 * $ cd deploy/bin
-* $ ./loader --config=/mnt/hgfs/uploader/deploy/config/conf.ini
+
 * $ ./loader --dir-level=2 --conf-name=config/conf.ini
+
+* $ ./loader --config=/mnt/hgfs/uploader/deploy/config/conf.ini
+
 
 ###### c 清屏指令
 
@@ -98,6 +101,7 @@
 ##### file_client 启动
 
 * $ cd deploy/bin
+
 * $ ./loader.exe --dir-level=3 --conf-name=deploy\clientConfig\conf.ini
 
 ###### $ SET GOOS=linux
