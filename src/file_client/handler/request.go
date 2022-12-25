@@ -28,7 +28,7 @@ func GetRouter(client *http.Client, md5 string) string {
 		config.Config.Client.Addr[r].Proto, "://",
 		config.Config.Client.Addr[r].Ip, ":",
 		strconv.Itoa(config.Config.Client.Addr[r].Port),
-		config.Config.Client.Url.Router}, "")
+		config.Config.Client.Path.Router}, "")
 	logs.Warnf("request =>> %v %v", method, url+"?md5="+md5)
 	res, err := client.Get(url + "?md5=" + md5)
 	if err != nil {
@@ -110,7 +110,7 @@ func Upload() {
 				if router[md5] == "" {
 					continue
 				}
-				url := cmd.CorrectPath(strings.Join([]string{router[md5], config.Config.Client.Url.Upload}, ""))
+				url := cmd.CorrectPath(strings.Join([]string{router[md5], config.Config.Client.Path.Upload}, ""))
 				req, err := http.NewRequest(method, url, payload)
 				if err != nil {
 					logs.Fatalf(err.Error())
@@ -172,7 +172,7 @@ func Upload() {
 
 						// 别人正在上传该文件的话，你要拿到上传文件的uuid和now值并继续重试，因为别人有可能暂停上传，这样你就会接着上传该文件
 					case global.ErrRepeat.ErrCode:
-						url := cmd.CorrectPath(strings.Join([]string{router[md5], config.Config.Client.Url.Fileinfo}, ""))
+						url := cmd.CorrectPath(strings.Join([]string{router[md5], config.Config.Client.Path.Fileinfo}, ""))
 						logs.Warnf("--- %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 						logs.Warnf("request =>> %v %v", method, url+"?md5="+result.Md5)
 						res, err := client.Get(url + "?md5=" + result.Md5)

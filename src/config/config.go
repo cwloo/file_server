@@ -118,12 +118,12 @@ type IniConfig struct {
 			Ip    string `json:"ip" form:"ip"`
 			Port  int    `json:"port" form:"port"`
 		} `json:"addr" form:"addr"`
-		Url struct {
+		Path struct {
 			Router   string `json:"router" form:"router"`
 			Upload   string `json:"upload" form:"upload"`
 			Get      string `json:"get" form:"get"`
 			Fileinfo string `json:"fileinfo" form:"fileinfo"`
-		} `json:"url" form:"url"`
+		} `json:"path" form:"path"`
 		Upload struct {
 			SegmentSize int64    `json:"segmentSize" form:"segmentSize"`
 			MultiFile   int      `json:"multiFile" form:"multiFile"`
@@ -458,10 +458,10 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 			}
 		}
 	}
-	c.Client.Url.Router = ini.GetString("client", "url.router")
-	c.Client.Url.Upload = ini.GetString("client", "url.upload")
-	c.Client.Url.Get = ini.GetString("client", "url.get")
-	c.Client.Url.Fileinfo = ini.GetString("client", "url.fileinfo")
+	c.Client.Path.Router = ini.GetString("client", "path.router")
+	c.Client.Path.Upload = ini.GetString("client", "path.upload")
+	c.Client.Path.Get = ini.GetString("client", "path.get")
+	c.Client.Path.Fileinfo = ini.GetString("client", "path.fileinfo")
 	str := ini.GetString("client", "upload.segmentSize")
 	slice := strings.Split(str, "*")
 	val := int64(1)
