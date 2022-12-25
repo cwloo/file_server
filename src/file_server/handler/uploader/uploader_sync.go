@@ -190,15 +190,14 @@ func (s *SyncUploader) uploading(req *global.Req) {
 			logs.Infof("--------------------- checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", info.Uuid(), header.Filename, k.Md5, info.Now(true), k.Total, offset_n, header.Size)
 			continue
 		}
-		////// 检查上传目录
-		_, err = os.Stat(config.Config.File.Upload.Dir)
-		if err != nil && os.IsNotExist(err) {
-			os.MkdirAll(config.Config.File.Upload.Dir, 0777)
-		}
-		////// 检查上传文件
 		f := config.Config.File.Upload.Dir + info.DstName()
 		switch config.Config.File.Upload.WriteFile > 0 {
 		case true:
+			////// 检查上传目录
+			_, err = os.Stat(config.Config.File.Upload.Dir)
+			if err != nil && os.IsNotExist(err) {
+				os.MkdirAll(config.Config.File.Upload.Dir, 0777)
+			}
 			_, err = os.Stat(f)
 			if err != nil && os.IsNotExist(err) {
 			} else {
