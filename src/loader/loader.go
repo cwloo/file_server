@@ -25,7 +25,8 @@ func main() {
 	logs.SetTimezone(logs.TimeZone(config.Config.Log.Monitor.Timezone))
 	logs.SetMode(logs.Mode(config.Config.Log.Monitor.Mode))
 	logs.SetStyle(logs.Style(config.Config.Log.Monitor.Style))
-	logs.Init(config.Config.Log.Monitor.Dir, logs.Level(config.Config.Log.Monitor.Level), global.Exe, 100000000)
+	logs.SetLevel(logs.Level(config.Config.Log.Monitor.Level))
+	logs.Init(config.Config.Log.Monitor.Dir, global.Exe, 100000000)
 	go func() {
 		utils.ReadConsole(handler.OnInput)
 	}()

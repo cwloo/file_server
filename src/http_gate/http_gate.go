@@ -22,7 +22,8 @@ func main() {
 	logs.SetTimezone(logs.TimeZone(config.Config.Log.Gate.Http.Timezone))
 	logs.SetMode(logs.Mode(config.Config.Log.Gate.Http.Mode))
 	logs.SetStyle(logs.Style(config.Config.Log.Gate.Http.Style))
-	logs.Init(config.Config.Log.Gate.Http.Dir, logs.Level(config.Config.Log.Gate.Http.Level), global.Exe, 100000000)
+	logs.SetLevel(logs.Level(config.Config.Log.Gate.Http.Level))
+	logs.Init(config.Config.Log.Gate.Http.Dir, global.Exe, 100000000)
 	http_gate.Run(cmd.Id(), config.ServiceName())
 	logs.Close()
 }
