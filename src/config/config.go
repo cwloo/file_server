@@ -794,9 +794,9 @@ func check() {
 		default:
 			Config.Log.Monitor.Dir = cmd.Log()
 		}
-		switch Config.Log.Monitor.Timezone != int(logs.GetTimeZone()) {
+		switch Config.Log.Monitor.Timezone != int(logs.GetTimezone()) {
 		case true:
-			logs.SetTimezone(logs.TimeZone(Config.Log.Monitor.Timezone))
+			logs.SetTimezone(logs.Timezone(Config.Log.Monitor.Timezone))
 		}
 		switch Config.Log.Monitor.Mode != int(logs.GetMode()) {
 		case true:
@@ -821,9 +821,9 @@ func check() {
 		default:
 			Config.Log.Gate.Dir = cmd.Log()
 		}
-		switch Config.Log.Gate.Timezone != int(logs.GetTimeZone()) {
+		switch Config.Log.Gate.Timezone != int(logs.GetTimezone()) {
 		case true:
-			logs.SetTimezone(logs.TimeZone(Config.Log.Gate.Timezone))
+			logs.SetTimezone(logs.Timezone(Config.Log.Gate.Timezone))
 		}
 		switch Config.Log.Gate.Mode != int(logs.GetMode()) {
 		case true:
@@ -848,9 +848,9 @@ func check() {
 		default:
 			Config.Log.Gate.Http.Dir = cmd.Log()
 		}
-		switch Config.Log.Gate.Http.Timezone != int(logs.GetTimeZone()) {
+		switch Config.Log.Gate.Http.Timezone != int(logs.GetTimezone()) {
 		case true:
-			logs.SetTimezone(logs.TimeZone(Config.Log.Gate.Http.Timezone))
+			logs.SetTimezone(logs.Timezone(Config.Log.Gate.Http.Timezone))
 		}
 		switch Config.Log.Gate.Http.Mode != int(logs.GetMode()) {
 		case true:
@@ -875,9 +875,9 @@ func check() {
 		default:
 			Config.Log.File.Dir = cmd.Log()
 		}
-		switch Config.Log.File.Timezone != int(logs.GetTimeZone()) {
+		switch Config.Log.File.Timezone != int(logs.GetTimezone()) {
 		case true:
-			logs.SetTimezone(logs.TimeZone(Config.Log.File.Timezone))
+			logs.SetTimezone(logs.Timezone(Config.Log.File.Timezone))
 		}
 		switch Config.Log.File.Mode != int(logs.GetMode()) {
 		case true:

@@ -12,14 +12,14 @@ func init() {
 	cmd.InitArgs(func(arg *cmd.ARG) {
 		arg.SetConf("config/conf.ini")
 		arg.AppendPattern("server", "server", "srv", "svr", "s")
-		arg.AppendPattern("rpc", "rpc")
+		arg.AppendPattern("rpc", "rpc", "r")
 	})
 }
 
 func main() {
 	cmd.ParseArgs()
 	config.InitHttpGateConfig(cmd.Conf())
-	logs.SetTimezone(logs.TimeZone(config.Config.Log.Gate.Http.Timezone))
+	logs.SetTimezone(logs.Timezone(config.Config.Log.Gate.Http.Timezone))
 	logs.SetMode(logs.Mode(config.Config.Log.Gate.Http.Mode))
 	logs.SetStyle(logs.Style(config.Config.Log.Gate.Http.Style))
 	logs.SetLevel(logs.Level(config.Config.Log.Gate.Http.Level))

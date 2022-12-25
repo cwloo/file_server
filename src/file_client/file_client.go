@@ -17,7 +17,7 @@ func init() {
 func main() {
 	cmd.ParseArgs()
 	config.InitClientConfig(cmd.Conf())
-	logs.SetTimezone(logs.TimeZone(config.Config.Log.Client.Timezone))
+	logs.SetTimezone(logs.Timezone(config.Config.Log.Client.Timezone))
 	logs.SetMode(logs.Mode(config.Config.Log.Client.Mode))
 	logs.SetStyle(logs.Style(config.Config.Log.Client.Style))
 	logs.SetLevel(logs.Level(config.Config.Log.Client.Level))

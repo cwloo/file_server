@@ -47,8 +47,8 @@
 ######             "mode": "debug",
 ######             "program": "${workspaceRoot}/loader/loader.go",
 ######             "args": [
-######                 "-dir-level=2",
-######                 "-c=${workspaceRoot}/deploy/config/conf.ini",
+######                 "--dir-level=3",
+######                 "--conf-name=deploy/config/conf.ini",
 ######                 "-l=${workspaceRoot}/deploy/log",
 ######                 "-server=192.168.0.103:8000",
 ######                 "-rpc=192.168.0.103:5228",
@@ -61,11 +61,11 @@
 ######             "mode": "debug",
 ######             "program": "${workspaceRoot}/gate/gate.go",
 ######             "args": [
-######                 "-dir-level=2",
-######                 "-c=${workspaceRoot}/deploy/config/conf.ini",
+######                 "-dir-level=3",
+######                 "--conf-name=deploy/config/conf.ini",
 ######                 "-l=${workspaceRoot}/deploy/log",
-######                 "-server=192.168.0.103:7786",
-######                 "-rpc=192.168.0.103:5232",
+######                 "-s=192.168.0.103:7786",
+######                 "-r=192.168.0.103:5232",
 ######             ],
 ######         },
 ######         {
@@ -75,11 +75,11 @@
 ######             "mode": "debug",
 ######             "program": "${workspaceRoot}/http_gate/http_gate.go",
 ######             "args": [
-######                 "-dir-level=2",
-######                 "-c=${workspaceRoot}/deploy/config/conf.ini",
+######                 "-dir-level=3",
+######                 "--conf-name=deploy/config/conf.ini",
 ######                 "-l=${workspaceRoot}/deploy/log",
-######                 "-server=192.168.0.103:7788",
-######                 "-rpc=192.168.0.103:5235",
+######                 "-s=192.168.0.103:7788",
+######                 "-r=192.168.0.103:5235",
 ######             ],
 ######         },
 ######         {
@@ -89,13 +89,25 @@
 ######             "mode": "debug",
 ######             "program": "${workspaceRoot}/file_server/file_server.go",
 ######             "args": [
-######                 "-dir-level=2",
-######                 "-c=${workspaceRoot}/deploy/config/conf.ini",
+######                 "-dir-level=3",
+######                 "--conf-name=deploy/config/conf.ini",
 ######                 "-l=${workspaceRoot}/deploy/log",
-######                 "-server=192.168.0.103:8086",
-######                 "-rpc=192.168.0.103:5236",
+######                 "-s=192.168.0.103:8086",
+######                 "-r=192.168.0.103:5236",
 ######             ],
-######         }
+######         },
+######         {
+######              "name": "file_client",
+######              "type": "go",
+######              "request": "launch",
+######              "mode": "debug",
+######              "program": "${workspaceRoot}\\src\\file_client\\file_client.go",
+######               "args": [
+######                   "--dir-level=3",
+######                   "--conf-name=deploy\\clientConfig\\conf.ini",
+######                   "--log-dir=${workspaceRoot}\\deploy\\log",
+######              ],
+######         },
 ######     ]
 ###### }
 

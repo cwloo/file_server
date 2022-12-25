@@ -17,14 +17,14 @@ func init() {
 	cmd.InitArgs(func(arg *cmd.ARG) {
 		arg.SetConf("config/conf.ini")
 		arg.AppendPattern("server", "server", "srv", "svr", "s")
-		arg.AppendPattern("rpc", "rpc")
+		arg.AppendPattern("rpc", "rpc", "r")
 	})
 }
 
 func main() {
 	cmd.ParseArgs()
 	config.InitFileConfig(cmd.Conf())
-	logs.SetTimezone(logs.TimeZone(config.Config.Log.File.Timezone))
+	logs.SetTimezone(logs.Timezone(config.Config.Log.File.Timezone))
 	logs.SetMode(logs.Mode(config.Config.Log.File.Mode))
 	logs.SetStyle(logs.Style(config.Config.Log.File.Style))
 	logs.SetLevel(logs.Level(config.Config.Log.File.Level))

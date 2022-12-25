@@ -15,14 +15,14 @@ func init() {
 	cmd.InitArgs(func(arg *cmd.ARG) {
 		arg.SetConf("config/conf.ini")
 		arg.AppendPattern("server", "server", "srv", "svr", "s")
-		arg.AppendPattern("rpc", "rpc")
+		arg.AppendPattern("rpc", "rpc", "r")
 	})
 }
 
 func main() {
 	cmd.ParseArgs()
 	config.InitMonitorConfig(cmd.Conf())
-	logs.SetTimezone(logs.TimeZone(config.Config.Log.Monitor.Timezone))
+	logs.SetTimezone(logs.Timezone(config.Config.Log.Monitor.Timezone))
 	logs.SetMode(logs.Mode(config.Config.Log.Monitor.Mode))
 	logs.SetStyle(logs.Style(config.Config.Log.Monitor.Style))
 	logs.SetLevel(logs.Level(config.Config.Log.Monitor.Level))
