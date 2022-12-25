@@ -94,7 +94,7 @@ func (s *RPCServer) Run(id int, name string) {
 		logs.Fatalf(errMsg)
 	}
 	s.target = getcdv3.GetTarget(s.etcdSchema, s.addr, s.port, s.node)
-	logs.Warnf("target=%v", s.target)
+	// logs.Warnf("target=%v", s.target)
 	err = server.Serve(listener)
 	if err != nil {
 		logs.Fatalf(err.Error())

@@ -28,6 +28,9 @@
 ###### 55381 [http_gate:1 192.168.0.113:7787 rpc:192.168.0.113:5233 http_gate/ ./http_gate --config=config/conf.ini --log_dir=]
 ###### 55382 [http_gate:2 192.168.0.113:7788 rpc:192.168.0.113:5235 http_gate/ ./http_gate --config=config/conf.ini --log_dir=]
 
+![image](https://github.com/cwloo/gonet/blob/master/tool/res/uploader_server2.png)
+
+
 ###### k pid kill子服务，会自动拉起
 
 ###### q  killAll子服务，并退出监控
