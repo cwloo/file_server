@@ -2,20 +2,22 @@ syntax = "proto3";
 option go_package = "uploader/proto/monitor;pb_monitor";
 package monitor;
 
-message CommonResp {
-  string name = 1;
-  int32 id = 2;
+message NodeInfo {
+  int32 pid = 1;
+  string name = 2;
+  int32 id = 3;
+  int32 NumOfLoads = 4;
   message Server {
       string ip = 1;
       int32 port = 2;
+	  string dns = 3;
     message Rpc {
       string ip = 1;
       int32 port = 2;
     }
     Rpc rpc = 3;
   }
-  Server server = 3;
-  int32 pid = 4;
+  Server server = 5;
 }
 
 message RouterReq {
@@ -23,12 +25,10 @@ message RouterReq {
 }
 
 message RouterResp {
- CommonResp resp = 1;
-  string md5 = 2;
-  string dns = 3;
-  int32 NumOfLoads = 4;
-  int32  errCode = 5;
-  string errMsg = 6;
+  string md5 = 1;
+  NodeInfo node = 2;
+  int32  errCode = 3;
+  string errMsg = 4;
 }
 
 service monitor {

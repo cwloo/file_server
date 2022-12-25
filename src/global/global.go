@@ -115,10 +115,11 @@ type DelResp struct {
 // NodeInfo
 // <summary>
 type NodeInfo struct {
-	Pid    int    `json:"pid" form:"pid"`
-	Name   string `json:"name" form:"name"`
-	Id     int    `json:"id" form:"id"`
-	Server struct {
+	Pid        int    `json:"pid" form:"pid"`
+	Name       string `json:"name" form:"name"`
+	Id         int    `json:"id" form:"id"`
+	NumOfLoads int    `json:"numOfLoads" form:"numOfLoads"`
+	Server     struct {
 		Ip   string `json:"ip" form:"ip"`
 		Port int    `json:"port" form:"port"`
 		Rpc  struct {
@@ -139,12 +140,11 @@ type RouterReq struct {
 // RouterResp
 // <summary>
 type RouterResp struct {
-	Md5        string    `json:"md5" form:"md5"`
-	Dns        string    `json:"dns" form:"dns"`
-	NumOfLoads int       `json:"numOfLoads" form:"numOfLoads"`
-	Node       *NodeInfo `json:"node" form:"node"`
-	ErrCode    int       `json:"code" form:"code"`
-	ErrMsg     string    `json:"errmsg" form:"errmsg"`
+	Md5     string    `json:"md5" form:"md5"`
+	Dns     string    `json:"dns" form:"dns"`
+	Node    *NodeInfo `json:"node" form:"node"`
+	ErrCode int       `json:"code" form:"code"`
+	ErrMsg  string    `json:"errmsg" form:"errmsg"`
 }
 
 // <summary>
