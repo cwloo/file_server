@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cwloo/gonet/core/base/sys/cmd"
+	"github.com/cwloo/gonet/core/base/sys"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/global"
@@ -110,7 +110,7 @@ func Upload() {
 				if router[md5] == "" {
 					continue
 				}
-				url := cmd.CorrectPath(strings.Join([]string{router[md5], config.Config.Client.Path.Upload}, ""))
+				url := sys.CorrectPath(strings.Join([]string{router[md5], config.Config.Client.Path.Upload}, ""))
 				req, err := http.NewRequest(method, url, payload)
 				if err != nil {
 					logs.Fatalf(err.Error())
@@ -172,7 +172,7 @@ func Upload() {
 
 						// 别人正在上传该文件的话，你要拿到上传文件的uuid和now值并继续重试，因为别人有可能暂停上传，这样你就会接着上传该文件
 					case global.ErrRepeat.ErrCode:
-						url := cmd.CorrectPath(strings.Join([]string{router[md5], config.Config.Client.Path.Fileinfo}, ""))
+						url := sys.CorrectPath(strings.Join([]string{router[md5], config.Config.Client.Path.Fileinfo}, ""))
 						logs.Warnf("--- %v %v[%v] %v => %v", result.Uuid, result.Md5, result.File, result.ErrMsg, result.Message)
 						logs.Warnf("request =>> %v %v", method, url+"?md5="+result.Md5)
 						res, err := client.Get(url + "?md5=" + result.Md5)

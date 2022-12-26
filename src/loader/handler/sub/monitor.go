@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/cwloo/gonet/core/base/sub"
+	"github.com/cwloo/gonet/core/base/sys"
 	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/uploader/src/config"
@@ -44,7 +45,7 @@ func restart(pid int, v ...any) {
 		p.Cmd,
 		cmd.FormatConf(p.Conf),
 		cmd.FormatLog(p.Log))
-	f, err := exec.LookPath(cmd.CorrectPath(strings.Join([]string{p.Dir, P, p.Exec}, "")))
+	f, err := exec.LookPath(sys.CorrectPath(strings.Join([]string{p.Dir, sys.P, p.Exec}, "")))
 	if err != nil {
 		logs.Fatalf(err.Error())
 		return

@@ -6,14 +6,10 @@ import (
 	"strings"
 
 	"github.com/cwloo/gonet/core/base/sub"
+	"github.com/cwloo/gonet/core/base/sys"
 	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/logs"
-	"github.com/cwloo/gonet/utils"
 	"github.com/cwloo/uploader/src/config"
-)
-
-var (
-	P, Cmd, Ext = utils.G()
 )
 
 // <summary>
@@ -68,9 +64,9 @@ func Start() {
 	}{
 		config.Config.Client.Name: {
 			Num:  config.Config.Sub.Client.Num,
-			Cmd:  strings.Join([]string{Cmd, config.Config.Sub.Client.Exec, Ext}, ""),
-			Dir:  cmd.CorrectPath(strings.Join([]string{cmd.Root(), P, config.Config.Sub.Client.Dir, P}, "")),
-			Exec: config.Config.Sub.Client.Exec + Ext,
+			Cmd:  strings.Join([]string{sys.Cmd, config.Config.Sub.Client.Exec, sys.Ext}, ""),
+			Dir:  sys.CorrectPath(strings.Join([]string{cmd.Root(), sys.P, config.Config.Sub.Client.Dir, sys.P}, "")),
+			Exec: config.Config.Sub.Client.Exec + sys.Ext,
 			Conf: cmd.Conf(),
 			Log:  cmd.Log()},
 		config.Config.Gate.Name: {
@@ -93,9 +89,9 @@ func Start() {
 				},
 			},
 			Num:  config.Config.Sub.Gate.Num,
-			Cmd:  strings.Join([]string{Cmd, config.Config.Sub.Gate.Exec, Ext}, ""),
-			Dir:  cmd.CorrectPath(strings.Join([]string{cmd.Root(), P, config.Config.Sub.Gate.Dir, P}, "")),
-			Exec: config.Config.Sub.Gate.Exec + Ext,
+			Cmd:  strings.Join([]string{sys.Cmd, config.Config.Sub.Gate.Exec, sys.Ext}, ""),
+			Dir:  sys.CorrectPath(strings.Join([]string{cmd.Root(), sys.P, config.Config.Sub.Gate.Dir, sys.P}, "")),
+			Exec: config.Config.Sub.Gate.Exec + sys.Ext,
 			Conf: cmd.Conf(),
 			Log:  cmd.Log()},
 		config.Config.Gate.Http.Name: {
@@ -118,9 +114,9 @@ func Start() {
 				},
 			},
 			Num:  config.Config.Sub.Gate.Http.Num,
-			Cmd:  strings.Join([]string{Cmd, config.Config.Sub.Gate.Http.Exec, Ext}, ""),
-			Dir:  cmd.CorrectPath(strings.Join([]string{cmd.Root(), P, config.Config.Sub.Gate.Http.Dir, P}, "")),
-			Exec: config.Config.Sub.Gate.Http.Exec + Ext,
+			Cmd:  strings.Join([]string{sys.Cmd, config.Config.Sub.Gate.Http.Exec, sys.Ext}, ""),
+			Dir:  sys.CorrectPath(strings.Join([]string{cmd.Root(), sys.P, config.Config.Sub.Gate.Http.Dir, sys.P}, "")),
+			Exec: config.Config.Sub.Gate.Http.Exec + sys.Ext,
 			Conf: cmd.Conf(),
 			Log:  cmd.Log()},
 		config.Config.File.Name: {
@@ -143,9 +139,9 @@ func Start() {
 				},
 			},
 			Num:  config.Config.Sub.File.Num,
-			Cmd:  strings.Join([]string{Cmd, config.Config.Sub.File.Exec, Ext}, ""),
-			Dir:  cmd.CorrectPath(strings.Join([]string{cmd.Root(), P, config.Config.Sub.File.Dir, P}, "")),
-			Exec: config.Config.Sub.File.Exec + Ext,
+			Cmd:  strings.Join([]string{sys.Cmd, config.Config.Sub.File.Exec, sys.Ext}, ""),
+			Dir:  sys.CorrectPath(strings.Join([]string{cmd.Root(), sys.P, config.Config.Sub.File.Dir, sys.P}, "")),
+			Exec: config.Config.Sub.File.Exec + sys.Ext,
 			Conf: cmd.Conf(),
 			Log:  cmd.Log()},
 	}
@@ -153,7 +149,7 @@ func Start() {
 	for name, Exec := range subs {
 		id := 0
 		for i := 0; i < Exec.Num; {
-			f, err := exec.LookPath(cmd.CorrectPath(strings.Join([]string{Exec.Dir, P, Exec.Exec}, "")))
+			f, err := exec.LookPath(sys.CorrectPath(strings.Join([]string{Exec.Dir, sys.P, Exec.Exec}, "")))
 			if err != nil {
 				logs.Fatalf(err.Error())
 				return
