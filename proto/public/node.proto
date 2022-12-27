@@ -38,3 +38,14 @@ message NodeInfoResp {
   int32  errCode = 2;
   string errMsg = 3;
 }
+
+message PeerReq {
+}
+
+message PeerResp {
+  string addr = 1;
+}
+
+service peer {
+  rpc GetAddr(PeerReq) returns(PeerResp);
+}

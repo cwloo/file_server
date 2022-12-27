@@ -7,6 +7,10 @@
 package pb_public
 
 import (
+	context "context"
+	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -358,6 +362,91 @@ func (x *NodeInfoResp) GetErrMsg() string {
 	return ""
 }
 
+type PeerReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *PeerReq) Reset() {
+	*x = PeerReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_public_node_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PeerReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PeerReq) ProtoMessage() {}
+
+func (x *PeerReq) ProtoReflect() protoreflect.Message {
+	mi := &file_public_node_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PeerReq.ProtoReflect.Descriptor instead.
+func (*PeerReq) Descriptor() ([]byte, []int) {
+	return file_public_node_proto_rawDescGZIP(), []int{5}
+}
+
+type PeerResp struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Addr string `protobuf:"bytes,1,opt,name=addr,proto3" json:"addr,omitempty"`
+}
+
+func (x *PeerResp) Reset() {
+	*x = PeerResp{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_public_node_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PeerResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PeerResp) ProtoMessage() {}
+
+func (x *PeerResp) ProtoReflect() protoreflect.Message {
+	mi := &file_public_node_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PeerResp.ProtoReflect.Descriptor instead.
+func (*PeerResp) Descriptor() ([]byte, []int) {
+	return file_public_node_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *PeerResp) GetAddr() string {
+	if x != nil {
+		return x.Addr
+	}
+	return ""
+}
+
 type NodeInfo_Rpc struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -370,7 +459,7 @@ type NodeInfo_Rpc struct {
 func (x *NodeInfo_Rpc) Reset() {
 	*x = NodeInfo_Rpc{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_public_node_proto_msgTypes[5]
+		mi := &file_public_node_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -383,7 +472,7 @@ func (x *NodeInfo_Rpc) String() string {
 func (*NodeInfo_Rpc) ProtoMessage() {}
 
 func (x *NodeInfo_Rpc) ProtoReflect() protoreflect.Message {
-	mi := &file_public_node_proto_msgTypes[5]
+	mi := &file_public_node_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -453,11 +542,17 @@ var file_public_node_proto_rawDesc = []byte{
 	0x6e, 0x66, 0x6f, 0x52, 0x04, 0x6e, 0x6f, 0x64, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x65, 0x72, 0x72,
 	0x43, 0x6f, 0x64, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x07, 0x65, 0x72, 0x72, 0x43,
 	0x6f, 0x64, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x65, 0x72, 0x72, 0x4d, 0x73, 0x67, 0x18, 0x03, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x06, 0x65, 0x72, 0x72, 0x4d, 0x73, 0x67, 0x42, 0x32, 0x5a, 0x30, 0x67,
-	0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x63, 0x77, 0x6c, 0x6f, 0x6f, 0x2f,
-	0x75, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x65, 0x72, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x70,
-	0x75, 0x62, 0x6c, 0x69, 0x63, 0x3b, 0x70, 0x62, 0x5f, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x62,
-	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x01, 0x28, 0x09, 0x52, 0x06, 0x65, 0x72, 0x72, 0x4d, 0x73, 0x67, 0x22, 0x09, 0x0a, 0x07, 0x50,
+	0x65, 0x65, 0x72, 0x52, 0x65, 0x71, 0x22, 0x1e, 0x0a, 0x08, 0x50, 0x65, 0x65, 0x72, 0x52, 0x65,
+	0x73, 0x70, 0x12, 0x12, 0x0a, 0x04, 0x61, 0x64, 0x64, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x04, 0x61, 0x64, 0x64, 0x72, 0x32, 0x34, 0x0a, 0x04, 0x70, 0x65, 0x65, 0x72, 0x12, 0x2c,
+	0x0a, 0x07, 0x47, 0x65, 0x74, 0x41, 0x64, 0x64, 0x72, 0x12, 0x0f, 0x2e, 0x70, 0x75, 0x62, 0x6c,
+	0x69, 0x63, 0x2e, 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x71, 0x1a, 0x10, 0x2e, 0x70, 0x75, 0x62,
+	0x6c, 0x69, 0x63, 0x2e, 0x50, 0x65, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x42, 0x32, 0x5a, 0x30,
+	0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x63, 0x77, 0x6c, 0x6f, 0x6f,
+	0x2f, 0x75, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x65, 0x72, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f,
+	0x70, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x3b, 0x70, 0x62, 0x5f, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x63,
+	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -472,21 +567,25 @@ func file_public_node_proto_rawDescGZIP() []byte {
 	return file_public_node_proto_rawDescData
 }
 
-var file_public_node_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_public_node_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_public_node_proto_goTypes = []interface{}{
 	(*NodeInfo)(nil),     // 0: public.NodeInfo
 	(*RouterReq)(nil),    // 1: public.RouterReq
 	(*RouterResp)(nil),   // 2: public.RouterResp
 	(*NodeInfoReq)(nil),  // 3: public.NodeInfoReq
 	(*NodeInfoResp)(nil), // 4: public.NodeInfoResp
-	(*NodeInfo_Rpc)(nil), // 5: public.NodeInfo.Rpc
+	(*PeerReq)(nil),      // 5: public.PeerReq
+	(*PeerResp)(nil),     // 6: public.PeerResp
+	(*NodeInfo_Rpc)(nil), // 7: public.NodeInfo.Rpc
 }
 var file_public_node_proto_depIdxs = []int32{
-	5, // 0: public.NodeInfo.rpc:type_name -> public.NodeInfo.Rpc
+	7, // 0: public.NodeInfo.rpc:type_name -> public.NodeInfo.Rpc
 	0, // 1: public.RouterResp.node:type_name -> public.NodeInfo
 	0, // 2: public.NodeInfoResp.node:type_name -> public.NodeInfo
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
+	5, // 3: public.peer.GetAddr:input_type -> public.PeerReq
+	6, // 4: public.peer.GetAddr:output_type -> public.PeerResp
+	4, // [4:5] is the sub-list for method output_type
+	3, // [3:4] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name
 	3, // [3:3] is the sub-list for extension extendee
 	0, // [0:3] is the sub-list for field type_name
@@ -559,6 +658,30 @@ func file_public_node_proto_init() {
 			}
 		}
 		file_public_node_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PeerReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_public_node_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PeerResp); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_public_node_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*NodeInfo_Rpc); i {
 			case 0:
 				return &v.state
@@ -577,9 +700,9 @@ func file_public_node_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_public_node_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
-			NumServices:   0,
+			NumServices:   1,
 		},
 		GoTypes:           file_public_node_proto_goTypes,
 		DependencyIndexes: file_public_node_proto_depIdxs,
@@ -589,4 +712,84 @@ func file_public_node_proto_init() {
 	file_public_node_proto_rawDesc = nil
 	file_public_node_proto_goTypes = nil
 	file_public_node_proto_depIdxs = nil
+}
+
+// Reference imports to suppress errors if they are not otherwise used.
+var _ context.Context
+var _ grpc.ClientConnInterface
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the grpc package it is being compiled against.
+const _ = grpc.SupportPackageIsVersion6
+
+// PeerClient is the client API for Peer service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type PeerClient interface {
+	GetAddr(ctx context.Context, in *PeerReq, opts ...grpc.CallOption) (*PeerResp, error)
+}
+
+type peerClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewPeerClient(cc grpc.ClientConnInterface) PeerClient {
+	return &peerClient{cc}
+}
+
+func (c *peerClient) GetAddr(ctx context.Context, in *PeerReq, opts ...grpc.CallOption) (*PeerResp, error) {
+	out := new(PeerResp)
+	err := c.cc.Invoke(ctx, "/public.peer/GetAddr", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// PeerServer is the server API for Peer service.
+type PeerServer interface {
+	GetAddr(context.Context, *PeerReq) (*PeerResp, error)
+}
+
+// UnimplementedPeerServer can be embedded to have forward compatible implementations.
+type UnimplementedPeerServer struct {
+}
+
+func (*UnimplementedPeerServer) GetAddr(context.Context, *PeerReq) (*PeerResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAddr not implemented")
+}
+
+func RegisterPeerServer(s *grpc.Server, srv PeerServer) {
+	s.RegisterService(&_Peer_serviceDesc, srv)
+}
+
+func _Peer_GetAddr_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PeerReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PeerServer).GetAddr(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/public.peer/GetAddr",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PeerServer).GetAddr(ctx, req.(*PeerReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _Peer_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "public.peer",
+	HandlerType: (*PeerServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetAddr",
+			Handler:    _Peer_GetAddr_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "public/node.proto",
 }

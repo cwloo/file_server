@@ -88,7 +88,7 @@ func (s *RPCServer) Run(id int, name string) {
 	server := grpc.NewServer(opts...)
 	defer server.GracefulStop()
 	pb_httpgate.RegisterHttpGateServer(server, s)
-
+	pb_public.RegisterPeerServer(server, s)
 	logs.Warnf("%v:%v etcd%v schema=%v node=%v:%v:%v", name, id, s.etcdAddr, s.etcdSchema, s.node, s.addr, s.port)
 	err = getcdv3.RegisterEtcd(s.etcdSchema, strings.Join(s.etcdAddr, ","), s.addr, s.port, s.node, 10)
 	if err != nil {
@@ -126,4 +126,16 @@ func (r *RPCServer) GetNodeInfo(_ context.Context, req *pb_public.NodeInfoReq) (
 	// 	global.Uploaders.Len(),
 	// 	req)
 	return handler.GetNodeInfo()
+}
+
+func (r *RPCServer) GetAddr(_ context.Context, req *pb_public.PeerReq) (*pb_public.PeerResp, error) {
+	// logs.Debugf("%v [%v:%v %v:%v rpc:%v:%v NumOfLoads:%v] %+v",
+	// 	os.Getpid(),
+	// 	global.Name,
+	// 	cmd.Id()+1,
+	// 	config.Config.Gate.Http.Ip, config.Config.Gate.Http.Port[cmd.Id()],
+	// 	config.Config.Rpc.Ip, config.Config.Rpc.Gate.Http.Port[cmd.Id()],
+	// 	global.Uploaders.Len(),
+	// 	req)
+	return &pb_public.PeerResp{Addr: strings.Join([]string{config.Config.Rpc.Ip, strconv.Itoa(config.Config.Rpc.Gate.Http.Port[cmd.Id()])}, ":")}, nil
 }
