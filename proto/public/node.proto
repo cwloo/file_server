@@ -1,0 +1,40 @@
+syntax = "proto3";
+option go_package = "github.com/cwloo/uploader/proto/public;pb_public";
+package public;
+
+message NodeInfo {
+  int32 pid = 1;
+  string name = 2;
+  int32 id = 3;
+  int32 NumOfPends = 4;
+  int32 NumOfFiles = 5;
+  int32 NumOfLoads = 6;
+  string ip = 7;
+  int32 port = 8;
+  string domain = 9;
+  message Rpc {
+    string ip = 1;
+    int32 port = 2;
+  }
+  Rpc rpc = 10;
+}
+
+message RouterReq {
+  string md5 = 1;
+}
+
+message RouterResp {
+  string md5 = 1;
+  NodeInfo node = 2;
+  int32  errCode = 3;
+  string errMsg = 4;
+}
+
+message NodeInfoReq {
+}
+
+message NodeInfoResp {
+  NodeInfo node = 1;
+  int32  errCode = 2;
+  string errMsg = 3;
+}

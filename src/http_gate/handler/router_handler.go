@@ -6,24 +6,46 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 
+	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/logs"
 	pb_file "github.com/cwloo/uploader/proto/file"
+	pb_public "github.com/cwloo/uploader/proto/public"
 	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/global"
 	"github.com/cwloo/uploader/src/global/httpsrv"
 	"github.com/cwloo/uploader/src/global/pkg/grpc-etcdv3/getcdv3"
 )
 
+func GetNodeInfo() (*pb_public.NodeInfoResp, error) {
+	return &pb_public.NodeInfoResp{
+		Node: &pb_public.NodeInfo{
+			Pid:        int32(os.Getpid()),
+			Name:       global.Name,
+			Id:         int32(cmd.Id()) + 1,
+			NumOfPends: int32(PendingNum()),
+			NumOfFiles: int32(FinishedNum()),
+			NumOfLoads: int32(global.Uploaders.Len()),
+			Ip:         config.Config.Gate.Http.Ip,
+			Port:       int32(config.Config.Gate.Http.Port[cmd.Id()]),
+			Rpc: &pb_public.NodeInfo_Rpc{
+				Ip:   config.Config.Rpc.Ip,
+				Port: int32(config.Config.Rpc.Gate.Http.Port[cmd.Id()]),
+			},
+		},
+		ErrCode: 0,
+		ErrMsg:  "ok"}, nil
+}
+
 func QueryRouter(md5 string) (*global.RouterResp, bool) {
-	// v := getcdv3.GetDefaultConn(config.Config.Etcd.Schema, strings.Join(config.Config.Etcd.Addr, ","), config.Config.Rpc.File.Node)
-	rpcConns := getcdv3.GetDefaultConn4Unique(config.Config.Etcd.Schema, strings.Join(config.Config.Etcd.Addr, ","), config.Config.Rpc.File.Node)
+	rpcConns := getcdv3.GetConns(config.Config.Etcd.Schema, strings.Join(config.Config.Etcd.Addr, ","), config.Config.Rpc.File.Node)
 	logs.Infof("%v rpcConns.size=%v", md5, len(rpcConns))
-	NumOfLoads := map[string]*pb_file.RouterResp{}
+	NumOfLoads := map[string]*pb_public.RouterResp{}
 	for _, v := range rpcConns {
 		client := pb_file.NewFileClient(v)
-		req := &pb_file.RouterReq{
+		req := &pb_public.RouterReq{
 			Md5: md5,
 		}
 		resp, err := client.GetRouter(context.Background(), req)
@@ -51,20 +73,19 @@ func QueryRouter(md5 string) (*global.RouterResp, bool) {
 				resp.Node.Rpc.Ip, resp.Node.Rpc.Port,
 				resp.Node.NumOfLoads)
 			return &global.RouterResp{
-				Node: &global.NodeInfo{
-					Pid:        int(resp.Node.Pid),
+				Node: &pb_public.NodeInfo{
+					Pid:        int32(resp.Node.Pid),
 					Name:       resp.Node.Name,
-					Id:         int(resp.Node.Id),
-					NumOfLoads: int(resp.Node.NumOfLoads),
+					Id:         int32(resp.Node.Id),
+					NumOfPends: int32(PendingNum()),
+					NumOfFiles: int32(FinishedNum()),
+					NumOfLoads: int32(resp.Node.NumOfLoads),
 					Ip:         resp.Node.Ip,
-					Port:       int(resp.Node.Port),
+					Port:       int32(resp.Node.Port),
 					Domain:     resp.Node.Domain,
-					Rpc: struct {
-						Ip   string `json:"ip" form:"ip"`
-						Port int    `json:"port" form:"port"`
-					}{
+					Rpc: &pb_public.NodeInfo_Rpc{
 						Ip:   resp.Node.Rpc.Ip,
-						Port: int(resp.Node.Rpc.Port),
+						Port: int32(resp.Node.Rpc.Port),
 					},
 				},
 				Md5:     md5,
@@ -72,7 +93,7 @@ func QueryRouter(md5 string) (*global.RouterResp, bool) {
 				ErrMsg:  "ok"}, true
 		}
 	}
-	var minRouter *pb_file.RouterResp
+	var minRouter *pb_public.RouterResp
 	minLoads := -1
 	for _, v := range NumOfLoads {
 		switch minLoads {
@@ -95,20 +116,19 @@ func QueryRouter(md5 string) (*global.RouterResp, bool) {
 			ErrMsg:  "no file_server"}, false
 	default:
 		return &global.RouterResp{
-			Node: &global.NodeInfo{
-				Pid:        int(minRouter.Node.Pid),
+			Node: &pb_public.NodeInfo{
+				Pid:        int32(minRouter.Node.Pid),
 				Name:       minRouter.Node.Name,
-				Id:         int(minRouter.Node.Id),
-				NumOfLoads: int(minRouter.Node.NumOfLoads),
+				Id:         int32(minRouter.Node.Id),
+				NumOfPends: int32(PendingNum()),
+				NumOfFiles: int32(FinishedNum()),
+				NumOfLoads: int32(minRouter.Node.NumOfLoads),
 				Ip:         minRouter.Node.Ip,
-				Port:       int(minRouter.Node.Port),
+				Port:       int32(minRouter.Node.Port),
 				Domain:     minRouter.Node.Domain,
-				Rpc: struct {
-					Ip   string `json:"ip" form:"ip"`
-					Port int    `json:"port" form:"port"`
-				}{
+				Rpc: &pb_public.NodeInfo_Rpc{
 					Ip:   minRouter.Node.Rpc.Ip,
-					Port: int(minRouter.Node.Rpc.Port),
+					Port: int32(minRouter.Node.Rpc.Port),
 				},
 			},
 			Md5:     md5,

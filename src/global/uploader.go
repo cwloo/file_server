@@ -15,6 +15,7 @@ type NewUploader func(bool, string) Uploader
 // Uploader
 // <summary>
 type Uploader interface {
+	Len() int
 	Get() time.Time
 	Upload(req *Req)
 	Remove(md5 string)

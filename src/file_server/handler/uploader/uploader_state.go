@@ -16,6 +16,7 @@ var (
 // State
 // <summary>
 type State interface {
+	Len() int
 	TryAdd(md5 string)
 	SetDone(md5 string)
 	AllDone() bool
@@ -37,6 +38,13 @@ func NewUploaderState() State {
 	s.m = map[string]bool{}
 	s.l = &sync.RWMutex{}
 	return s
+}
+
+func (s *uploaderState) Len() (c int) {
+	s.l.RLock()
+	c = len(s.m)
+	s.l.RUnlock()
+	return
 }
 
 func (s *uploaderState) exist(md5 string) (ok bool) {

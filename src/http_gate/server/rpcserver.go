@@ -9,13 +9,14 @@ import (
 
 	config "github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/global"
+	"github.com/cwloo/uploader/src/http_gate/handler"
 
 	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/core/net/conn"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
 	pb_httpgate "github.com/cwloo/uploader/proto/gate.http"
-
+	pb_public "github.com/cwloo/uploader/proto/public"
 	getcdv3 "github.com/cwloo/uploader/src/global/pkg/grpc-etcdv3/getcdv3"
 
 	"google.golang.org/grpc"
@@ -103,14 +104,26 @@ func (s *RPCServer) Run(id int, name string) {
 	}
 }
 
-func (r *RPCServer) GetRouter(_ context.Context, req *pb_httpgate.RouterReq) (*pb_httpgate.RouterResp, error) {
+func (r *RPCServer) GetRouter(_ context.Context, req *pb_public.RouterReq) (*pb_public.RouterResp, error) {
 	logs.Debugf("%v [%v:%v %v:%v rpc:%v:%v NumOfLoads:%v] %+v",
 		os.Getpid(),
 		global.Name,
 		cmd.Id()+1,
-		config.Config.Monitor.Ip, config.Config.Gate.Http.Port[cmd.Id()],
+		config.Config.Gate.Http.Ip, config.Config.Gate.Http.Port[cmd.Id()],
 		config.Config.Rpc.Ip, config.Config.Rpc.Gate.Http.Port[cmd.Id()],
 		global.Uploaders.Len(),
 		req)
-	return &pb_httpgate.RouterResp{}, nil
+	return &pb_public.RouterResp{}, nil
+}
+
+func (r *RPCServer) GetNodeInfo(_ context.Context, req *pb_public.NodeInfoReq) (*pb_public.NodeInfoResp, error) {
+	// logs.Debugf("%v [%v:%v %v:%v rpc:%v:%v NumOfLoads:%v] %+v",
+	// 	os.Getpid(),
+	// 	global.Name,
+	// 	cmd.Id()+1,
+	// 	config.Config.Gate.Http.Ip, config.Config.Gate.Http.Port[cmd.Id()],
+	// 	config.Config.Rpc.Ip, config.Config.Rpc.Gate.Http.Port[cmd.Id()],
+	// 	global.Uploaders.Len(),
+	// 	req)
+	return handler.GetNodeInfo()
 }

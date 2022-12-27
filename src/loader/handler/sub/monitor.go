@@ -1,6 +1,7 @@
 package sub
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"strconv"
@@ -10,16 +11,80 @@ import (
 	"github.com/cwloo/gonet/core/base/sys"
 	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/logs"
+	pb_file "github.com/cwloo/uploader/proto/file"
+	pb_gate "github.com/cwloo/uploader/proto/gate"
+	pb_httpgate "github.com/cwloo/uploader/proto/gate.http"
+	pb_public "github.com/cwloo/uploader/proto/public"
 	"github.com/cwloo/uploader/src/config"
+	"github.com/cwloo/uploader/src/global/pkg/grpc-etcdv3/getcdv3"
 )
 
 func List() {
 	sub.Range(func(pid int, v ...any) {
 		p := v[0].(*PID)
-		logs.DebugfP("%v [%v:%v %v:%v rpc:%v:%v %v %v %v %v]",
+		uploaders := 0
+		pends := 0
+		files := 0
+		switch p.Name {
+		case config.Config.Gate.Name:
+			// logs.ErrorfL("etcd[%v] %v:///%v:%v:%v/", strings.Join(config.Config.Etcd.Addr, ","), config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
+			v, _ := getcdv3.GetConn(config.Config.Etcd.Schema, strings.Join(config.Config.Etcd.Addr, ","), p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
+			switch v {
+			case nil:
+			default:
+				client := pb_gate.NewGateClient(v)
+				req := &pb_public.NodeInfoReq{}
+				resp, err := client.GetNodeInfo(context.Background(), req)
+				if err != nil {
+					logs.Errorf("%v [%v:%v rpc=%v:%v:%v %v", pid, p.Name, p.Id+1, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port, err.Error())
+					return
+				}
+				pends = int(resp.Node.NumOfPends)
+				files = int(resp.Node.NumOfFiles)
+				uploaders = int(resp.Node.NumOfLoads)
+			}
+		case config.Config.Gate.Http.Name:
+			// logs.ErrorfL("etcd[%v] %v:///%v:%v:%v/", strings.Join(config.Config.Etcd.Addr, ","), config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
+			v, _ := getcdv3.GetConn(config.Config.Etcd.Schema, strings.Join(config.Config.Etcd.Addr, ","), p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
+			switch v {
+			case nil:
+			default:
+				client := pb_httpgate.NewHttpGateClient(v)
+				req := &pb_public.NodeInfoReq{}
+				resp, err := client.GetNodeInfo(context.Background(), req)
+				if err != nil {
+					logs.Errorf("%v [%v:%v rpc=%v:%v:%v %v", pid, p.Name, p.Id+1, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port, err.Error())
+					return
+				}
+				pends = int(resp.Node.NumOfPends)
+				files = int(resp.Node.NumOfFiles)
+				uploaders = int(resp.Node.NumOfLoads)
+			}
+		case config.Config.File.Name:
+			// logs.ErrorfL("etcd[%v] %v:///%v:%v:%v/", strings.Join(config.Config.Etcd.Addr, ","), config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
+			v, _ := getcdv3.GetConn(config.Config.Etcd.Schema, strings.Join(config.Config.Etcd.Addr, ","), p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
+			switch v {
+			case nil:
+			default:
+				client := pb_file.NewFileClient(v)
+				req := &pb_public.NodeInfoReq{}
+				resp, err := client.GetNodeInfo(context.Background(), req)
+				if err != nil {
+					logs.Errorf("%v [%v:%v rpc=%v:%v:%v %v", pid, p.Name, p.Id+1, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port, err.Error())
+					return
+				}
+				pends = int(resp.Node.NumOfPends)
+				files = int(resp.Node.NumOfFiles)
+				uploaders = int(resp.Node.NumOfLoads)
+			}
+		}
+		logs.DebugfP("%v [%v:%v uploaders:%v pending:%v files:%v %v:%v rpc:%v:%v %v %v %v %v]",
 			pid,
 			p.Name,
 			p.Id+1,
+			uploaders,
+			pends,
+			files,
 			p.Server.Ip,
 			p.Server.Port,
 			p.Server.Rpc.Ip,

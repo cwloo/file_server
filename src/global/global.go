@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/cwloo/gonet/core/base/cc"
+	pb_public "github.com/cwloo/uploader/proto/public"
 )
 
 var (
@@ -112,23 +113,6 @@ type DelResp struct {
 }
 
 // <summary>
-// NodeInfo
-// <summary>
-type NodeInfo struct {
-	Pid        int    `json:"pid" form:"pid"`
-	Name       string `json:"name" form:"name"`
-	Id         int    `json:"id" form:"id"`
-	NumOfLoads int    `json:"numOfLoads" form:"numOfLoads"`
-	Ip         string `json:"ip" form:"ip"`
-	Port       int    `json:"port" form:"port"`
-	Domain     string `json:"domain" form:"domain"`
-	Rpc        struct {
-		Ip   string `json:"ip" form:"ip"`
-		Port int    `json:"port" form:"port"`
-	} `json:"rpc" form:"rpc"`
-}
-
-// <summary>
 // RouterReq
 // <summary>
 type RouterReq struct {
@@ -139,10 +123,10 @@ type RouterReq struct {
 // RouterResp
 // <summary>
 type RouterResp struct {
-	Md5     string    `json:"md5" form:"md5"`
-	Node    *NodeInfo `json:"node" form:"node"`
-	ErrCode int       `json:"code" form:"code"`
-	ErrMsg  string    `json:"errmsg" form:"errmsg"`
+	Md5     string              `json:"md5" form:"md5"`
+	Node    *pb_public.NodeInfo `json:"node" form:"node"`
+	ErrCode int                 `json:"code" form:"code"`
+	ErrMsg  string              `json:"errmsg" form:"errmsg"`
 }
 
 // <summary>

@@ -8,13 +8,13 @@ package pb_monitor
 
 import (
 	context "context"
+	public "github.com/cwloo/uploader/proto/public"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
-	sync "sync"
 )
 
 const (
@@ -24,350 +24,42 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type NodeInfo struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Pid        int32         `protobuf:"varint,1,opt,name=pid,proto3" json:"pid,omitempty"`
-	Name       string        `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Id         int32         `protobuf:"varint,3,opt,name=id,proto3" json:"id,omitempty"`
-	NumOfLoads int32         `protobuf:"varint,4,opt,name=NumOfLoads,proto3" json:"NumOfLoads,omitempty"`
-	Ip         string        `protobuf:"bytes,5,opt,name=ip,proto3" json:"ip,omitempty"`
-	Port       int32         `protobuf:"varint,6,opt,name=port,proto3" json:"port,omitempty"`
-	Domain     string        `protobuf:"bytes,7,opt,name=domain,proto3" json:"domain,omitempty"`
-	Rpc        *NodeInfo_Rpc `protobuf:"bytes,8,opt,name=rpc,proto3" json:"rpc,omitempty"`
-}
-
-func (x *NodeInfo) Reset() {
-	*x = NodeInfo{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_monitor_monitor_proto_msgTypes[0]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *NodeInfo) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*NodeInfo) ProtoMessage() {}
-
-func (x *NodeInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_monitor_monitor_proto_msgTypes[0]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use NodeInfo.ProtoReflect.Descriptor instead.
-func (*NodeInfo) Descriptor() ([]byte, []int) {
-	return file_monitor_monitor_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *NodeInfo) GetPid() int32 {
-	if x != nil {
-		return x.Pid
-	}
-	return 0
-}
-
-func (x *NodeInfo) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *NodeInfo) GetId() int32 {
-	if x != nil {
-		return x.Id
-	}
-	return 0
-}
-
-func (x *NodeInfo) GetNumOfLoads() int32 {
-	if x != nil {
-		return x.NumOfLoads
-	}
-	return 0
-}
-
-func (x *NodeInfo) GetIp() string {
-	if x != nil {
-		return x.Ip
-	}
-	return ""
-}
-
-func (x *NodeInfo) GetPort() int32 {
-	if x != nil {
-		return x.Port
-	}
-	return 0
-}
-
-func (x *NodeInfo) GetDomain() string {
-	if x != nil {
-		return x.Domain
-	}
-	return ""
-}
-
-func (x *NodeInfo) GetRpc() *NodeInfo_Rpc {
-	if x != nil {
-		return x.Rpc
-	}
-	return nil
-}
-
-type RouterReq struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Md5 string `protobuf:"bytes,1,opt,name=md5,proto3" json:"md5,omitempty"`
-}
-
-func (x *RouterReq) Reset() {
-	*x = RouterReq{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_monitor_monitor_proto_msgTypes[1]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *RouterReq) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RouterReq) ProtoMessage() {}
-
-func (x *RouterReq) ProtoReflect() protoreflect.Message {
-	mi := &file_monitor_monitor_proto_msgTypes[1]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RouterReq.ProtoReflect.Descriptor instead.
-func (*RouterReq) Descriptor() ([]byte, []int) {
-	return file_monitor_monitor_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *RouterReq) GetMd5() string {
-	if x != nil {
-		return x.Md5
-	}
-	return ""
-}
-
-type RouterResp struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Md5     string    `protobuf:"bytes,1,opt,name=md5,proto3" json:"md5,omitempty"`
-	Node    *NodeInfo `protobuf:"bytes,2,opt,name=node,proto3" json:"node,omitempty"`
-	ErrCode int32     `protobuf:"varint,3,opt,name=errCode,proto3" json:"errCode,omitempty"`
-	ErrMsg  string    `protobuf:"bytes,4,opt,name=errMsg,proto3" json:"errMsg,omitempty"`
-}
-
-func (x *RouterResp) Reset() {
-	*x = RouterResp{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_monitor_monitor_proto_msgTypes[2]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *RouterResp) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RouterResp) ProtoMessage() {}
-
-func (x *RouterResp) ProtoReflect() protoreflect.Message {
-	mi := &file_monitor_monitor_proto_msgTypes[2]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RouterResp.ProtoReflect.Descriptor instead.
-func (*RouterResp) Descriptor() ([]byte, []int) {
-	return file_monitor_monitor_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *RouterResp) GetMd5() string {
-	if x != nil {
-		return x.Md5
-	}
-	return ""
-}
-
-func (x *RouterResp) GetNode() *NodeInfo {
-	if x != nil {
-		return x.Node
-	}
-	return nil
-}
-
-func (x *RouterResp) GetErrCode() int32 {
-	if x != nil {
-		return x.ErrCode
-	}
-	return 0
-}
-
-func (x *RouterResp) GetErrMsg() string {
-	if x != nil {
-		return x.ErrMsg
-	}
-	return ""
-}
-
-type NodeInfo_Rpc struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Ip   string `protobuf:"bytes,1,opt,name=ip,proto3" json:"ip,omitempty"`
-	Port int32  `protobuf:"varint,2,opt,name=port,proto3" json:"port,omitempty"`
-}
-
-func (x *NodeInfo_Rpc) Reset() {
-	*x = NodeInfo_Rpc{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_monitor_monitor_proto_msgTypes[3]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *NodeInfo_Rpc) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*NodeInfo_Rpc) ProtoMessage() {}
-
-func (x *NodeInfo_Rpc) ProtoReflect() protoreflect.Message {
-	mi := &file_monitor_monitor_proto_msgTypes[3]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use NodeInfo_Rpc.ProtoReflect.Descriptor instead.
-func (*NodeInfo_Rpc) Descriptor() ([]byte, []int) {
-	return file_monitor_monitor_proto_rawDescGZIP(), []int{0, 0}
-}
-
-func (x *NodeInfo_Rpc) GetIp() string {
-	if x != nil {
-		return x.Ip
-	}
-	return ""
-}
-
-func (x *NodeInfo_Rpc) GetPort() int32 {
-	if x != nil {
-		return x.Port
-	}
-	return 0
-}
-
 var File_monitor_monitor_proto protoreflect.FileDescriptor
 
 var file_monitor_monitor_proto_rawDesc = []byte{
 	0x0a, 0x15, 0x6d, 0x6f, 0x6e, 0x69, 0x74, 0x6f, 0x72, 0x2f, 0x6d, 0x6f, 0x6e, 0x69, 0x74, 0x6f,
 	0x72, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x07, 0x6d, 0x6f, 0x6e, 0x69, 0x74, 0x6f, 0x72,
-	0x22, 0xf0, 0x01, 0x0a, 0x08, 0x4e, 0x6f, 0x64, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x10, 0x0a,
-	0x03, 0x70, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x03, 0x70, 0x69, 0x64, 0x12,
-	0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e,
-	0x61, 0x6d, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52,
-	0x02, 0x69, 0x64, 0x12, 0x1e, 0x0a, 0x0a, 0x4e, 0x75, 0x6d, 0x4f, 0x66, 0x4c, 0x6f, 0x61, 0x64,
-	0x73, 0x18, 0x04, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0a, 0x4e, 0x75, 0x6d, 0x4f, 0x66, 0x4c, 0x6f,
-	0x61, 0x64, 0x73, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x70, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x02, 0x69, 0x70, 0x12, 0x12, 0x0a, 0x04, 0x70, 0x6f, 0x72, 0x74, 0x18, 0x06, 0x20, 0x01, 0x28,
-	0x05, 0x52, 0x04, 0x70, 0x6f, 0x72, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x64, 0x6f, 0x6d, 0x61, 0x69,
-	0x6e, 0x18, 0x07, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x64, 0x6f, 0x6d, 0x61, 0x69, 0x6e, 0x12,
-	0x27, 0x0a, 0x03, 0x72, 0x70, 0x63, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x15, 0x2e, 0x6d,
-	0x6f, 0x6e, 0x69, 0x74, 0x6f, 0x72, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x2e,
-	0x52, 0x70, 0x63, 0x52, 0x03, 0x72, 0x70, 0x63, 0x1a, 0x29, 0x0a, 0x03, 0x52, 0x70, 0x63, 0x12,
-	0x0e, 0x0a, 0x02, 0x69, 0x70, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x70, 0x12,
-	0x12, 0x0a, 0x04, 0x70, 0x6f, 0x72, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x70,
-	0x6f, 0x72, 0x74, 0x22, 0x1d, 0x0a, 0x09, 0x52, 0x6f, 0x75, 0x74, 0x65, 0x72, 0x52, 0x65, 0x71,
-	0x12, 0x10, 0x0a, 0x03, 0x6d, 0x64, 0x35, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6d,
-	0x64, 0x35, 0x22, 0x77, 0x0a, 0x0a, 0x52, 0x6f, 0x75, 0x74, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70,
-	0x12, 0x10, 0x0a, 0x03, 0x6d, 0x64, 0x35, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6d,
-	0x64, 0x35, 0x12, 0x25, 0x0a, 0x04, 0x6e, 0x6f, 0x64, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x11, 0x2e, 0x6d, 0x6f, 0x6e, 0x69, 0x74, 0x6f, 0x72, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x49,
-	0x6e, 0x66, 0x6f, 0x52, 0x04, 0x6e, 0x6f, 0x64, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x65, 0x72, 0x72,
-	0x43, 0x6f, 0x64, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52, 0x07, 0x65, 0x72, 0x72, 0x43,
-	0x6f, 0x64, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x65, 0x72, 0x72, 0x4d, 0x73, 0x67, 0x18, 0x04, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x06, 0x65, 0x72, 0x72, 0x4d, 0x73, 0x67, 0x32, 0x3f, 0x0a, 0x07, 0x6d,
-	0x6f, 0x6e, 0x69, 0x74, 0x6f, 0x72, 0x12, 0x34, 0x0a, 0x09, 0x47, 0x65, 0x74, 0x52, 0x6f, 0x75,
-	0x74, 0x65, 0x72, 0x12, 0x12, 0x2e, 0x6d, 0x6f, 0x6e, 0x69, 0x74, 0x6f, 0x72, 0x2e, 0x52, 0x6f,
-	0x75, 0x74, 0x65, 0x72, 0x52, 0x65, 0x71, 0x1a, 0x13, 0x2e, 0x6d, 0x6f, 0x6e, 0x69, 0x74, 0x6f,
-	0x72, 0x2e, 0x52, 0x6f, 0x75, 0x74, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x42, 0x23, 0x5a, 0x21,
-	0x75, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x65, 0x72, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x6d,
-	0x6f, 0x6e, 0x69, 0x74, 0x6f, 0x72, 0x3b, 0x70, 0x62, 0x5f, 0x6d, 0x6f, 0x6e, 0x69, 0x74, 0x6f,
-	0x72, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x1a, 0x11, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x2f, 0x6e, 0x6f, 0x64, 0x65, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x32, 0x77, 0x0a, 0x07, 0x6d, 0x6f, 0x6e, 0x69, 0x74, 0x6f, 0x72, 0x12, 0x32,
+	0x0a, 0x09, 0x47, 0x65, 0x74, 0x52, 0x6f, 0x75, 0x74, 0x65, 0x72, 0x12, 0x11, 0x2e, 0x70, 0x75,
+	0x62, 0x6c, 0x69, 0x63, 0x2e, 0x52, 0x6f, 0x75, 0x74, 0x65, 0x72, 0x52, 0x65, 0x71, 0x1a, 0x12,
+	0x2e, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x2e, 0x52, 0x6f, 0x75, 0x74, 0x65, 0x72, 0x52, 0x65,
+	0x73, 0x70, 0x12, 0x38, 0x0a, 0x0b, 0x47, 0x65, 0x74, 0x4e, 0x6f, 0x64, 0x65, 0x49, 0x6e, 0x66,
+	0x6f, 0x12, 0x13, 0x2e, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x49,
+	0x6e, 0x66, 0x6f, 0x52, 0x65, 0x71, 0x1a, 0x14, 0x2e, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x2e,
+	0x4e, 0x6f, 0x64, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x42, 0x34, 0x5a, 0x32,
+	0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x63, 0x77, 0x6c, 0x6f, 0x6f,
+	0x2f, 0x75, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x65, 0x72, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f,
+	0x6d, 0x6f, 0x6e, 0x69, 0x74, 0x6f, 0x72, 0x3b, 0x70, 0x62, 0x5f, 0x6d, 0x6f, 0x6e, 0x69, 0x74,
+	0x6f, 0x72, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
-var (
-	file_monitor_monitor_proto_rawDescOnce sync.Once
-	file_monitor_monitor_proto_rawDescData = file_monitor_monitor_proto_rawDesc
-)
-
-func file_monitor_monitor_proto_rawDescGZIP() []byte {
-	file_monitor_monitor_proto_rawDescOnce.Do(func() {
-		file_monitor_monitor_proto_rawDescData = protoimpl.X.CompressGZIP(file_monitor_monitor_proto_rawDescData)
-	})
-	return file_monitor_monitor_proto_rawDescData
-}
-
-var file_monitor_monitor_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_monitor_monitor_proto_goTypes = []interface{}{
-	(*NodeInfo)(nil),     // 0: monitor.NodeInfo
-	(*RouterReq)(nil),    // 1: monitor.RouterReq
-	(*RouterResp)(nil),   // 2: monitor.RouterResp
-	(*NodeInfo_Rpc)(nil), // 3: monitor.NodeInfo.Rpc
+	(*public.RouterReq)(nil),    // 0: public.RouterReq
+	(*public.NodeInfoReq)(nil),  // 1: public.NodeInfoReq
+	(*public.RouterResp)(nil),   // 2: public.RouterResp
+	(*public.NodeInfoResp)(nil), // 3: public.NodeInfoResp
 }
 var file_monitor_monitor_proto_depIdxs = []int32{
-	3, // 0: monitor.NodeInfo.rpc:type_name -> monitor.NodeInfo.Rpc
-	0, // 1: monitor.RouterResp.node:type_name -> monitor.NodeInfo
-	1, // 2: monitor.monitor.GetRouter:input_type -> monitor.RouterReq
-	2, // 3: monitor.monitor.GetRouter:output_type -> monitor.RouterResp
-	3, // [3:4] is the sub-list for method output_type
-	2, // [2:3] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	0, // 0: monitor.monitor.GetRouter:input_type -> public.RouterReq
+	1, // 1: monitor.monitor.GetNodeInfo:input_type -> public.NodeInfoReq
+	2, // 2: monitor.monitor.GetRouter:output_type -> public.RouterResp
+	3, // 3: monitor.monitor.GetNodeInfo:output_type -> public.NodeInfoResp
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
+	0, // [0:0] is the sub-list for extension type_name
+	0, // [0:0] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_monitor_monitor_proto_init() }
@@ -375,69 +67,18 @@ func file_monitor_monitor_proto_init() {
 	if File_monitor_monitor_proto != nil {
 		return
 	}
-	if !protoimpl.UnsafeEnabled {
-		file_monitor_monitor_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*NodeInfo); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_monitor_monitor_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RouterReq); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_monitor_monitor_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RouterResp); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_monitor_monitor_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*NodeInfo_Rpc); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_monitor_monitor_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   0,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_monitor_monitor_proto_goTypes,
 		DependencyIndexes: file_monitor_monitor_proto_depIdxs,
-		MessageInfos:      file_monitor_monitor_proto_msgTypes,
 	}.Build()
 	File_monitor_monitor_proto = out.File
 	file_monitor_monitor_proto_rawDesc = nil
@@ -457,7 +98,8 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MonitorClient interface {
-	GetRouter(ctx context.Context, in *RouterReq, opts ...grpc.CallOption) (*RouterResp, error)
+	GetRouter(ctx context.Context, in *public.RouterReq, opts ...grpc.CallOption) (*public.RouterResp, error)
+	GetNodeInfo(ctx context.Context, in *public.NodeInfoReq, opts ...grpc.CallOption) (*public.NodeInfoResp, error)
 }
 
 type monitorClient struct {
@@ -468,9 +110,18 @@ func NewMonitorClient(cc grpc.ClientConnInterface) MonitorClient {
 	return &monitorClient{cc}
 }
 
-func (c *monitorClient) GetRouter(ctx context.Context, in *RouterReq, opts ...grpc.CallOption) (*RouterResp, error) {
-	out := new(RouterResp)
+func (c *monitorClient) GetRouter(ctx context.Context, in *public.RouterReq, opts ...grpc.CallOption) (*public.RouterResp, error) {
+	out := new(public.RouterResp)
 	err := c.cc.Invoke(ctx, "/monitor.monitor/GetRouter", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *monitorClient) GetNodeInfo(ctx context.Context, in *public.NodeInfoReq, opts ...grpc.CallOption) (*public.NodeInfoResp, error) {
+	out := new(public.NodeInfoResp)
+	err := c.cc.Invoke(ctx, "/monitor.monitor/GetNodeInfo", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -479,15 +130,19 @@ func (c *monitorClient) GetRouter(ctx context.Context, in *RouterReq, opts ...gr
 
 // MonitorServer is the server API for Monitor service.
 type MonitorServer interface {
-	GetRouter(context.Context, *RouterReq) (*RouterResp, error)
+	GetRouter(context.Context, *public.RouterReq) (*public.RouterResp, error)
+	GetNodeInfo(context.Context, *public.NodeInfoReq) (*public.NodeInfoResp, error)
 }
 
 // UnimplementedMonitorServer can be embedded to have forward compatible implementations.
 type UnimplementedMonitorServer struct {
 }
 
-func (*UnimplementedMonitorServer) GetRouter(context.Context, *RouterReq) (*RouterResp, error) {
+func (*UnimplementedMonitorServer) GetRouter(context.Context, *public.RouterReq) (*public.RouterResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRouter not implemented")
+}
+func (*UnimplementedMonitorServer) GetNodeInfo(context.Context, *public.NodeInfoReq) (*public.NodeInfoResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetNodeInfo not implemented")
 }
 
 func RegisterMonitorServer(s *grpc.Server, srv MonitorServer) {
@@ -495,7 +150,7 @@ func RegisterMonitorServer(s *grpc.Server, srv MonitorServer) {
 }
 
 func _Monitor_GetRouter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RouterReq)
+	in := new(public.RouterReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -507,7 +162,25 @@ func _Monitor_GetRouter_Handler(srv interface{}, ctx context.Context, dec func(i
 		FullMethod: "/monitor.monitor/GetRouter",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MonitorServer).GetRouter(ctx, req.(*RouterReq))
+		return srv.(MonitorServer).GetRouter(ctx, req.(*public.RouterReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Monitor_GetNodeInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(public.NodeInfoReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MonitorServer).GetNodeInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/monitor.monitor/GetNodeInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MonitorServer).GetNodeInfo(ctx, req.(*public.NodeInfoReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -519,6 +192,10 @@ var _Monitor_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRouter",
 			Handler:    _Monitor_GetRouter_Handler,
+		},
+		{
+			MethodName: "GetNodeInfo",
+			Handler:    _Monitor_GetNodeInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

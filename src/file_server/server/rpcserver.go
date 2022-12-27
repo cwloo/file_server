@@ -16,6 +16,7 @@ import (
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
 	pb_file "github.com/cwloo/uploader/proto/file"
+	pb_public "github.com/cwloo/uploader/proto/public"
 	getcdv3 "github.com/cwloo/uploader/src/global/pkg/grpc-etcdv3/getcdv3"
 
 	"google.golang.org/grpc"
@@ -103,7 +104,7 @@ func (s *RPCServer) Run(id int, name string) {
 	}
 }
 
-func (r *RPCServer) GetRouter(_ context.Context, req *pb_file.RouterReq) (*pb_file.RouterResp, error) {
+func (r *RPCServer) GetRouter(_ context.Context, req *pb_public.RouterReq) (*pb_public.RouterResp, error) {
 	logs.Debugf("%v [%v:%v %v:%v rpc:%v:%v NumOfLoads:%v] %+v",
 		os.Getpid(),
 		global.Name,
@@ -113,4 +114,16 @@ func (r *RPCServer) GetRouter(_ context.Context, req *pb_file.RouterReq) (*pb_fi
 		global.Uploaders.Len(),
 		req)
 	return handler.QueryRouter(req.Md5)
+}
+
+func (r *RPCServer) GetNodeInfo(_ context.Context, req *pb_public.NodeInfoReq) (*pb_public.NodeInfoResp, error) {
+	// logs.Debugf("%v [%v:%v %v:%v rpc:%v:%v NumOfLoads:%v] %+v",
+	// 	os.Getpid(),
+	// 	global.Name,
+	// 	cmd.Id()+1,
+	// 	config.Config.File.Ip, config.Config.File.Port[cmd.Id()],
+	// 	config.Config.Rpc.Ip, config.Config.Rpc.File.Port[cmd.Id()],
+	// 	global.Uploaders.Len(),
+	// 	req)
+	return handler.GetNodeInfo()
 }

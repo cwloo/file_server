@@ -141,6 +141,34 @@ func QueryCacheList() (*global.ListResp, bool) {
 	return resp, true
 }
 
+func FinishedNum() (c int) {
+	global.FileInfos.Range(func(md5 string, info global.FileInfo) {
+		switch info.Done(false) {
+		case true:
+			c += 1
+		}
+	})
+	return
+}
+
+func PendingNum() (c int) {
+	staFromFile := false
+	switch staFromFile {
+	case true:
+		global.FileInfos.Range(func(md5 string, info global.FileInfo) {
+			switch info.Done(false) {
+			case false:
+				c += 1
+			}
+		})
+	default:
+		global.Uploaders.Range(func(uuid string, uploader global.Uploader) {
+			c += uploader.Len()
+		})
+	}
+	return
+}
+
 func DelCacheFile(delType int, md5 string) {
 	switch delType {
 	case 1:

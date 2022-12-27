@@ -128,6 +128,10 @@ func (s *AsyncUploader) NotifyClose() {
 	}
 }
 
+func (s *AsyncUploader) Len() int {
+	return s.state.Len()
+}
+
 func (s *AsyncUploader) Remove(md5 string) {
 	if s.state.Remove(md5) && s.state.AllDone() {
 		s.NotifyClose()

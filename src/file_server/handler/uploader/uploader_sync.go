@@ -74,6 +74,10 @@ func (s *SyncUploader) Close() {
 func (s *SyncUploader) NotifyClose() {
 }
 
+func (s *SyncUploader) Len() int {
+	return s.state.Len()
+}
+
 func (s *SyncUploader) Remove(md5 string) {
 	if s.state.Remove(md5) && s.state.AllDone() {
 		s.Clear()

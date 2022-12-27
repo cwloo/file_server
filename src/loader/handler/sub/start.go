@@ -24,6 +24,7 @@ type PID struct {
 		Rpc  struct {
 			Ip   string
 			Port int
+			Node string
 		}
 	}
 	Cmd      string
@@ -59,6 +60,7 @@ func Start() {
 			Rpc  struct {
 				Ip   string
 				Port []int
+				Node string
 			}
 		}
 	}{
@@ -76,6 +78,7 @@ func Start() {
 				Rpc  struct {
 					Ip   string
 					Port []int
+					Node string
 				}
 			}{
 				Ip:   config.Config.Gate.Ip,
@@ -83,9 +86,11 @@ func Start() {
 				Rpc: struct {
 					Ip   string
 					Port []int
+					Node string
 				}{
 					Ip:   config.Config.Rpc.Ip,
 					Port: config.Config.Rpc.Gate.Port,
+					Node: config.Config.Rpc.Gate.Node,
 				},
 			},
 			Num:  config.Config.Sub.Gate.Num,
@@ -101,6 +106,7 @@ func Start() {
 				Rpc  struct {
 					Ip   string
 					Port []int
+					Node string
 				}
 			}{
 				Ip:   config.Config.Gate.Http.Ip,
@@ -108,9 +114,11 @@ func Start() {
 				Rpc: struct {
 					Ip   string
 					Port []int
+					Node string
 				}{
 					Ip:   config.Config.Rpc.Ip,
 					Port: config.Config.Rpc.Gate.Http.Port,
+					Node: config.Config.Rpc.Gate.Http.Node,
 				},
 			},
 			Num:  config.Config.Sub.Gate.Http.Num,
@@ -126,6 +134,7 @@ func Start() {
 				Rpc  struct {
 					Ip   string
 					Port []int
+					Node string
 				}
 			}{
 				Ip:   config.Config.File.Ip,
@@ -133,9 +142,11 @@ func Start() {
 				Rpc: struct {
 					Ip   string
 					Port []int
+					Node string
 				}{
 					Ip:   config.Config.Rpc.Ip,
 					Port: config.Config.Rpc.File.Port,
+					Node: config.Config.Rpc.File.Node,
 				},
 			},
 			Num:  config.Config.Sub.File.Num,
@@ -232,6 +243,7 @@ func Start() {
 						Rpc  struct {
 							Ip   string
 							Port int
+							Node string
 						}
 					}{
 						Ip:   Exec.Server.Ip,
@@ -239,9 +251,11 @@ func Start() {
 						Rpc: struct {
 							Ip   string
 							Port int
+							Node string
 						}{
 							Ip:   Exec.Server.Rpc.Ip,
 							Port: Exec.Server.Rpc.Port[id],
+							Node: Exec.Server.Rpc.Node,
 						},
 					},
 					Cmd:  Exec.Cmd,

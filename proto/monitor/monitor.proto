@@ -1,34 +1,10 @@
 syntax = "proto3";
-option go_package = "uploader/proto/monitor;pb_monitor";
+import "public/node.proto";
+option go_package = "github.com/cwloo/uploader/proto/monitor;pb_monitor";
 package monitor;
 
-message NodeInfo {
-  int32 pid = 1;
-  string name = 2;
-  int32 id = 3;
-  int32 NumOfLoads = 4;
-  string ip = 5;
-  int32 port = 6;
-  string domain = 7;
-  message Rpc {
-    string ip = 1;
-    int32 port = 2;
-  }
-  Rpc rpc = 8;
-}
-
-message RouterReq {
-  string md5 = 1;
-}
-
-message RouterResp {
-  string md5 = 1;
-  NodeInfo node = 2;
-  int32  errCode = 3;
-  string errMsg = 4;
-}
-
 service monitor {
-  rpc GetRouter(RouterReq) returns(RouterResp);
+  rpc GetRouter(public.RouterReq) returns(public.RouterResp);
+  rpc GetNodeInfo(public.NodeInfoReq) returns(public.NodeInfoResp);
 }
 
