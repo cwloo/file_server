@@ -90,12 +90,12 @@ func (s *RPCServer) Run(id int, name string) {
 	pb_monitor.RegisterMonitorServer(server, s)
 	pb_public.RegisterPeerServer(server, s)
 	logs.Warnf("%v:%v etcd%v schema=%v node=%v:%v:%v", name, id, s.etcdAddr, s.etcdSchema, s.node, s.addr, s.port)
-	err = getcdv3.RegisterEtcd(s.etcdSchema, strings.Join(s.etcdAddr, ","), s.addr, s.port, s.node, 10)
+	err = getcdv3.RegisterEtcd(s.etcdSchema, strings.Join(s.etcdAddr, ","), s.addr, s.port, s.node, config.Config.Etcd.Timeout.Keepalive)
 	if err != nil {
-		errMsg := strings.Join([]string{s.etcdSchema, " ", strings.Join(s.etcdAddr, ","), " ", s.addr, ":", strconv.Itoa(s.port), " ", s.node, " ", err.Error()}, "")
+		errMsg := strings.Join([]string{s.etcdSchema, strings.Join(s.etcdAddr, ","), net.JoinHostPort(s.addr, strconv.Itoa(s.port)), s.node, err.Error()}, " ")
 		logs.Fatalf(errMsg)
 	}
-	s.target = getcdv3.GetTarget(s.etcdSchema, s.addr, s.port, s.node)
+	s.target = getcdv3.GetUniqueTarget(s.etcdSchema, s.node, s.addr, s.port)
 	// logs.Warnf("target=%v", s.target)
 	err = server.Serve(listener)
 	if err != nil {

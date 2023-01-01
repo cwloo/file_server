@@ -77,6 +77,8 @@ func (s *AsyncUploader) wait_started() {
 }
 
 func (s *AsyncUploader) reset() {
+	s.Clear()
+	global.Uploaders.Remove(s.uuid)
 	s.pipe = nil
 	s.state.Put()
 }
@@ -120,11 +122,13 @@ func (s *AsyncUploader) Close() {
 }
 
 func (s *AsyncUploader) NotifyClose() {
-	if s.pipe.NotifyClose() {
+	switch s.pipe.NotifyClose() {
+	case true:
 		logs.Tracef("ok")
-	} else {
+	default:
 		logs.Errorf("err")
 		s.notify()
+		s.Put()
 	}
 }
 
@@ -157,18 +161,7 @@ func (s *AsyncUploader) Clear() {
 }
 
 func (s *AsyncUploader) onQuit(slot run.Slot) {
-	s.Clear()
-	global.Uploaders.Remove(s.uuid).Put()
-}
-
-func (s *AsyncUploader) handler(msg any, args ...any) (exit bool) {
-	s.uploading(msg.(*global.Req))
-	exit = s.state.AllDone()
-	if exit {
-		logs.Tracef("--------------------- ****** 无待上传文件，结束任务 %v ...", s.uuid)
-	}
-	s.notify()
-	return
+	s.Put()
 }
 
 func (s *AsyncUploader) Upload(req *global.Req) {
@@ -179,6 +172,19 @@ func (s *AsyncUploader) Upload(req *global.Req) {
 	s.pipe.Do(req)
 	/// http.ResponseWriter 生命周期原因，不支持异步，所以加了 wait
 	s.wait()
+}
+
+func (s *AsyncUploader) handler(msg any, args ...any) (exit bool) {
+	switch msg := msg.(type) {
+	case *global.Req:
+		s.uploading(msg)
+	}
+	exit = s.state.AllDone()
+	if exit {
+		logs.Tracef("--------------------- ****** 无待上传文件，结束任务 %v ...", s.uuid)
+	}
+	s.notify()
+	return
 }
 
 func (s *AsyncUploader) uploading(req *global.Req) {
@@ -206,7 +212,7 @@ func (s *AsyncUploader) uploading(req *global.Req) {
 			logs.Debugf("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", req.Uuid, k.Filename, k.Md5, 0, k.Total, offset_n, k.Headersize)
 			continue
 		}
-		info := global.FileInfos.Get(k.Md5)
+		info, _ := global.FileInfos.Get(k.Md5)
 		if info == nil {
 			size, _ := strconv.ParseInt(k.Total, 10, 0)
 			result = append(result,

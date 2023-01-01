@@ -97,6 +97,9 @@ type IniConfig struct {
 		Addr     []string `json:"addr" form:"addr"`
 		UserName string   `json:"username" form:"username"`
 		Password string   `json:"password" form:"password"`
+		Timeout  struct {
+			Keepalive int `json:"keepalive" form:"keepalive"`
+		} `json:"timeout" form:"timeout"`
 	} `json:"etcd" form:"etcd"`
 	Monitor struct {
 		Name        string `json:"name" form:"name"`
@@ -423,6 +426,7 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 	}
 	c.Etcd.UserName = ini.GetString("etcd", "username")
 	c.Etcd.Password = ini.GetString("etcd", "password")
+	c.Etcd.Timeout.Keepalive = ini.GetInt("etcd", "timeout.keepalive")
 	// Monitor
 	// c.Monitor.Name = ini.GetString("monitor", "name")
 	c.Monitor.Ip = ini.GetString("monitor", "ip")

@@ -35,8 +35,8 @@ type PID struct {
 	Filelist []string
 }
 
-func Start() {
-	m := map[int][]string{}
+func SubFilelist() (m map[int][]string) {
+	m = map[int][]string{}
 	{
 		id := 0
 		for _, f := range config.Config.Client.Upload.Filelist {
@@ -47,6 +47,10 @@ func Start() {
 			}
 		}
 	}
+	return
+}
+
+func Start() {
 	subs := map[string]struct {
 		Num    int
 		Cmd    string
@@ -157,6 +161,7 @@ func Start() {
 			Log:  cmd.Log()},
 	}
 	n := 0
+	m := SubFilelist()
 	for name, Exec := range subs {
 		id := 0
 		for i := 0; i < Exec.Num; {
@@ -186,55 +191,30 @@ func Start() {
 					for i, f := range v {
 						filelist = append(filelist, cmd.FormatArg(strings.Join([]string{"file", strconv.Itoa(i)}, ""), f))
 					}
-				}
-				args = append(args, cmd.FormatArg("n", strconv.Itoa(len(filelist))))
-				args = append(args, filelist...)
-				_, ok = sub.Start(f, args, func(pid int, v ...any) {
-					p := v[0].(*PID)
-					logs.DebugfP("%v [%v:%v %v:%v rpc:%v:%v %v %v %v %v]",
-						pid,
-						p.Name,
-						p.Id+1,
-						p.Server.Ip,
-						p.Server.Port,
-						p.Server.Rpc.Ip,
-						p.Server.Rpc.Port,
-						p.Dir,
-						p.Cmd,
-						cmd.FormatConf(p.Conf),
-						cmd.FormatLog(p.Log))
-				}, Monitor, &PID{
-					Id:       id,
-					Name:     name,
-					Cmd:      Exec.Cmd,
-					Exec:     Exec.Exec,
-					Dir:      Exec.Dir,
-					Conf:     Exec.Conf,
-					Log:      Exec.Log,
-					Filelist: filelist,
-				})
-				switch ok {
-				case true:
-					id++
-					i++
-					n++
+					switch len(filelist) > 0 {
+					case true:
+						args = append(args, cmd.FormatArg("n", strconv.Itoa(len(filelist))))
+						args = append(args, filelist...)
+						_, ok = sub.Start(f, args, Succ, Monitor, &PID{
+							Id:       id,
+							Name:     name,
+							Cmd:      Exec.Cmd,
+							Exec:     Exec.Exec,
+							Dir:      Exec.Dir,
+							Conf:     Exec.Conf,
+							Log:      Exec.Log,
+							Filelist: filelist,
+						})
+						switch ok {
+						case true:
+							id++
+							i++
+							n++
+						}
+					}
 				}
 			default:
-				_, ok := sub.Start(f, args, func(pid int, v ...any) {
-					p := v[0].(*PID)
-					logs.DebugfP("%v [%v:%v %v:%v rpc:%v:%v %v %v %v %v]",
-						pid,
-						p.Name,
-						p.Id+1,
-						p.Server.Ip,
-						p.Server.Port,
-						p.Server.Rpc.Ip,
-						p.Server.Rpc.Port,
-						p.Dir,
-						p.Cmd,
-						cmd.FormatConf(p.Conf),
-						cmd.FormatLog(p.Log))
-				}, Monitor, &PID{
+				_, ok := sub.Start(f, args, Succ, Monitor, &PID{
 					Id:   id,
 					Name: name,
 					Server: struct {

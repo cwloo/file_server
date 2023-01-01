@@ -25,7 +25,7 @@ func GetCfg(req *global.GetCfgReq) (*global.GetCfgResp, bool) {
 }
 
 func QueryCacheFile(md5 string) (*global.FileInfoResp, bool) {
-	info := global.FileInfos.Get(md5)
+	info, _ := global.FileInfos.Get(md5)
 	if info == nil {
 		return &global.FileInfoResp{Md5: md5, ErrCode: 5, ErrMsg: "not found"}, false
 	}
@@ -177,7 +177,8 @@ func DelCacheFile(delType int, md5 string) {
 			return !info.Done(false)
 		}, func(info global.FileInfo) {
 			os.Remove(config.Config.File.Upload.Dir + info.DstName())
-			global.Uploaders.Get(info.Uuid()).Remove(md5)
+			uploader, _ := global.Uploaders.Get(info.Uuid())
+			uploader.Remove(md5)
 			info.Put()
 		})
 	case 2:

@@ -10,7 +10,7 @@ import (
 )
 
 func QueryRouter(md5 string) (*pb_public.RouterResp, error) {
-	info := global.FileInfos.Get(md5)
+	info, _ := global.FileInfos.Get(md5)
 	switch info {
 	case nil:
 		return &pb_public.RouterResp{

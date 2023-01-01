@@ -5,6 +5,5 @@ package httpgate;
 
 service httpGate {
   rpc GetRouter(public.RouterReq) returns(public.RouterResp);
-  rpc GetNodeInfo(public.NodeInfoReq) returns(public.NodeInfoResp);
 }
 

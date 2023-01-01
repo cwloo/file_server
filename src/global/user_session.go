@@ -27,11 +27,9 @@ func (s *SessionToHandler) Len() (c int) {
 	return
 }
 
-func (s *SessionToHandler) Get(uuid string) (handler Uploader) {
+func (s *SessionToHandler) Get(uuid string) (handler Uploader, ok bool) {
 	s.l.RLock()
-	if c, ok := s.m[uuid]; ok {
-		handler = c
-	}
+	handler, ok = s.m[uuid]
 	s.l.RUnlock()
 	return
 }
@@ -51,10 +49,22 @@ OK:
 }
 
 func (s *SessionToHandler) GetAdd(uuid string, async bool, new NewUploader) (handler Uploader, ok bool) {
+	handler, ok = s.Get(uuid)
+	switch ok {
+	case true:
+	default:
+		handler, ok = s.getAdd(uuid, async, new)
+	}
+	return
+}
+
+func (s *SessionToHandler) getAdd(uuid string, async bool, new NewUploader) (handler Uploader, ok bool) {
 	n := 0
 	s.l.Lock()
 	handler, ok = s.m[uuid]
-	if !ok {
+	switch ok {
+	case true:
+	default:
 		switch new == nil {
 		case true:
 			s.l.Unlock()
@@ -69,6 +79,7 @@ func (s *SessionToHandler) GetAdd(uuid string, async bool, new NewUploader) (han
 		s.m[uuid] = handler
 		n = len(s.m)
 		s.l.Unlock()
+		ok = true
 		goto OK
 	}
 	s.l.Unlock()

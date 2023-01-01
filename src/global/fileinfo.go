@@ -436,11 +436,9 @@ func (s *Md5ToFileInfo) Len() (c int) {
 	return
 }
 
-func (s *Md5ToFileInfo) Get(md5 string) (info FileInfo) {
+func (s *Md5ToFileInfo) Get(md5 string) (info FileInfo, ok bool) {
 	s.l.RLock()
-	if c, ok := s.m[md5]; ok {
-		info = c
-	}
+	info, ok = s.m[md5]
 	s.l.RUnlock()
 	return
 }
@@ -460,15 +458,28 @@ OK:
 }
 
 func (s *Md5ToFileInfo) GetAdd(md5 string, uuid, Filename, total string, useOriginFilename bool, new NewOss) (info FileInfo, ok bool) {
+	info, ok = s.Get(md5)
+	switch ok {
+	case true:
+	default:
+		info, ok = s.getAdd(md5, uuid, Filename, total, useOriginFilename, new)
+	}
+	return
+}
+
+func (s *Md5ToFileInfo) getAdd(md5 string, uuid, Filename, total string, useOriginFilename bool, new NewOss) (info FileInfo, ok bool) {
 	n := 0
 	s.l.Lock()
 	info, ok = s.m[md5]
-	if !ok {
+	switch ok {
+	case true:
+	default:
 		size, _ := strconv.ParseInt(total, 10, 0)
 		info = NewFileInfo(uuid, md5, Filename, size, useOriginFilename, new)
 		s.m[md5] = info
 		n = len(s.m)
 		s.l.Unlock()
+		ok = true
 		goto OK
 	}
 	s.l.Unlock()

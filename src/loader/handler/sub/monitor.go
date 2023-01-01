@@ -11,9 +11,7 @@ import (
 	"github.com/cwloo/gonet/core/base/sys"
 	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/logs"
-	pb_file "github.com/cwloo/uploader/proto/file"
-	pb_gate "github.com/cwloo/uploader/proto/gate"
-	pb_httpgate "github.com/cwloo/uploader/proto/gate.http"
+	"github.com/cwloo/gonet/utils"
 	pb_public "github.com/cwloo/uploader/proto/public"
 	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/global/pkg/grpc-etcdv3/getcdv3"
@@ -25,6 +23,7 @@ func List() {
 		uploaders := 0
 		pends := 0
 		files := 0
+		utils.CheckPanic()
 		switch p.Name {
 		case config.Config.Gate.Name:
 			// logs.ErrorfL("etcd[%v] %v:///%v:%v:%v/", strings.Join(config.Config.Etcd.Addr, ","), config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
@@ -32,7 +31,7 @@ func List() {
 			switch v {
 			case nil:
 			default:
-				client := pb_gate.NewGateClient(v)
+				client := pb_public.NewPeerClient(v)
 				req := &pb_public.NodeInfoReq{}
 				resp, err := client.GetNodeInfo(context.Background(), req)
 				if err != nil {
@@ -49,7 +48,7 @@ func List() {
 			switch v {
 			case nil:
 			default:
-				client := pb_httpgate.NewHttpGateClient(v)
+				client := pb_public.NewPeerClient(v)
 				req := &pb_public.NodeInfoReq{}
 				resp, err := client.GetNodeInfo(context.Background(), req)
 				if err != nil {
@@ -66,7 +65,7 @@ func List() {
 			switch v {
 			case nil:
 			default:
-				client := pb_file.NewFileClient(v)
+				client := pb_public.NewPeerClient(v)
 				req := &pb_public.NodeInfoReq{}
 				resp, err := client.GetNodeInfo(context.Background(), req)
 				if err != nil {
@@ -123,8 +122,11 @@ func restart(pid int, v ...any) {
 	}
 	switch p.Name {
 	case config.Config.Client.Name:
-		args = append(args, cmd.FormatArg("n", strconv.Itoa(len(p.Filelist))))
-		args = append(args, p.Filelist...)
+		switch len(p.Filelist) > 0 {
+		case true:
+			args = append(args, cmd.FormatArg("n", strconv.Itoa(len(p.Filelist))))
+			args = append(args, p.Filelist...)
+		}
 	}
 	sub.Start(f, args, func(pid int, v ...any) {
 		p := v[0].(*PID)
@@ -155,4 +157,20 @@ func Monitor(sta *os.ProcessState, v ...any) {
 			restart(sta.Pid(), v...)
 		}
 	}
+}
+
+func Succ(pid int, v ...any) {
+	p := v[0].(*PID)
+	logs.DebugfP("%v [%v:%v %v:%v rpc:%v:%v %v %v %v %v]",
+		pid,
+		p.Name,
+		p.Id+1,
+		p.Server.Ip,
+		p.Server.Port,
+		p.Server.Rpc.Ip,
+		p.Server.Rpc.Port,
+		p.Dir,
+		p.Cmd,
+		cmd.FormatConf(p.Conf),
+		cmd.FormatLog(p.Log))
 }

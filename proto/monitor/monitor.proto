@@ -5,6 +5,5 @@ package monitor;
 
 service monitor {
   rpc GetRouter(public.RouterReq) returns(public.RouterResp);
-  rpc GetNodeInfo(public.NodeInfoReq) returns(public.NodeInfoResp);
 }
 

@@ -48,4 +48,5 @@ message PeerResp {
 
 service peer {
   rpc GetAddr(PeerReq) returns(PeerResp);
+  rpc GetNodeInfo(NodeInfoReq) returns(NodeInfoResp);
 }

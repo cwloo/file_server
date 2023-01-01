@@ -45,6 +45,8 @@ func NewSyncUploader(uuid string) global.Uploader {
 }
 
 func (s *SyncUploader) reset() {
+	s.Clear()
+	global.Uploaders.Remove(s.uuid)
 	s.state.Put()
 }
 
@@ -67,8 +69,7 @@ func (s *SyncUploader) Get() time.Time {
 }
 
 func (s *SyncUploader) Close() {
-	s.Clear()
-	global.Uploaders.Remove(s.uuid).Put()
+	s.Put()
 }
 
 func (s *SyncUploader) NotifyClose() {
@@ -80,8 +81,7 @@ func (s *SyncUploader) Len() int {
 
 func (s *SyncUploader) Remove(md5 string) {
 	if s.state.Remove(md5) && s.state.AllDone() {
-		s.Clear()
-		global.Uploaders.Remove(s.uuid).Put()
+		s.Put()
 	}
 }
 
@@ -111,7 +111,7 @@ func (s *SyncUploader) Upload(req *global.Req) {
 	exit := s.state.AllDone()
 	if exit {
 		logs.Tracef("--------------------- ****** 无待上传文件，结束任务 %v ...", s.uuid)
-		global.Uploaders.Remove(s.uuid).Put()
+		s.Put()
 	}
 }
 
@@ -141,7 +141,7 @@ func (s *SyncUploader) uploading(req *global.Req) {
 			logs.Debugf("--------------------- ****** checking re-upload %v %v[%v] %v/%v offset:%v seg_size[%d]", req.Uuid, k.Filename, k.Md5, 0, k.Total, offset_n, k.Headersize)
 			continue
 		}
-		info := global.FileInfos.Get(k.Md5)
+		info, _ := global.FileInfos.Get(k.Md5)
 		if info == nil {
 			size, _ := strconv.ParseInt(k.Total, 10, 0)
 			result = append(result,

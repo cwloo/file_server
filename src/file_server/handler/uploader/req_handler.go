@@ -145,7 +145,7 @@ func UploadReq(w http.ResponseWriter, r *http.Request) {
 			logs.Errorf("%v %v[%v] %v seg_size[%v]", uuid, header.Filename, md5, total, header.Size)
 			continue
 		}
-		fi := global.FileInfos.Get(md5)
+		fi, _ := global.FileInfos.Get(md5)
 		if fi == nil {
 			/// 没有上传，判断能否上传
 			size, _ := strconv.ParseInt(total, 10, 0)
@@ -449,7 +449,7 @@ func MultiUploadReq(w http.ResponseWriter, r *http.Request) {
 			logs.Errorf("%v %v[%v] %v seg_size[%v]", uuid, header.Filename, md5, total, header.Size)
 			continue
 		}
-		fi := global.FileInfos.Get(md5)
+		fi, _ := global.FileInfos.Get(md5)
 		if fi == nil {
 			/// 没有上传，判断能否上传
 			size, _ := strconv.ParseInt(total, 10, 0)
