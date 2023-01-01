@@ -37,7 +37,9 @@ func (s *SessionToHandler) Get(uuid string) (handler Uploader, ok bool) {
 func (s *SessionToHandler) Do(uuid string, cb func(Uploader)) {
 	var handler Uploader
 	s.l.RLock()
-	if c, ok := s.m[uuid]; ok {
+	c, ok := s.m[uuid]
+	switch ok {
+	case true:
 		handler = c
 		s.l.RUnlock()
 		goto OK
@@ -104,10 +106,26 @@ func (s *SessionToHandler) List() {
 
 func (s *SessionToHandler) Remove(uuid string) (handler Uploader) {
 	s.List()
+	handler, _ = s.remove_(uuid)
+	return
+}
+
+func (s *SessionToHandler) remove_(uuid string) (c Uploader, ok bool) {
+	_, ok = s.Get(uuid)
+	switch ok {
+	case true:
+		c, ok = s.remove(uuid)
+	default:
+	}
+	return
+}
+
+func (s *SessionToHandler) remove(uuid string) (c Uploader, ok bool) {
 	n := 0
 	s.l.Lock()
-	if c, ok := s.m[uuid]; ok {
-		handler = c
+	c, ok = s.m[uuid]
+	switch ok {
+	case true:
 		delete(s.m, uuid)
 		n = len(s.m)
 		s.l.Unlock()
@@ -121,12 +139,28 @@ OK:
 }
 
 func (s *SessionToHandler) RemoveWithCond(uuid string, cond func(Uploader) bool, cb func(Uploader)) (handler Uploader) {
+	handler, _ = s.removeWithCond_(uuid, cond, cb)
+	return
+}
+
+func (s *SessionToHandler) removeWithCond_(uuid string, cond func(Uploader) bool, cb func(Uploader)) (c Uploader, ok bool) {
+	_, ok = s.Get(uuid)
+	switch ok {
+	case true:
+		c, ok = s.removeWithCond(uuid, cond, cb)
+	}
+	return
+}
+
+func (s *SessionToHandler) removeWithCond(uuid string, cond func(Uploader) bool, cb func(Uploader)) (c Uploader, ok bool) {
 	n := 0
 	s.l.Lock()
-	if c, ok := s.m[uuid]; ok {
-		if cond(c) {
-			handler = c
-			cb(handler)
+	c, ok = s.m[uuid]
+	switch ok {
+	case true:
+		switch cond(c) {
+		case true:
+			cb(c)
 			delete(s.m, uuid)
 			n = len(s.m)
 			s.l.Unlock()
@@ -142,8 +176,8 @@ OK:
 
 func (s *SessionToHandler) Range(cb func(string, Uploader)) {
 	s.l.RLock()
-	for uuid, handler := range s.m {
-		cb(uuid, handler)
+	for uuid, c := range s.m {
+		cb(uuid, c)
 	}
 	s.l.RUnlock()
 }
@@ -152,9 +186,10 @@ func (s *SessionToHandler) RangeRemoveWithCond(cond func(Uploader) bool, cb func
 	n := 0
 	list := []string{}
 	s.l.Lock()
-	for uuid, handler := range s.m {
-		if cond(handler) {
-			cb(handler)
+	for uuid, c := range s.m {
+		switch cond(c) {
+		case true:
+			cb(c)
 			delete(s.m, uuid)
 			n = len(s.m)
 			list = append(list, uuid)

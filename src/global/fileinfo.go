@@ -446,7 +446,9 @@ func (s *Md5ToFileInfo) Get(md5 string) (info FileInfo, ok bool) {
 func (s *Md5ToFileInfo) Do(md5 string, cb func(FileInfo)) {
 	var info FileInfo
 	s.l.RLock()
-	if c, ok := s.m[md5]; ok {
+	c, ok := s.m[md5]
+	switch ok {
+	case true:
 		info = c
 		s.l.RUnlock()
 		goto OK
@@ -490,10 +492,26 @@ OK:
 }
 
 func (s *Md5ToFileInfo) Remove(md5 string) (info FileInfo) {
+	info, _ = s.remove_(md5)
+	return
+}
+
+func (s *Md5ToFileInfo) remove_(md5 string) (c FileInfo, ok bool) {
+	_, ok = s.Get(md5)
+	switch ok {
+	case true:
+		c, ok = s.remove(md5)
+	default:
+	}
+	return
+}
+
+func (s *Md5ToFileInfo) remove(md5 string) (c FileInfo, ok bool) {
 	n := 0
 	s.l.Lock()
-	if c, ok := s.m[md5]; ok {
-		info = c
+	c, ok = s.m[md5]
+	switch ok {
+	case true:
 		delete(s.m, md5)
 		n = len(s.m)
 		s.l.Unlock()
@@ -507,12 +525,28 @@ OK:
 }
 
 func (s *Md5ToFileInfo) RemoveWithCond(md5 string, cond func(FileInfo) bool, cb func(FileInfo)) (info FileInfo) {
+	info, _ = s.removeWithCond_(md5, cond, cb)
+	return
+}
+
+func (s *Md5ToFileInfo) removeWithCond_(md5 string, cond func(FileInfo) bool, cb func(FileInfo)) (c FileInfo, ok bool) {
+	_, ok = s.Get(md5)
+	switch ok {
+	case true:
+		c, ok = s.removeWithCond(md5, cond, cb)
+	}
+	return
+}
+
+func (s *Md5ToFileInfo) removeWithCond(md5 string, cond func(FileInfo) bool, cb func(FileInfo)) (c FileInfo, ok bool) {
 	n := 0
 	s.l.Lock()
-	if c, ok := s.m[md5]; ok {
-		if cond(c) {
-			info = c
-			cb(info)
+	c, ok = s.m[md5]
+	switch ok {
+	case true:
+		switch cond(c) {
+		case true:
+			cb(c)
 			delete(s.m, md5)
 			n = len(s.m)
 			s.l.Unlock()
@@ -528,8 +562,8 @@ OK:
 
 func (s *Md5ToFileInfo) Range(cb func(string, FileInfo)) {
 	s.l.RLock()
-	for md5, info := range s.m {
-		cb(md5, info)
+	for md5, c := range s.m {
+		cb(md5, c)
 	}
 	s.l.RUnlock()
 }
@@ -538,9 +572,10 @@ func (s *Md5ToFileInfo) RangeRemoveWithCond(cond func(FileInfo) bool, cb func(Fi
 	n := 0
 	list := []string{}
 	s.l.Lock()
-	for md5, info := range s.m {
-		if cond(info) {
-			cb(info)
+	for md5, c := range s.m {
+		switch cond(c) {
+		case true:
+			cb(c)
 			delete(s.m, md5)
 			n = len(s.m)
 			list = append(list, md5)
