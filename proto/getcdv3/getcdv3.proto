@@ -1,0 +1,14 @@
+syntax = "proto3";
+option go_package = "github.com/cwloo/grpc-etcdv3/getcdv3/proto/getcdv3;pb_getcdv3";
+package getcdv3;
+
+message PeerReq {
+}
+
+message PeerResp {
+  string addr = 1;
+}
+
+service peer {
+  rpc GetAddr(PeerReq) returns(PeerResp);
+}

@@ -12,9 +12,10 @@ import (
 	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
+	"github.com/cwloo/grpc-etcdv3/getcdv3"
+	"github.com/cwloo/grpc-etcdv3/getcdv3/gRPCs"
 	pb_public "github.com/cwloo/uploader/proto/public"
 	"github.com/cwloo/uploader/src/config"
-	"github.com/cwloo/uploader/src/global/pkg/grpc-etcdv3/getcdv3"
 )
 
 func List() {
@@ -27,15 +28,17 @@ func List() {
 		switch p.Name {
 		case config.Config.Gate.Name:
 			// logs.ErrorfL("etcd[%v] %v:///%v:%v:%v/", strings.Join(config.Config.Etcd.Addr, ","), config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
-			v, _ := getcdv3.GetConn(config.Config.Etcd.Schema, strings.Join(config.Config.Etcd.Addr, ","), p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
+			v, _ := getcdv3.GetConn(config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
 			switch v {
 			case nil:
 			default:
-				client := pb_public.NewPeerClient(v)
+				client := pb_public.NewPeerClient(v.Conn())
 				req := &pb_public.NodeInfoReq{}
 				resp, err := client.GetNodeInfo(context.Background(), req)
 				if err != nil {
 					logs.Errorf("%v [%v:%v rpc=%v:%v:%v %v", pid, p.Name, p.Id+1, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port, err.Error())
+					gRPCs.Conns().RemoveBy(err)
+					v.Free()
 					return
 				}
 				pends = int(resp.Node.NumOfPends)
@@ -44,15 +47,17 @@ func List() {
 			}
 		case config.Config.Gate.Http.Name:
 			// logs.ErrorfL("etcd[%v] %v:///%v:%v:%v/", strings.Join(config.Config.Etcd.Addr, ","), config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
-			v, _ := getcdv3.GetConn(config.Config.Etcd.Schema, strings.Join(config.Config.Etcd.Addr, ","), p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
+			v, _ := getcdv3.GetConn(config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
 			switch v {
 			case nil:
 			default:
-				client := pb_public.NewPeerClient(v)
+				client := pb_public.NewPeerClient(v.Conn())
 				req := &pb_public.NodeInfoReq{}
 				resp, err := client.GetNodeInfo(context.Background(), req)
 				if err != nil {
 					logs.Errorf("%v [%v:%v rpc=%v:%v:%v %v", pid, p.Name, p.Id+1, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port, err.Error())
+					gRPCs.Conns().RemoveBy(err)
+					v.Free()
 					return
 				}
 				pends = int(resp.Node.NumOfPends)
@@ -61,15 +66,17 @@ func List() {
 			}
 		case config.Config.File.Name:
 			// logs.ErrorfL("etcd[%v] %v:///%v:%v:%v/", strings.Join(config.Config.Etcd.Addr, ","), config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
-			v, _ := getcdv3.GetConn(config.Config.Etcd.Schema, strings.Join(config.Config.Etcd.Addr, ","), p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
+			v, _ := getcdv3.GetConn(config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
 			switch v {
 			case nil:
 			default:
-				client := pb_public.NewPeerClient(v)
+				client := pb_public.NewPeerClient(v.Conn())
 				req := &pb_public.NodeInfoReq{}
 				resp, err := client.GetNodeInfo(context.Background(), req)
 				if err != nil {
 					logs.Errorf("%v [%v:%v rpc=%v:%v:%v %v", pid, p.Name, p.Id+1, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port, err.Error())
+					gRPCs.Conns().RemoveBy(err)
+					v.Free()
 					return
 				}
 				pends = int(resp.Node.NumOfPends)

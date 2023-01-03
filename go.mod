@@ -6,6 +6,7 @@ require (
 	github.com/Shopify/sarama v1.37.2
 	github.com/coreos/etcd v3.3.27+incompatible
 	github.com/cwloo/gonet v0.0.0
+	github.com/cwloo/grpc-etcdv3 v0.0.0
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/gogo/protobuf v1.3.2
@@ -78,6 +79,10 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )
 
-// replace github.com/cwloo/gonet v0.0.0 => /mnt/hgfs/gonet
+replace github.com/cwloo/gonet v0.0.0 => /mnt/hgfs/gonet
 
-replace github.com/cwloo/gonet v0.0.0 => E:\winshare\gonet
+replace github.com/cwloo/grpc-etcdv3 v0.0.0 => /mnt/hgfs/grpc-etcdv3
+
+// replace github.com/cwloo/gonet v0.0.0 => E:\winshare\gonet
+
+// replace github.com/cwloo/grpc-etcdv3 v0.0.0 => E:\winshare\grpc-etcdv3

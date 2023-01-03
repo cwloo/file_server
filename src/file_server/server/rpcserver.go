@@ -15,10 +15,10 @@ import (
 	"github.com/cwloo/gonet/core/net/conn"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
+	getcdv3 "github.com/cwloo/grpc-etcdv3/getcdv3"
+	pb_getcdv3 "github.com/cwloo/grpc-etcdv3/getcdv3/proto"
 	pb_file "github.com/cwloo/uploader/proto/file"
 	pb_public "github.com/cwloo/uploader/proto/public"
-	getcdv3 "github.com/cwloo/uploader/src/global/pkg/grpc-etcdv3/getcdv3"
-
 	"google.golang.org/grpc"
 )
 
@@ -87,10 +87,11 @@ func (s *RPCServer) Run(id int, name string) {
 	var opts []grpc.ServerOption
 	server := grpc.NewServer(opts...)
 	defer server.GracefulStop()
-	pb_file.RegisterFileServer(server, s)
+	pb_getcdv3.RegisterPeerServer(server, s)
 	pb_public.RegisterPeerServer(server, s)
+	pb_file.RegisterFileServer(server, s)
 	logs.Warnf("%v:%v etcd%v schema=%v node=%v:%v:%v", name, id, s.etcdAddr, s.etcdSchema, s.node, s.addr, s.port)
-	err = getcdv3.RegisterEtcd(s.etcdSchema, strings.Join(s.etcdAddr, ","), s.addr, s.port, s.node, config.Config.Etcd.Timeout.Keepalive)
+	err = getcdv3.RegisterEtcd(s.etcdSchema, s.node, s.addr, s.port, config.Config.Etcd.Timeout.Keepalive)
 	if err != nil {
 		errMsg := strings.Join([]string{s.etcdSchema, strings.Join(s.etcdAddr, ","), net.JoinHostPort(s.addr, strconv.Itoa(s.port)), s.node, err.Error()}, " ")
 		logs.Fatalf(errMsg)
@@ -128,7 +129,7 @@ func (r *RPCServer) GetNodeInfo(_ context.Context, req *pb_public.NodeInfoReq) (
 	return handler.GetNodeInfo()
 }
 
-func (r *RPCServer) GetAddr(_ context.Context, req *pb_public.PeerReq) (*pb_public.PeerResp, error) {
+func (r *RPCServer) GetAddr(_ context.Context, req *pb_getcdv3.PeerReq) (*pb_getcdv3.PeerResp, error) {
 	// logs.Debugf("%v [%v:%v %v:%v rpc:%v:%v NumOfLoads:%v] %+v",
 	// 	os.Getpid(),
 	// 	global.Name,
@@ -137,5 +138,5 @@ func (r *RPCServer) GetAddr(_ context.Context, req *pb_public.PeerReq) (*pb_publ
 	// 	config.Config.Rpc.Ip, config.Config.Rpc.File.Port[cmd.Id()],
 	// 	global.Uploaders.Len(),
 	// 	req)
-	return &pb_public.PeerResp{Addr: strings.Join([]string{config.Config.Rpc.Ip, strconv.Itoa(config.Config.Rpc.File.Port[cmd.Id()])}, ":")}, nil
+	return &pb_getcdv3.PeerResp{Addr: strings.Join([]string{config.Config.Rpc.Ip, strconv.Itoa(config.Config.Rpc.File.Port[cmd.Id()])}, ":")}, nil
 }

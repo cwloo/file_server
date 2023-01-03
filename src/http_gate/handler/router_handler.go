@@ -12,12 +12,13 @@ import (
 	"github.com/cwloo/gonet/core/base/sys/cmd"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
+	"github.com/cwloo/grpc-etcdv3/getcdv3"
+	"github.com/cwloo/grpc-etcdv3/getcdv3/gRPCs"
 	pb_file "github.com/cwloo/uploader/proto/file"
 	pb_public "github.com/cwloo/uploader/proto/public"
 	"github.com/cwloo/uploader/src/config"
 	"github.com/cwloo/uploader/src/global"
 	"github.com/cwloo/uploader/src/global/httpsrv"
-	"github.com/cwloo/uploader/src/global/pkg/grpc-etcdv3/getcdv3"
 )
 
 func GetNodeInfo() (*pb_public.NodeInfoResp, error) {
@@ -42,11 +43,11 @@ func GetNodeInfo() (*pb_public.NodeInfoResp, error) {
 
 func QueryRouter(md5 string) (*global.RouterResp, bool) {
 	utils.CheckPanic()
-	rpcConns := getcdv3.GetConns(config.Config.Etcd.Schema, strings.Join(config.Config.Etcd.Addr, ","), config.Config.Rpc.File.Node)
-	// logs.Infof("%v rpcConns.size=%v", md5, len(rpcConns))
+	rpcConns := getcdv3.GetConns(config.Config.Etcd.Schema, config.Config.Rpc.File.Node)
+	logs.Infof("%v rpcConns.size=%v", md5, len(rpcConns))
 	NumOfLoads := map[string]*pb_public.RouterResp{}
 	for _, v := range rpcConns {
-		client := pb_file.NewFileClient(v)
+		client := pb_file.NewFileClient(v.Conn())
 		switch client {
 		case nil:
 			continue
@@ -57,11 +58,13 @@ func QueryRouter(md5 string) (*global.RouterResp, bool) {
 		resp, err := client.GetRouter(context.Background(), req)
 		if err != nil {
 			logs.Errorf(err.Error())
+			gRPCs.Conns().RemoveBy(err)
 			continue
 		}
+		v.Free()
 		switch resp.ErrCode {
 		default:
-			logs.Errorf("%v %v [%v:%v %v:%v rpc:%v:%v NumOfLoads:%v]", v.Target(),
+			logs.Errorf("%v %v [%v:%v %v:%v rpc:%v:%v NumOfLoads:%v]", v.Conn().Target(),
 				resp.Node.Pid,
 				resp.Node.Name,
 				resp.Node.Id,
@@ -71,7 +74,7 @@ func QueryRouter(md5 string) (*global.RouterResp, bool) {
 			NumOfLoads[resp.Node.Domain] = resp
 			continue
 		case 0:
-			logs.Infof("%v %v [%v:%v %v:%v rpc:%v:%v NumOfLoads:%v]", v.Target(),
+			logs.Infof("%v %v [%v:%v %v:%v rpc:%v:%v NumOfLoads:%v]", v.Conn().Target(),
 				resp.Node.Pid,
 				resp.Node.Name,
 				resp.Node.Id,

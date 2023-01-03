@@ -11,6 +11,7 @@ import (
 	"github.com/cwloo/gonet/core/net/conn"
 	"github.com/cwloo/gonet/logs"
 	"github.com/cwloo/gonet/utils"
+	"github.com/cwloo/grpc-etcdv3/getcdv3"
 	"github.com/cwloo/uploader/src/global"
 	"github.com/cwloo/uploader/src/global/tg_bot"
 )
@@ -787,8 +788,11 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 
 func check() {
 	// logs.Infof("%v", ServiceName())
+
 	switch ServiceName() {
 	case Config.Monitor.Name:
+		getcdv3.Auth(Config.Etcd.UserName, Config.Etcd.Password)
+		getcdv3.Update(strings.Join(Config.Etcd.Addr, ","))
 		switch cmd.Log() == "" {
 		case true:
 			switch Config.Log.Monitor.Dir == "" {
@@ -816,6 +820,8 @@ func check() {
 			logs.SetLevel(logs.Level(Config.Log.Monitor.Level))
 		}
 	case Config.Gate.Name:
+		getcdv3.Auth(Config.Etcd.UserName, Config.Etcd.Password)
+		getcdv3.Update(strings.Join(Config.Etcd.Addr, ","))
 		switch cmd.Log() == "" {
 		case true:
 			switch Config.Log.Gate.Dir == "" {
@@ -843,6 +849,8 @@ func check() {
 			logs.SetLevel(logs.Level(Config.Log.Gate.Level))
 		}
 	case Config.Gate.Http.Name:
+		getcdv3.Auth(Config.Etcd.UserName, Config.Etcd.Password)
+		getcdv3.Update(strings.Join(Config.Etcd.Addr, ","))
 		switch cmd.Log() == "" {
 		case true:
 			switch Config.Log.Gate.Http.Dir == "" {
@@ -870,6 +878,8 @@ func check() {
 			logs.SetLevel(logs.Level(Config.Log.Gate.Http.Level))
 		}
 	case Config.File.Name:
+		getcdv3.Auth(Config.Etcd.UserName, Config.Etcd.Password)
+		getcdv3.Update(strings.Join(Config.Etcd.Addr, ","))
 		switch cmd.Log() == "" {
 		case true:
 			switch Config.Log.File.Dir == "" {

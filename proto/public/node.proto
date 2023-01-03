@@ -39,14 +39,6 @@ message NodeInfoResp {
   string errMsg = 3;
 }
 
-message PeerReq {
-}
-
-message PeerResp {
-  string addr = 1;
-}
-
 service peer {
-  rpc GetAddr(PeerReq) returns(PeerResp);
   rpc GetNodeInfo(NodeInfoReq) returns(NodeInfoResp);
 }
