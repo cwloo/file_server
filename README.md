@@ -2,7 +2,7 @@
 
 ###### go mod download github.com/cwloo/uploader@latest
 
-###### `loader 父进程，监控子进程状态并拉起，服务保活，防宕机`
+###### `loader 守护进程，监控子进程状态并拉起，服务保活，防宕机`
 
 ###### `http_gate 子进程，文件路由节点(多进程)`
 

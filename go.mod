@@ -79,10 +79,10 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )
 
-replace github.com/cwloo/gonet v0.0.0 => /mnt/hgfs/gonet
+// replace github.com/cwloo/gonet v0.0.0 => /mnt/hgfs/gonet
 
-replace github.com/cwloo/grpc-etcdv3 v0.0.0 => /mnt/hgfs/grpc-etcdv3
+// replace github.com/cwloo/grpc-etcdv3 v0.0.0 => /mnt/hgfs/grpc-etcdv3
 
-// replace github.com/cwloo/gonet v0.0.0 => E:\winshare\gonet
+replace github.com/cwloo/gonet v0.0.0 => E:\winshare\gonet
 
-// replace github.com/cwloo/grpc-etcdv3 v0.0.0 => E:\winshare\grpc-etcdv3
+replace github.com/cwloo/grpc-etcdv3 v0.0.0 => E:\winshare\grpc-etcdv3

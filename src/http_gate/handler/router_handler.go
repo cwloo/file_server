@@ -62,7 +62,6 @@ func QueryRouter(md5 string) (*global.RouterResp, bool) {
 			v.Close()
 			continue
 		}
-		v.Free()
 		switch resp.ErrCode {
 		default:
 			logs.Errorf("%v %v [%v:%v %v:%v rpc:%v:%v NumOfLoads:%v]", v.Conn().Target(),
@@ -73,6 +72,7 @@ func QueryRouter(md5 string) (*global.RouterResp, bool) {
 				resp.Node.Rpc.Ip, resp.Node.Rpc.Port,
 				resp.Node.NumOfLoads)
 			NumOfLoads[resp.Node.Domain] = resp
+			v.Free()
 			continue
 		case 0:
 			logs.Infof("%v %v [%v:%v %v:%v rpc:%v:%v NumOfLoads:%v]", v.Conn().Target(),
@@ -82,6 +82,7 @@ func QueryRouter(md5 string) (*global.RouterResp, bool) {
 				resp.Node.Ip, resp.Node.Port,
 				resp.Node.Rpc.Ip, resp.Node.Rpc.Port,
 				resp.Node.NumOfLoads)
+			v.Free()
 			return &global.RouterResp{
 				Node: &pb_public.NodeInfo{
 					Pid:        int32(resp.Node.Pid),
