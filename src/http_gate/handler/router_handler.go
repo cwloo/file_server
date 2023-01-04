@@ -44,7 +44,7 @@ func GetNodeInfo() (*pb_public.NodeInfoResp, error) {
 func QueryRouter(md5 string) (*global.RouterResp, bool) {
 	utils.CheckPanic()
 	rpcConns := getcdv3.GetConns(config.Config.Etcd.Schema, config.Config.Rpc.File.Node)
-	logs.Infof("%v rpcConns.size=%v", md5, len(rpcConns))
+	// logs.Infof("%v rpcConns.size=%v", md5, len(rpcConns))
 	NumOfLoads := map[string]*pb_public.RouterResp{}
 	for _, v := range rpcConns {
 		client := pb_file.NewFileClient(v.Conn())
@@ -59,6 +59,7 @@ func QueryRouter(md5 string) (*global.RouterResp, bool) {
 		if err != nil {
 			logs.Errorf(err.Error())
 			gRPCs.Conns().RemoveBy(err)
+			v.Close()
 			continue
 		}
 		v.Free()

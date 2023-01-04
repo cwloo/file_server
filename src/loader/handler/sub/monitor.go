@@ -38,9 +38,10 @@ func List() {
 				if err != nil {
 					logs.Errorf("%v [%v:%v rpc=%v:%v:%v %v", pid, p.Name, p.Id+1, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port, err.Error())
 					gRPCs.Conns().RemoveBy(err)
-					v.Free()
+					v.Close()
 					return
 				}
+				v.Free()
 				pends = int(resp.Node.NumOfPends)
 				files = int(resp.Node.NumOfFiles)
 				uploaders = int(resp.Node.NumOfLoads)
@@ -57,9 +58,10 @@ func List() {
 				if err != nil {
 					logs.Errorf("%v [%v:%v rpc=%v:%v:%v %v", pid, p.Name, p.Id+1, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port, err.Error())
 					gRPCs.Conns().RemoveBy(err)
-					v.Free()
+					v.Close()
 					return
 				}
+				v.Free()
 				pends = int(resp.Node.NumOfPends)
 				files = int(resp.Node.NumOfFiles)
 				uploaders = int(resp.Node.NumOfLoads)
@@ -76,9 +78,10 @@ func List() {
 				if err != nil {
 					logs.Errorf("%v [%v:%v rpc=%v:%v:%v %v", pid, p.Name, p.Id+1, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port, err.Error())
 					gRPCs.Conns().RemoveBy(err)
-					v.Free()
+					v.Close()
 					return
 				}
+				v.Free()
 				pends = int(resp.Node.NumOfPends)
 				files = int(resp.Node.NumOfFiles)
 				uploaders = int(resp.Node.NumOfLoads)
