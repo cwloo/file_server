@@ -8,9 +8,9 @@ export PURPLE_PREFIX="\033[35m"
 export SKY_BLUE_PREFIX="\033[36m"
 
 makelist=(
-     ./src/test
-    ./src/loader
-    ./src/http_gate
-    ./src/file_server
-    ./src/file_client
+    test
+    loader
+    http_gate
+    file_server
+    file_client
 )

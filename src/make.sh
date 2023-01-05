@@ -3,7 +3,7 @@
 source ${PWD}/Makelist
 
 BASE_DIR=${PWD}
-export BIN_DIR=${BASE_DIR}/deploy/bin
+export BIN_DIR=${BASE_DIR}/../deploy/bin
 
 # '@'/'*'
 n=${#makelist[@]}
