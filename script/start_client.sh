@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
+source ${PWD}/stop_client.sh
+
+./stop_client.sh
 
 BASE_DIR=${PWD}/..
 BIN_DIR=${BASE_DIR}/deploy/bin
-
-cd ${BIN_DIR}
 
 if [[ -f "${BIN_DIR}/loader" ]]; then
   cd ${BIN_DIR}

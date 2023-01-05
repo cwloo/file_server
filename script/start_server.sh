@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+source ${PWD}/stop_server.sh
+
+./stop_server.sh
 
 BASE_DIR=${PWD}/..
 BIN_DIR=${BASE_DIR}/deploy/bin
