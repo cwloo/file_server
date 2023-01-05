@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source ${PWD}/makelist.md
+source ${PWD}/Makelist
 
 BASE_DIR=${PWD}
 export BIN_DIR=${BASE_DIR}/deploy/bin
