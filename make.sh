@@ -32,7 +32,7 @@ for i in ${!makelist[@]}; do
     make subsystem
     c=`expr $c + 1`
   else
-			echo -e ${RED_PREFIX}"error"${COLOR_SUFFIX} ${YELLOW_PREFIX}${MAKE_DIR}"/Makefile"${COLOR_SUFFIX}"\n"
+    echo -e ${RED_PREFIX}"error"${COLOR_SUFFIX} ${YELLOW_PREFIX}${MAKE_DIR}"/Makefile"${COLOR_SUFFIX}"\n"
   fi
 done
 
