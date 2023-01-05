@@ -29,6 +29,7 @@ for i in ${!makelist[@]}; do
 #for makepath in ${makelist[@]}; do
   export MAKE_DIR=${BASE_DIR}/${makepath}
   if [[ -f "${MAKE_DIR}/Makefile" ]]; then
+    echo -e "\n"
     make subsystem
     c=`expr $c + 1`
   else
