@@ -788,7 +788,6 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 
 func check() {
 	// logs.Infof("%v", ServiceName())
-
 	switch ServiceName() {
 	case Config.Monitor.Name:
 		getcdv3.Auth(Config.Etcd.UserName, Config.Etcd.Password)

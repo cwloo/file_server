@@ -27,7 +27,7 @@ func List() {
 		utils.CheckPanic()
 		switch p.Name {
 		case config.Config.Gate.Name:
-			// logs.ErrorfL("etcd[%v] %v:///%v:%v:%v/", strings.Join(config.Config.Etcd.Addr, ","), config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
+			// logs.ErrorfL("%v:///%v:%v:%v/", config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
 			v, _ := getcdv3.GetConn(config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
 			switch v {
 			case nil:
@@ -47,7 +47,7 @@ func List() {
 				uploaders = int(resp.Node.NumOfLoads)
 			}
 		case config.Config.Gate.Http.Name:
-			// logs.ErrorfL("etcd[%v] %v:///%v:%v:%v/", strings.Join(config.Config.Etcd.Addr, ","), config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
+			// logs.ErrorfL("%v:///%v:%v:%v/", config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
 			v, _ := getcdv3.GetConn(config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
 			switch v {
 			case nil:
@@ -67,7 +67,7 @@ func List() {
 				uploaders = int(resp.Node.NumOfLoads)
 			}
 		case config.Config.File.Name:
-			// logs.ErrorfL("etcd[%v] %v:///%v:%v:%v/", strings.Join(config.Config.Etcd.Addr, ","), config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
+			// logs.ErrorfL("%v:///%v:%v:%v/", config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
 			v, _ := getcdv3.GetConn(config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
 			switch v {
 			case nil:
