@@ -7,8 +7,8 @@ type RPCServer interface {
 	Addr() string
 	Port() int
 	Node() string
-	EtcdSchema() string
-	EtcdAddr() []string
+	Schema() string
 	Target() string
+	Init(id int, name string)
 	Run(id int, name string)
 }

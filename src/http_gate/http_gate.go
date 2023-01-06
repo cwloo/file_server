@@ -24,11 +24,11 @@ func init() {
 func main() {
 	cmd.ParseArgs()
 	config.InitHttpGateConfig(cmd.Conf())
-	logs.SetTimezone(logs.Timezone(config.Config.Log.Gate.Http.Timezone))
-	logs.SetMode(logs.Mode(config.Config.Log.Gate.Http.Mode))
-	logs.SetStyle(logs.Style(config.Config.Log.Gate.Http.Style))
-	logs.SetLevel(logs.Level(config.Config.Log.Gate.Http.Level))
-	logs.Init(config.Config.Log.Gate.Http.Dir, global.Exe, 100000000)
+	logs.SetTimezone(logs.Timezone(config.Config.Log.HttpGate.Timezone))
+	logs.SetMode(logs.Mode(config.Config.Log.HttpGate.Mode))
+	logs.SetStyle(logs.Style(config.Config.Log.HttpGate.Style))
+	logs.SetLevel(logs.Level(config.Config.Log.HttpGate.Level))
+	logs.Init(config.Config.Log.HttpGate.Dir, global.Exe, 100000000)
 
 	task.After(time.Duration(config.Config.Interval)*time.Second, cb.NewFunctor00(func() {
 		handler.ReadConfig()

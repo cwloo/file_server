@@ -23,6 +23,9 @@ func (s *Router) Server() httpsrv.HttpServer {
 	return s.server
 }
 
+func (s *Router) Init(id int, name string) {
+}
+
 func (s *Router) Run(id int, name string) {
 	switch cmd.PatternArg("server") {
 	case "":

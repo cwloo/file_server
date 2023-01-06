@@ -50,14 +50,14 @@ type IniConfig struct {
 			Mode     int    `json:"mode" form:"mode"`
 			Style    int    `json:"style" form:"style"`
 			Timezone int    `json:"timezone" form:"timezone"`
-			Http     struct {
-				Dir      string `json:"dir" form:"dir"`
-				Level    int    `json:"level" form:"level"`
-				Mode     int    `json:"mode" form:"mode"`
-				Style    int    `json:"style" form:"style"`
-				Timezone int    `json:"timezone" form:"timezone"`
-			} `json:"http" form:"http"`
 		} `json:"gate" form:"gate"`
+		HttpGate struct {
+			Dir      string `json:"dir" form:"dir"`
+			Level    int    `json:"level" form:"level"`
+			Mode     int    `json:"mode" form:"mode"`
+			Style    int    `json:"style" form:"style"`
+			Timezone int    `json:"timezone" form:"timezone"`
+		} `json:"http_gate" form:"http_gate"`
 		File struct {
 			Dir      string `json:"dir" form:"dir"`
 			Level    int    `json:"level" form:"level"`
@@ -76,12 +76,12 @@ type IniConfig struct {
 			Num  int    `json:"num" form:"num"`
 			Dir  string `json:"dir" form:"dir"`
 			Exec string `json:"exec" form:"exec"`
-			Http struct {
-				Num  int    `json:"num" form:"num"`
-				Dir  string `json:"dir" form:"dir"`
-				Exec string `json:"exec" form:"exec"`
-			} `json:"http" form:"http"`
 		} `json:"gate" form:"gate"`
+		HttpGate struct {
+			Num  int    `json:"num" form:"num"`
+			Dir  string `json:"dir" form:"dir"`
+			Exec string `json:"exec" form:"exec"`
+		} `json:"http_gate" form:"http_gate"`
 		File struct {
 			Num  int    `json:"num" form:"num"`
 			Dir  string `json:"dir" form:"dir"`
@@ -149,7 +149,6 @@ type IniConfig struct {
 		ReadBufferSize   int `json:"readBufferSize" form:"readBufferSize"`
 		PrintInterval    int `json:"printInterval" form:"printInterval"`
 		Http             struct {
-			Name        string `json:"name" form:"name"`
 			Ip          string `json:"ip" form:"ip"`
 			Port        []int  `json:"port" form:"port"`
 			MaxConn     int    `json:"maxConn" form:"maxConn"`
@@ -159,6 +158,16 @@ type IniConfig struct {
 			} `json:"path" form:"path"`
 		} `json:"http" form:"http"`
 	} `json:"gate" form:"gate"`
+	HttpGate struct {
+		Name        string `json:"name" form:"name"`
+		Ip          string `json:"ip" form:"ip"`
+		Port        []int  `json:"port" form:"port"`
+		MaxConn     int    `json:"maxConn" form:"maxConn"`
+		IdleTimeout int    `json:"idleTimeout" form:"idleTimeout"`
+		Path        struct {
+			Router string `json:"router" form:"router"`
+		} `json:"path" form:"path"`
+	} `json:"http_gate" form:"http_gate"`
 	File struct {
 		Name        string   `json:"name" form:"name"`
 		Ip          string   `json:"ip" form:"ip"`
@@ -199,11 +208,11 @@ type IniConfig struct {
 		Gate struct {
 			Port []int  `json:"port" form:"port"`
 			Node string `json:"node" form:"node"`
-			Http struct {
-				Port []int  `json:"port" form:"port"`
-				Node string `json:"node" form:"node"`
-			} `json:"http" form:"http"`
 		} `json:"gate" form:"gate"`
+		HttpGate struct {
+			Port []int  `json:"port" form:"port"`
+			Node string `json:"node" form:"node"`
+		} `json:"http_gate" form:"http_gate"`
 		File struct {
 			Port []int  `json:"port" form:"port"`
 			Node string `json:"node" form:"node"`
@@ -305,8 +314,8 @@ type IniConfig struct {
 			Addr  []string `json:"addr" form:"addr"`
 			Topic string   `json:"topic" form:"topic"`
 		}
-		ConsumerGroupID struct {
-			MsgToRedis string `json:"msgToTransfer" form:"msgToTransfer"`
+		ConsumerGroup struct {
+			MsgToRedis string `json:"msgToRedis" form:"msgToRedis"`
 			MsgToMongo string `json:"msgToMongo" form:"msgToMongo"`
 			MsgToMySql string `json:"msgToMySql" form:"msgToMySql"`
 			MsgToPush  string `json:"msgToPush" form:"msgToPush"`
@@ -370,7 +379,7 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 	c.Monitor.Name = ini.GetString("monitor", "name")
 	c.Client.Name = ini.GetString("client", "name")
 	c.Gate.Name = ini.GetString("gate", "name")
-	c.Gate.Http.Name = ini.GetString("gate.http", "name")
+	c.HttpGate.Name = ini.GetString("http_gate", "name")
 	c.File.Name = ini.GetString("file", "name")
 	setServiceName(cb, c)
 	// Log
@@ -389,11 +398,11 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 	c.Log.Gate.Mode = ini.GetInt("log", "gate.mode")
 	c.Log.Gate.Style = ini.GetInt("log", "gate.style")
 	c.Log.Gate.Timezone = ini.GetInt("log", "gate.timezone")
-	c.Log.Gate.Http.Dir = ini.GetString("log", "gate.http.dir")
-	c.Log.Gate.Http.Level = ini.GetInt("log", "gate.http.level")
-	c.Log.Gate.Http.Mode = ini.GetInt("log", "gate.http.mode")
-	c.Log.Gate.Http.Style = ini.GetInt("log", "gate.http.style")
-	c.Log.Gate.Http.Timezone = ini.GetInt("log", "gate.http.timezone")
+	c.Log.HttpGate.Dir = ini.GetString("log", "http_gate.dir")
+	c.Log.HttpGate.Level = ini.GetInt("log", "http_gate.level")
+	c.Log.HttpGate.Mode = ini.GetInt("log", "http_gate.mode")
+	c.Log.HttpGate.Style = ini.GetInt("log", "http_gate.style")
+	c.Log.HttpGate.Timezone = ini.GetInt("log", "http_gate.timezone")
 	c.Log.File.Dir = ini.GetString("log", "file.dir")
 	c.Log.File.Level = ini.GetInt("log", "file.level")
 	c.Log.File.Mode = ini.GetInt("log", "file.mode")
@@ -406,9 +415,9 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 	c.Sub.Gate.Num = ini.GetInt("sub", "gate.num")
 	c.Sub.Gate.Dir = ini.GetString("sub", "gate.dir")
 	c.Sub.Gate.Exec = ini.GetString("sub", "gate.execname")
-	c.Sub.Gate.Http.Num = ini.GetInt("sub", "gate.http.num")
-	c.Sub.Gate.Http.Dir = ini.GetString("sub", "gate.http.dir")
-	c.Sub.Gate.Http.Exec = ini.GetString("sub", "gate.http.execname")
+	c.Sub.HttpGate.Num = ini.GetInt("sub", "http_gate.num")
+	c.Sub.HttpGate.Dir = ini.GetString("sub", "http_gate.dir")
+	c.Sub.HttpGate.Exec = ini.GetString("sub", "http_gate.execname")
 	c.Sub.File.Num = ini.GetInt("sub", "file.num")
 	c.Sub.File.Dir = ini.GetString("sub", "file.dir")
 	c.Sub.File.Exec = ini.GetString("sub", "file.execname")
@@ -615,6 +624,19 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 	c.Gate.Http.MaxConn = ini.GetInt("gate.http", "maxConn")
 	c.Gate.Http.IdleTimeout = ini.GetInt("gate.http", "idleTimeout")
 	c.Gate.Http.Path.Router = ini.GetString("path", "gate.http.router")
+	// HttpGate
+	// c.HttpGate.Name = ini.GetString("http_gate", "name")
+	c.HttpGate.Ip = ini.GetString("http_gate", "ip")
+	ports = strings.Split(ini.GetString("http_gate", "port"), ",")
+	for _, port := range ports {
+		switch port == "" {
+		case false:
+			c.HttpGate.Port = append(c.HttpGate.Port, utils.Atoi(port))
+		}
+	}
+	c.HttpGate.MaxConn = ini.GetInt("http_gate", "maxConn")
+	c.HttpGate.IdleTimeout = ini.GetInt("http_gate", "idleTimeout")
+	c.HttpGate.Path.Router = ini.GetString("path", "http_gate.router")
 	// Rpc
 	c.Rpc.Ip = ini.GetString("rpc", "ip")
 	c.Rpc.Monitor.Node = ini.GetString("rpc", "monitor.node")
@@ -633,12 +655,12 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 			c.Rpc.Gate.Port = append(c.Rpc.Gate.Port, utils.Atoi(port))
 		}
 	}
-	c.Rpc.Gate.Http.Node = ini.GetString("rpc", "gate.http.node")
-	ports = strings.Split(ini.GetString("rpc", "gate.http.port"), ",")
+	c.Rpc.HttpGate.Node = ini.GetString("rpc", "http_gate.node")
+	ports = strings.Split(ini.GetString("rpc", "http_gate.port"), ",")
 	for _, port := range ports {
 		switch port == "" {
 		case false:
-			c.Rpc.Gate.Http.Port = append(c.Rpc.Gate.Http.Port, utils.Atoi(port))
+			c.Rpc.HttpGate.Port = append(c.Rpc.HttpGate.Port, utils.Atoi(port))
 		}
 	}
 	c.Rpc.File.Node = ini.GetString("rpc", "file.node")
@@ -696,6 +718,37 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 	c.Redis.Username = ini.GetString("redis", "username")
 	c.Redis.Password = ini.GetString("redis", "password")
 	c.Redis.Cluster = ini.GetInt("redis", "cluster") > 0
+	// kafka
+	c.Kafka.SASLUserName = ini.GetString("kafka", "username")
+	c.Kafka.SASLPassword = ini.GetString("kafka", "password")
+	addrs = strings.Split(ini.GetString("kafka", "ws2mschat.addr"), ",")
+	for _, addr := range addrs {
+		switch addr == "" {
+		case false:
+			c.Kafka.Ws2mschat.Addr = append(c.Kafka.Ws2mschat.Addr, addr)
+		}
+	}
+	c.Kafka.Ws2mschat.Topic = ini.GetString("kafka", "ws2mschat.topic")
+	addrs = strings.Split(ini.GetString("kafka", "msgToMongo.addr"), ",")
+	for _, addr := range addrs {
+		switch addr == "" {
+		case false:
+			c.Kafka.MsgToMongo.Addr = append(c.Kafka.MsgToMongo.Addr, addr)
+		}
+	}
+	c.Kafka.MsgToMongo.Topic = ini.GetString("kafka", "msgToMongo.topic")
+	addrs = strings.Split(ini.GetString("kafka", "ms2pschat.addr"), ",")
+	for _, addr := range addrs {
+		switch addr == "" {
+		case false:
+			c.Kafka.Ms2pschat.Addr = append(c.Kafka.Ms2pschat.Addr, addr)
+		}
+	}
+	c.Kafka.Ms2pschat.Topic = ini.GetString("kafka", "ms2pschat.topic")
+	c.Kafka.ConsumerGroup.MsgToRedis = ini.GetString("kafka", "consumerGroup.msgToRedis")
+	c.Kafka.ConsumerGroup.MsgToMongo = ini.GetString("kafka", "consumerGroup.msgToMongo")
+	c.Kafka.ConsumerGroup.MsgToMySql = ini.GetString("kafka", "consumerGroup.msgToMySql")
+	c.Kafka.ConsumerGroup.MsgToPush = ini.GetString("kafka", "consumerGroup.msgToPush")
 	// Prometheus
 	c.Prometheus.Enable = ini.GetInt("prometheus", "enable") > 0
 	c.Prometheus.Ip = ini.GetString("prometheus", "ip")
@@ -847,34 +900,34 @@ func check() {
 		case true:
 			logs.SetLevel(logs.Level(Config.Log.Gate.Level))
 		}
-	case Config.Gate.Http.Name:
+	case Config.HttpGate.Name:
 		getcdv3.Auth(Config.Etcd.UserName, Config.Etcd.Password)
 		getcdv3.Update(strings.Join(Config.Etcd.Addr, ","))
 		switch cmd.Log() == "" {
 		case true:
-			switch Config.Log.Gate.Http.Dir == "" {
+			switch Config.Log.HttpGate.Dir == "" {
 			case true:
-				Config.Log.Gate.Http.Dir = global.Dir + "log"
+				Config.Log.HttpGate.Dir = global.Dir + "log"
 			default:
 			}
 		default:
-			Config.Log.Gate.Http.Dir = cmd.Log()
+			Config.Log.HttpGate.Dir = cmd.Log()
 		}
-		switch Config.Log.Gate.Http.Timezone != int(logs.GetTimezone()) {
+		switch Config.Log.HttpGate.Timezone != int(logs.GetTimezone()) {
 		case true:
-			logs.SetTimezone(logs.Timezone(Config.Log.Gate.Http.Timezone))
+			logs.SetTimezone(logs.Timezone(Config.Log.HttpGate.Timezone))
 		}
-		switch Config.Log.Gate.Http.Mode != int(logs.GetMode()) {
+		switch Config.Log.HttpGate.Mode != int(logs.GetMode()) {
 		case true:
-			logs.SetMode(logs.Mode(Config.Log.Gate.Http.Mode))
+			logs.SetMode(logs.Mode(Config.Log.HttpGate.Mode))
 		}
-		switch Config.Log.Gate.Http.Style != int(logs.GetStyle()) {
+		switch Config.Log.HttpGate.Style != int(logs.GetStyle()) {
 		case true:
-			logs.SetStyle(logs.Style(Config.Log.Gate.Http.Style))
+			logs.SetStyle(logs.Style(Config.Log.HttpGate.Style))
 		}
-		switch Config.Log.Gate.Http.Level != int(logs.GetLevel()) {
+		switch Config.Log.HttpGate.Level != int(logs.GetLevel()) {
 		case true:
-			logs.SetLevel(logs.Level(Config.Log.Gate.Http.Level))
+			logs.SetLevel(logs.Level(Config.Log.HttpGate.Level))
 		}
 	case Config.File.Name:
 		getcdv3.Auth(Config.Etcd.UserName, Config.Etcd.Password)
@@ -967,7 +1020,7 @@ func InitGateConfig(conf string) {
 
 func InitHttpGateConfig(conf string) {
 	read(conf, func(c *IniConfig) string {
-		return c.Gate.Http.Name
+		return c.HttpGate.Name
 	})
 	switch Config.Flag {
 	case 1:
@@ -1081,7 +1134,7 @@ func GetConfig(req *global.GetCfgReq) (*global.GetCfgResp, bool) {
 		mode = Config.Log.Monitor.Mode
 		style = Config.Log.Monitor.Style
 		timezone = Config.Log.Monitor.Timezone
-	case Config.Gate.Http.Name:
+	case Config.HttpGate.Name:
 		dir = Config.Log.Monitor.Dir
 		level = Config.Log.Monitor.Level
 		mode = Config.Log.Monitor.Mode

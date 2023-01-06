@@ -11,10 +11,12 @@ var (
 )
 
 func Run(id int, name string) {
-	global.Server = &Router{}
+	global.Router = &Router{}
 	global.RpcServer = &RPCServer{}
+	global.Router.Init(id, name)
+	global.RpcServer.Init(id, name)
 	wg.Add(2)
-	go global.Server.Run(id, name)
+	go global.Router.Run(id, name)
 	go global.RpcServer.Run(id, name)
 	wg.Wait()
 }

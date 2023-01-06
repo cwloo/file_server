@@ -46,16 +46,15 @@ func (s *RPCServer) Node() string {
 	return s.node
 }
 
-func (s *RPCServer) EtcdSchema() string {
+func (s *RPCServer) Schema() string {
 	return s.etcdSchema
-}
-
-func (s *RPCServer) EtcdAddr() []string {
-	return s.etcdAddr
 }
 
 func (s *RPCServer) Target() string {
 	return s.target
+}
+
+func (s *RPCServer) Init(id int, name string) {
 }
 
 func (s *RPCServer) Run(id int, name string) {
@@ -90,7 +89,7 @@ func (s *RPCServer) Run(id int, name string) {
 	pb_getcdv3.RegisterPeerServer(server, s)
 	pb_public.RegisterPeerServer(server, s)
 	pb_file.RegisterFileServer(server, s)
-	logs.Warnf("%v:%v etcd%v schema=%v node=%v:%v:%v", name, id, s.etcdAddr, s.etcdSchema, s.node, s.addr, s.port)
+	logs.Warnf("%v:%v etcd%v %v %v:%v:%v", name, id, s.etcdAddr, s.etcdSchema, s.node, s.addr, s.port)
 	err = getcdv3.RegisterEtcd(s.etcdSchema, s.node, s.addr, s.port, config.Config.Etcd.Timeout.Keepalive)
 	if err != nil {
 		errMsg := strings.Join([]string{s.etcdSchema, strings.Join(s.etcdAddr, ","), net.JoinHostPort(s.addr, strconv.Itoa(s.port)), s.node, err.Error()}, " ")

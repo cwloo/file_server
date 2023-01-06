@@ -52,7 +52,8 @@ var (
 
 var (
 	Name      string
-	Server    Router
+	Server    TCPServer
+	Router    HTTPServer
 	RpcServer RPCServer
 )
 

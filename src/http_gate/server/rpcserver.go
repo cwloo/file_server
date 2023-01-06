@@ -46,26 +46,25 @@ func (s *RPCServer) Node() string {
 	return s.node
 }
 
-func (s *RPCServer) EtcdSchema() string {
+func (s *RPCServer) Schema() string {
 	return s.etcdSchema
-}
-
-func (s *RPCServer) EtcdAddr() []string {
-	return s.etcdAddr
 }
 
 func (s *RPCServer) Target() string {
 	return s.target
 }
 
+func (s *RPCServer) Init(id int, name string) {
+}
+
 func (s *RPCServer) Run(id int, name string) {
 	switch cmd.PatternArg("rpc") {
 	case "":
-		if id >= len(config.Config.Rpc.Gate.Http.Port) {
-			logs.Fatalf("error id=%v Rpc.Gate.Http.Port.size=%v", id, len(config.Config.Rpc.Gate.Http.Port))
+		if id >= len(config.Config.Rpc.HttpGate.Port) {
+			logs.Fatalf("error id=%v Rpc.HttpGate.Port.size=%v", id, len(config.Config.Rpc.HttpGate.Port))
 		}
 		s.addr = config.Config.Rpc.Ip
-		s.port = config.Config.Rpc.Gate.Http.Port[id]
+		s.port = config.Config.Rpc.HttpGate.Port[id]
 	default:
 		addr := conn.ParseAddress(cmd.PatternArg("rpc"))
 		switch addr {
@@ -76,7 +75,7 @@ func (s *RPCServer) Run(id int, name string) {
 			s.port = utils.Atoi(addr.Port)
 		}
 	}
-	s.node = config.Config.Rpc.Gate.Http.Node
+	s.node = config.Config.Rpc.HttpGate.Node
 	s.etcdSchema = config.Config.Etcd.Schema
 	s.etcdAddr = config.Config.Etcd.Addr
 	listener, err := net.Listen("tcp", strings.Join([]string{s.addr, strconv.Itoa(s.port)}, ":"))
@@ -90,7 +89,7 @@ func (s *RPCServer) Run(id int, name string) {
 	pb_getcdv3.RegisterPeerServer(server, s)
 	pb_public.RegisterPeerServer(server, s)
 	pb_httpgate.RegisterHttpGateServer(server, s)
-	logs.Warnf("%v:%v etcd%v schema=%v node=%v:%v:%v", name, id, s.etcdAddr, s.etcdSchema, s.node, s.addr, s.port)
+	logs.Warnf("%v:%v etcd%v %v %v:%v:%v", name, id, s.etcdAddr, s.etcdSchema, s.node, s.addr, s.port)
 	err = getcdv3.RegisterEtcd(s.etcdSchema, s.node, s.addr, s.port, config.Config.Etcd.Timeout.Keepalive)
 	if err != nil {
 		errMsg := strings.Join([]string{s.etcdSchema, strings.Join(s.etcdAddr, ","), net.JoinHostPort(s.addr, strconv.Itoa(s.port)), s.node, err.Error()}, " ")
@@ -110,8 +109,8 @@ func (r *RPCServer) GetRouter(_ context.Context, req *pb_public.RouterReq) (*pb_
 		os.Getpid(),
 		global.Name,
 		cmd.Id()+1,
-		config.Config.Gate.Http.Ip, config.Config.Gate.Http.Port[cmd.Id()],
-		config.Config.Rpc.Ip, config.Config.Rpc.Gate.Http.Port[cmd.Id()],
+		config.Config.HttpGate.Ip, config.Config.HttpGate.Port[cmd.Id()],
+		config.Config.Rpc.Ip, config.Config.Rpc.HttpGate.Port[cmd.Id()],
 		global.Uploaders.Len(),
 		req)
 	return &pb_public.RouterResp{}, nil
@@ -122,8 +121,8 @@ func (r *RPCServer) GetNodeInfo(_ context.Context, req *pb_public.NodeInfoReq) (
 	// 	os.Getpid(),
 	// 	global.Name,
 	// 	cmd.Id()+1,
-	// 	config.Config.Gate.Http.Ip, config.Config.Gate.Http.Port[cmd.Id()],
-	// 	config.Config.Rpc.Ip, config.Config.Rpc.Gate.Http.Port[cmd.Id()],
+	// 	config.Config.HttpGate.Ip, config.Config.HttpGate.Port[cmd.Id()],
+	// 	config.Config.Rpc.Ip, config.Config.Rpc.HttpGate.Port[cmd.Id()],
 	// 	global.Uploaders.Len(),
 	// 	req)
 	return handler.GetNodeInfo()
@@ -134,9 +133,9 @@ func (r *RPCServer) GetAddr(_ context.Context, req *pb_getcdv3.PeerReq) (*pb_get
 	// 	os.Getpid(),
 	// 	global.Name,
 	// 	cmd.Id()+1,
-	// 	config.Config.Gate.Http.Ip, config.Config.Gate.Http.Port[cmd.Id()],
-	// 	config.Config.Rpc.Ip, config.Config.Rpc.Gate.Http.Port[cmd.Id()],
+	// 	config.Config.HttpGate.Ip, config.Config.HttpGate.Port[cmd.Id()],
+	// 	config.Config.Rpc.Ip, config.Config.Rpc.HttpGate.Port[cmd.Id()],
 	// 	global.Uploaders.Len(),
 	// 	req)
-	return &pb_getcdv3.PeerResp{Addr: strings.Join([]string{config.Config.Rpc.Ip, strconv.Itoa(config.Config.Rpc.Gate.Http.Port[cmd.Id()])}, ":")}, nil
+	return &pb_getcdv3.PeerResp{Addr: strings.Join([]string{config.Config.Rpc.Ip, strconv.Itoa(config.Config.Rpc.HttpGate.Port[cmd.Id()])}, ":")}, nil
 }

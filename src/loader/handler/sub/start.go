@@ -103,7 +103,7 @@ func Start() {
 			Exec: config.Config.Sub.Gate.Exec + sys.Ext,
 			Conf: cmd.Conf(),
 			Log:  cmd.Log()},
-		config.Config.Gate.Http.Name: {
+		config.Config.HttpGate.Name: {
 			Server: struct {
 				Ip   string
 				Port []int
@@ -113,22 +113,22 @@ func Start() {
 					Node string
 				}
 			}{
-				Ip:   config.Config.Gate.Http.Ip,
-				Port: config.Config.Gate.Http.Port,
+				Ip:   config.Config.HttpGate.Ip,
+				Port: config.Config.HttpGate.Port,
 				Rpc: struct {
 					Ip   string
 					Port []int
 					Node string
 				}{
 					Ip:   config.Config.Rpc.Ip,
-					Port: config.Config.Rpc.Gate.Http.Port,
-					Node: config.Config.Rpc.Gate.Http.Node,
+					Port: config.Config.Rpc.HttpGate.Port,
+					Node: config.Config.Rpc.HttpGate.Node,
 				},
 			},
-			Num:  config.Config.Sub.Gate.Http.Num,
-			Cmd:  strings.Join([]string{sys.Cmd, config.Config.Sub.Gate.Http.Exec, sys.Ext}, ""),
-			Dir:  sys.CorrectPath(strings.Join([]string{cmd.Root(), sys.P, config.Config.Sub.Gate.Http.Dir, sys.P}, "")),
-			Exec: config.Config.Sub.Gate.Http.Exec + sys.Ext,
+			Num:  config.Config.Sub.HttpGate.Num,
+			Cmd:  strings.Join([]string{sys.Cmd, config.Config.Sub.HttpGate.Exec, sys.Ext}, ""),
+			Dir:  sys.CorrectPath(strings.Join([]string{cmd.Root(), sys.P, config.Config.Sub.HttpGate.Dir, sys.P}, "")),
+			Exec: config.Config.Sub.HttpGate.Exec + sys.Ext,
 			Conf: cmd.Conf(),
 			Log:  cmd.Log()},
 		config.Config.File.Name: {

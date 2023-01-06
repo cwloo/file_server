@@ -3,9 +3,10 @@ package global
 import "github.com/cwloo/uploader/src/global/httpsrv"
 
 // <summary>
-// Router
+// HTTPServer
 // <summary>
-type Router interface {
+type HTTPServer interface {
 	Server() httpsrv.HttpServer
+	Init(id int, name string)
 	Run(id int, name string)
 }

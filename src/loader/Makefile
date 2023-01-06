@@ -22,4 +22,4 @@ install: clean gotool build
 
 clean:
 	@echo -e ${BLUE_PREFIX}"clean"${COLOR_SUFFIX} ${GREEN_PREFIX}$(BIN_DIR)/$(BINARY_NAME)${COLOR_SUFFIX}
-	@bash -c "cd $(BIN_DIR); if [ -f $(BINARY_NAME) ] ; then rm $(BINARY_NAME) ; fi"
+	@bash -c "cd $(BIN_DIR); if [ -f $(BINARY_NAME) ] ; then rm -rf $(BINARY_NAME) ; fi"

@@ -46,7 +46,7 @@ func List() {
 				files = int(resp.Node.NumOfFiles)
 				uploaders = int(resp.Node.NumOfLoads)
 			}
-		case config.Config.Gate.Http.Name:
+		case config.Config.HttpGate.Name:
 			// logs.ErrorfL("%v:///%v:%v:%v/", config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
 			v, _ := getcdv3.GetConn(config.Config.Etcd.Schema, p.Server.Rpc.Node, p.Server.Rpc.Ip, p.Server.Rpc.Port)
 			switch v {
