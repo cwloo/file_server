@@ -612,7 +612,6 @@ func readIni(filename string, cb func(*IniConfig) string) (c *IniConfig) {
 	c.Gate.ReadBufferSize = ini.GetInt("gate", "readBufferSize")
 	c.Gate.PrintInterval = ini.GetInt("gate", "printInterval")
 	c.Gate.Path.Handshake = ini.GetString("path", "gate.handshake")
-	// c.Gate.Http.Name = ini.GetString("gate.http", "name")
 	c.Gate.Http.Ip = ini.GetString("gate.http", "ip")
 	ports = strings.Split(ini.GetString("gate.http", "port"), ",")
 	for _, port := range ports {

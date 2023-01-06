@@ -29,13 +29,13 @@ func (s *Router) Init(id int, name string) {
 func (s *Router) Run(id int, name string) {
 	switch cmd.PatternArg("server") {
 	case "":
-		if id >= len(config.Config.Gate.Http.Port) {
-			logs.Fatalf("error id=%v Gate.Http.Port.size=%v", id, len(config.Config.Gate.Http.Port))
+		if id >= len(config.Config.HttpGate.Port) {
+			logs.Fatalf("error id=%v HttpGate.Port.size=%v", id, len(config.Config.HttpGate.Port))
 		}
 		s.server = httpsrv.NewHttpServer(
-			config.Config.Gate.Http.Ip,
-			config.Config.Gate.Http.Port[id],
-			config.Config.Gate.Http.IdleTimeout)
+			config.Config.HttpGate.Ip,
+			config.Config.HttpGate.Port[id],
+			config.Config.HttpGate.IdleTimeout)
 	default:
 		addr := conn.ParseAddress(cmd.PatternArg("server"))
 		switch addr {
@@ -45,12 +45,12 @@ func (s *Router) Run(id int, name string) {
 			s.server = httpsrv.NewHttpServer(
 				addr.Ip,
 				utils.Atoi(addr.Port),
-				config.Config.Gate.Http.IdleTimeout)
+				config.Config.HttpGate.IdleTimeout)
 		}
 	}
 	s.server.Router(config.Config.Path.UpdateCfg, s.UpdateConfigReq)
 	s.server.Router(config.Config.Path.GetCfg, s.GetConfigReq)
-	s.server.Router(config.Config.Gate.Http.Path.Router, s.RouterReq)
+	s.server.Router(config.Config.HttpGate.Path.Router, s.RouterReq)
 	s.server.Run(id, name)
 }
 
